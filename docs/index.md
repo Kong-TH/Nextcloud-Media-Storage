@@ -6,6 +6,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 
 ## Project
 
+- [Agent handoff and next tasks](agent-handoff.md)
 - [Project overview](project-overview.md)
 - [Changelog](changelog.md)
 
@@ -15,6 +16,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Sprint planning](agile/02-sprint-planning.md)
 - [Sprint 01: App foundation](agile/sprint-backlogs/sprint-01.md)
 - [Sprint 02: Secure API foundation](agile/sprint-backlogs/sprint-02.md)
+- [Sprint 03: Buckets and Material explorer](agile/sprint-backlogs/sprint-03.md)
 - [Foundation story](agile/user-stories/US-MS-01.md)
 - [Virtual hierarchy story](agile/user-stories/US-MS-02.md)
 - [Filesystem binding story](agile/user-stories/US-MS-03.md)

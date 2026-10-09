@@ -39,3 +39,9 @@ Added incremental token schema, 61 passing local token/scope/lifecycle checks, p
 ## 0.2.0 — Live upgrade and acceptance passed
 
 User successfully upgraded mediastorage from 0.1.0 to 0.2.0. Executed the combined Phase 1/2 HTTP suite: 70 checks passed against Nextcloud 34.0.4 / Snap MySQL. Verified real token issue/expiry/revocation/rotation, scope/folder boundaries, session/CSRF isolation, last-used/no-store behavior, actual filesystem bindings and deletion/recreation isolation without affecting another owner. Test fixtures cleaned up. Updated current docs to distinguish this evidence from untested providers, lifecycle races and later-phase features.
+
+## 2026-10-09 — Material skills and continuation handoff
+
+Added nine project Material skills: button, extended FAB, card, dialog, divider, list, loading indicator, navigation drawer and navigation rail. All passed skill-structure validation; this does not claim runtime verification of UI assets. Recorded source gaps and distinctions between Expressive design and baseline web APIs.
+
+Recorded the user's app-only Material UI direction and drawer-based bucket navigation. Bucket separation is a new requirement; virtual versus S3/MinIO semantics remain open. Added agent entry point, portable handoff, and planned Sprint 03 with migration/security/UI acceptance gates. Corrected stale current-state and licence guidance while retaining clearly historical checkpoints. No new application runtime code or tests were executed for this documentation update.
