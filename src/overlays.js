@@ -5,16 +5,16 @@ export default class DesignOverlays {
   this.root=root;this.tip=document.getElementById('action-tooltip');this.menu=null;this.owner=null;this.pending=null;this.suppressed=null;this.overTip=false;this.overOwner=false;
   root.addEventListener('pointerover',e=>{
    if(this.tip.contains(e.target)){this.overTip=true;clearTimeout(this.exitTimer);return;}
-   const trigger=e.target.closest('button[data-tip]');if(!trigger||trigger.contains(e.relatedTarget))return;
+   const trigger=e.target.closest('[data-tip]');if(!trigger||trigger.contains(e.relatedTarget))return;
    this.overOwner=true;this.schedule(trigger);
   });
   root.addEventListener('pointerout',e=>{
    if(this.tip.contains(e.target)&&!this.tip.contains(e.relatedTarget)){this.overTip=false;this.delayHide();return;}
-   const trigger=e.target.closest('button[data-tip]');if(!trigger||trigger.contains(e.relatedTarget))return;
+   const trigger=e.target.closest('[data-tip]');if(!trigger||trigger.contains(e.relatedTarget))return;
    if(this.suppressed===trigger)this.suppressed=null;
    if(this.owner===trigger||this.pending===trigger){this.overOwner=false;this.delayHide();}
   });
-  root.addEventListener('focusin',e=>{const trigger=e.target.closest('button[data-tip]');if(trigger)this.schedule(trigger);});
+  root.addEventListener('focusin',e=>{const trigger=e.target.closest('[data-tip]');if(trigger)this.schedule(trigger);});
   root.addEventListener('focusout',e=>{if(e.target===this.suppressed)this.suppressed=null;if(e.target===this.owner||e.target===this.pending)this.delayHide();});
   document.addEventListener('pointerdown',e=>{
    if(!this.menu)return;const path=e.composedPath();const {element,trigger}=this.menu;
@@ -30,11 +30,11 @@ export default class DesignOverlays {
    else if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
     e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?entries.length-1:(index+(e.key==='ArrowDown'?1:-1)+entries.length)%entries.length;entries[next]?.focus();
    }else if(e.key==='Tab'){
-    e.preventDefault();const tabs=[...document.querySelectorAll('button,input,select,a[href],[tabindex="0"]')].filter(x=>!x.disabled&&!x.closest('[inert]')&&x.tabIndex>=0&&x.getClientRects().length&&!element.contains(x));
+    e.preventDefault();const tabs=[...document.querySelectorAll('button,md-text-button,md-filled-button,md-icon-button,md-filled-tonal-icon-button,md-fab,input,select,a[href],[tabindex="0"]')].filter(x=>!x.disabled&&!x.closest('[inert]')&&(x===trigger||x.tabIndex>=0||(x.localName.startsWith('md-')&&!x.hasAttribute('tabindex')))&&x.getClientRects().length&&!element.contains(x));
     const next=tabs[tabs.indexOf(trigger)+(e.shiftKey?-1:1)];this.closeMenu(false);(next??trigger).focus();
    }
   },true);
-  root.addEventListener('click',e=>{if(e.target.closest('button')&&!this.tip.contains(e.target))this.hideTip(true);},true);
+  root.addEventListener('click',e=>{if(e.target.closest('button,md-text-button,md-icon-button,md-filled-tonal-icon-button,md-fab')&&!this.tip.contains(e.target))this.hideTip(true);},true);
   new MutationObserver(()=>{if(this.owner&&!this.available(this.owner))this.hideTip();if(this.pending&&!this.available(this.pending)){clearTimeout(this.showTimer);this.pending=null;}}).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','disabled','open']});
   addEventListener('resize',()=>this.position());document.addEventListener('scroll',()=>this.position(),true);
  }

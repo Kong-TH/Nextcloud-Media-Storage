@@ -72,3 +72,8 @@ GET /api/v1/buckets accepts nonnegative offset and returns {buckets:[{id,name,is
 ## Plugin virtual-path copying (frontend only)
 
 Details exposes Copy virtual path for media references using the existing server-derived `virtual_path` returned by GET /nodes/{id}. The exact path is relative to the displayed bucket and follows virtual rename/move independently of the physical file. This command adds no API or delivery route. Paths do not grant access and are not currently browser-openable media URLs. No Nextcloud native viewer link is copied.
+
+
+### Token-list lifetime policy (0.3.5)
+
+`GET /api/v1/tokens?limit=100&offset=0` retains `tokens` and adds `policy: {server_time: <Unix seconds>, max_lifetime_seconds: <integer>}`. The lifetime is the existing `max_token_lifetime` configuration clamped to 60–31536000 seconds. Session authentication, CSRF middleware and no-store headers remain. The UI refreshes policy before creation; callers must still handle server rejection if policy changes. This is additive metadata, with no schema or bearer API change.

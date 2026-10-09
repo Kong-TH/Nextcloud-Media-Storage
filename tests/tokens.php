@@ -36,10 +36,19 @@ $alice = double(OCP\IUser::class, ['getUID' => fn() => 'alice', 'isEnabled' => f
 $bob = double(OCP\IUser::class, ['getUID' => fn() => 'bob', 'isEnabled' => fn() => true]);
 $userMap = ['alice' => $alice, 'bob' => $bob];
 $users = double(OCP\IUserManager::class, ['get' => function ($uid) use (&$userMap) { return $userMap[$uid] ?? null; }]);
-$config = double(OCP\IConfig::class, ['getAppValue' => fn() => '31536000']);
+$lifetime = '31536000';
+$config = double(OCP\IConfig::class, ['getAppValue' => function () use (&$lifetime) { return $lifetime; }]);
 $files = double(OCP\Files\IRootFolder::class, []);
 $vfs = new VirtualFileSystemService($nodes, new MediaStorageService($files));
 $tokens = new ApiTokenService($repository, $nodes, $vfs, $users, $config);
+check($tokens->policy()['max_lifetime_seconds'] === 31536000, 'Default lifetime policy is exposed');
+foreach (['1' => 60, '3600' => 3600, '999999999' => 31536000] as $configured => $expected) {
+    $lifetime = (string)$configured;
+    check($tokens->policy()['max_lifetime_seconds'] === $expected, 'Configured lifetime policy is clamped consistently');
+}
+$lifetime = '3600';
+denied(fn() => $tokens->issue('alice', 'Beyond policy', ['media:read'], time() + 7200), 400, 'Issuance uses the advertised configured policy');
+$lifetime = '31536000';
 $api = new ScopedApiService($tokens, $nodes, $vfs);
 $folder = $vfs->create('alice', 'allowed'); $inside = $vfs->create('alice', 'inside', $folder['id']);
 $outside = $vfs->create('alice', 'outside'); $bobFolder = $vfs->create('bob', 'bob-only');
@@ -155,4 +164,6 @@ foreach (['create', 'destroy', 'rotate'] as $method) {
     check($reflection->getAttributes(OCP\AppFramework\Http\Attribute\NoCSRFRequired::class) === [] && $reflection->getAttributes(OCP\AppFramework\Http\Attribute\PublicPage::class) === [], 'Token dashboard retains middleware: ' . $method);
 }
 check((new ReflectionProperty(OCP\AppFramework\Http\Response::class, 'headers'))->getValue($controller->index())['Cache-Control'] === 'no-store', 'Token metadata uses no-store');
+check($controller->index()->getData()['policy']['max_lifetime_seconds'] === 31536000, 'Session token listing includes authoritative policy');
+check(abs($controller->index()->getData()['policy']['server_time'] - time()) <= 1, 'Policy exposes current server time');
 echo "PASS: $passed token/scope/lifecycle checks using strict public-interface doubles.\n";

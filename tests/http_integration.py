@@ -244,6 +244,10 @@ try:
         check(status == 403, 'Read token cannot mutate')
         status, listed = api(a, at, 'GET', '/api/v1/tokens')
         check(status == 200 and all('secret' not in row and 'token_hash' not in row for row in listed['tokens']), 'List hides secrets and verifiers')
+        policy = listed['policy']
+        check(60 <= policy['max_lifetime_seconds'] <= 31536000 and abs(policy['server_time'] - time.time()) < 30, 'Token list advertises current bounded server policy')
+        status, _ = api(a, at, 'POST', '/api/v1/tokens', {'name': 'Beyond configured lifetime', 'scopes': ['media:read'], 'expires_at': policy['server_time'] + policy['max_lifetime_seconds'] + 3600})
+        check(status == 400, 'Issuance rejects expiry beyond advertised lifetime')
         entry = next(row for row in listed['tokens'] if row['id'] == read['token']['id'])
         check(entry['last_used_at'] is not None, 'Live last-used timestamp')
         status, _, _ = request(a, 'POST', prefix + '/api/v1/tokens', b'{"name":"bad","scopes":["media:read"],"expires_at":9999999999}', {'Accept': 'application/json', 'Content-Type': 'application/json'})

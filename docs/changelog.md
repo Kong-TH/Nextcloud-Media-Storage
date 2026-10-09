@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.5 — token dashboard (prepared, not deployed)
+
+- Four responsive token status summaries, name/status filters and expiry/name sorting; permissions, boundary and last-use metadata in the list.
+- Additive authenticated lifetime-policy metadata shared with issuance; bounded expiry calendar and explicit local-date help/typed-date validation.
+- Material Copy token action, manual-copy fallback and 24px secret/action separation.
+- Versioned assets, no token schema or permission changes. Installed acceptance follows privileged deployment.
+
+
 ## 2026-10-09 — Documentation baseline
 
 Read the local implementation prompt and reference project's documentation structure. Created index, overview, agile backlog/planning/stories, software designs, operations manuals and development/requirements wiki before code.
@@ -69,3 +77,19 @@ Incremented release metadata after repeated same-version deployments left old br
 ## 0.3.2 — Installed version in drawer footer
 
 Removed both footer slogan lines. The drawer now shows only the installed plugin version supplied by IAppManager through PageController/template data to Vue. Incremented app/npm release metadata for asset cache invalidation. Production build, PHP syntax checks and 33 built-frontend HTTP-fixture checks passed. Installed verification pending user deployment. No schema/API change.
+
+## 0.3.3 — Material controls and official icon font
+
+- Replace native command/FAB/icon-button styling with actual pinned Material Web components; responsive toolbar uses labeled or icon variants.
+- Add official bounded ripples to custom navigation, menus, picker and rounded full object rows without nesting checkbox/details controls.
+- Render md-icon with an official locally bundled Google Material Symbols font subset and retained license; preserve Nextcloud CSP and shell.
+- Update custom-element tooltip, keyboard and Tab focus handling; preserve FAB/menu insets and the installed-version-only footer from 0.3.2.
+- Build/rules pass, 71 fixture checks and 134 real-host candidate browser checks pass. Deployment and installed warm-cache verification pending; no API/schema change.
+
+0.3.3 installed verification (2026-10-10): after the user deployed, all **138 live Nextcloud browser checks passed with cache enabled and no candidate interception** (Chrome 154.0.8037.97). Both JS/CSS asset URLs changed from the recorded installed release and served bytes match the local build. The server supplies 0.3.3 and the drawer displays only v0.3.3. Official local icons/font and actual Material ripples load under host CSP; disabled/keyboard/menu/tooltip behavior, responsive toolbar/FAB geometry, light/dark dialog states and virtual-path/reference/token regressions pass. Installed mobile/desktop screenshots were visually inspected. The dedicated fixture account was removed and the harness exited successfully. Screen-reader, real touch and full zoom/contrast validation remain deferred.
+
+## 0.3.4 — Labeled button spacing and compact picker navigation
+
+Remove legacy Add bucket padding/gap overrides so Material labeled-button spacing is restored. Combine picker parent/root navigation and current folder name into one row using official icon buttons; preserve chosen reference/name and return focus after browsing. Extend the local official font subset with Back/Home and hash its asset URL by content. No API/schema changes. Build and verification results are recorded in the latest explorer/handoff sections; installed deployment remains pending.
+
+0.3.4 preparation verified (2026-10-10): production build and frontend rule checks pass. 107 built-frontend fixture checks pass with 20 CSRF-backed API requests; 170 actual-Nextcloud candidate browser checks pass using local JS/CSS/font interception and disposable DAV folders. The original installed spacing failure was reproduced (53px Add bucket width, zero padding) before correction. Rendered Add bucket and labeled toolbar spacing, one-row picker navigation, root/pending disabled state, parent/Home keyboard behavior, focus return, long names, selection/name preservation and content-hashed font URL pass. Candidate desktop, dark compact picker and nested compact screenshots were visually inspected. Installed baseline is still 0.3.3; 0.3.4 deployment and installed warm-cache/font-byte verification remain pending. No API/schema changes.

@@ -20,3 +20,12 @@ The file-details Copy virtual path command copies the plugin's server-derived, b
 2026-10-10 user clarification supersedes the native file-link feature: Copy means the plugin's exact bucket-relative virtual_path, including virtual alias/folders. Replace Copy Nextcloud link with Copy virtual path, retain manual-copy fallback and show bucket context. This is metadata only; plugin browser media delivery is still deferred. Dialog and green interaction-state fixes remain. User redeployed the correction; 96 browser checks passed against installed assets with cache disabled and no interception.
 
 PageController supplies the installed version using Nextcloud IAppManager, templates escape it into plugin-root data-version, and the Vue entry passes it as a required version prop. The drawer footer renders only that server-supplied version; it has no independent hardcoded frontend version label.
+
+### Production Material controls (0.3.3)
+
+The Vue explorer imports supported Material Web buttons, icon buttons, FAB, icon and ripple modules from the pinned local package. Responsive toolbar commands switch between labeled and icon components. Custom navigation/list/menu surfaces attach the official ripple to their semantic controls. The official Material Symbols font subset is distributed locally with its license and loaded from the plugin origin under existing Nextcloud CSP; theme roles remain scoped to the plugin. See [production explorer](08-production-explorer.md) for exact mappings. This changes presentation assets only, with no API or schema revision.
+
+
+### Token dashboard and lifetime constraints (0.3.5)
+
+ApiTokenService exposes the same clamped lifetime policy used by issuance in the authenticated token-list response. The Vue dialog refreshes it on opening and fails closed if unavailable. The datetime-local control retains native date editing with explicit bounds and associated help/errors; supported search entry uses the official Material outlined text field. Counts and name/status/sort filtering are derived from all fetched token pages, with revoked precedence and a 14-day active subset. Counts update every 30 seconds using server-adjusted time. Summary surfaces use semantic buttons with official ripple; token actions and secret copying use Material buttons. One-time secrets and clipboard feedback stay in ephemeral Vue state and are cleared on close. No schema or authorization change.

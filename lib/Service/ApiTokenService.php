@@ -28,6 +28,11 @@ final class ApiTokenService {
         if (!$token || $token['owner_id'] !== $owner) { throw new MediaException('Token not found.', 404); }
         return $token;
     }
+    /** Public creation constraints; share the exact limit with issuance. */
+    public function policy(): array {
+        return ['server_time' => time(), 'max_lifetime_seconds' => max(60, min(31536000,
+            (int)$this->config->getAppValue('mediastorage', 'max_token_lifetime', '31536000')))];
+    }
     public function issue(string $owner, string $name, array $scopes, int $expiresAt, ?string $folderId = null): array {
         if (trim($name) === '' || trim($name) !== $name || strlen($name) > 100 || preg_match('//u', $name) !== 1 || preg_match('/[\x00-\x1f\x7f]/', $name)) {
             throw new MediaException('Invalid token name.');
@@ -36,8 +41,8 @@ final class ApiTokenService {
             throw new MediaException('Invalid token scopes.');
         }
         foreach ($scopes as $scope) { if (!is_string($scope) || !in_array($scope, self::SCOPES, true)) { throw new MediaException('Invalid token scopes.'); } }
-        $max = max(60, min(31536000, (int)$this->config->getAppValue('mediastorage', 'max_token_lifetime', '31536000')));
-        if ($expiresAt <= time() || $expiresAt > time() + $max) { throw new MediaException('Token expiration exceeds allowed lifetime.'); }
+        $policy = $this->policy();
+        if ($expiresAt <= $policy['server_time'] || $expiresAt > $policy['server_time'] + $policy['max_lifetime_seconds']) { throw new MediaException('Token expiration exceeds allowed lifetime.'); }
         if ($folderId !== null && in_array('token:manage', $scopes, true)) {
             throw new MediaException('Token management requires an owner-wide token.');
         }

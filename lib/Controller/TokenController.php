@@ -19,7 +19,7 @@ final class TokenController extends Controller {
     }
     #[NoAdminRequired]
     public function index(int $limit = 100, int $offset = 0): JSONResponse {
-        return $this->response(fn($owner) => ['tokens' => $this->tokens->listing($owner, $limit, $offset)]);
+        return $this->response(fn($owner) => ['tokens' => $this->tokens->listing($owner, $limit, $offset), 'policy' => $this->tokens->policy()]);
     }
     #[NoAdminRequired]
     public function create(string $name, array $scopes, int $expires_at, ?string $folder_id = null): JSONResponse {

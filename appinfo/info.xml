@@ -4,7 +4,7 @@
     <name>Media Storage</name>
     <summary>Private virtual media organization using Nextcloud files</summary>
     <description>Owner-isolated virtual buckets, folders and media references with a responsive Material explorer and scoped external API tokens. Media streaming is not available yet.</description>
-    <version>0.3.2</version>
+    <version>0.3.5</version>
     <licence>AGPL-3.0-or-later</licence>
     <author>Kongphai Wutthichaiya</author>
     <namespace>MediaStorage</namespace>
