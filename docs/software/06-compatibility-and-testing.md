@@ -72,3 +72,11 @@ The user executed the updated deployment script: 0.1.0 disabled, 0.2.0 enabled. 
 Verified actual session/CSRF and bearer-only boundaries; expiry/revocation/rotation; last use/cache headers; owner and optional folder scope; real owner-wide binding; physical-file preservation; concurrent duplicate/move safety; and deletion/recreation isolation without affecting the other owner. No credential values were logged by the test harness.
 
 This establishes local Nextcloud 34.0.4 / Snap MySQL behavior only. MySQL version, other Nextcloud versions, PostgreSQL/full Nextcloud SQLite deployments, all shared/mounted contexts, and arbitrary in-flight lifecycle races remain unverified. Populated-schema preservation is separately checked in in-memory SQLite; direct MySQL row preservation across the upgrade was not instrumented.
+
+
+## Responsive design study — 2026-10-09
+
+A standalone HTML/CSS/JavaScript prototype was exercised in headless Chrome 154.0.8037.97 at 320–1440px viewports, including drawer dismissal, current-folder sample search, selection, folder navigation and adaptive details. See [recorded study evidence](../design/validation.md). This is independent of the deployed app and provides no Nextcloud/Vue/Material Web integration or server verification. Production UI acceptance remains in the [task backlog](../agile/ui-tasks.md).
+
+
+The follow-up FAB/toolbar/tooltip study passed 71 Chrome/CDP checks plus in-memory reference-model invariants. Coverage includes reference alias identity, move/rename/remove, name-conflict recovery, menu/tooltip ownership, keyboard/focus and 320–1440px layout/clearance. [Validation evidence](../design/validation.md) records observed regressions and remaining limits. This does not validate real server Copy/Paste or physical file preservation in a deployed UI.

@@ -26,3 +26,8 @@ App table `ms_nodes` uses 64-character ID/owner/parent/hash fields, 255-characte
 `Version000200Date20261009000000` adds ms_tokens without changing existing nodes/bindings. id is a 32-character random selector; owner length 64; name 100; token_hash 64; serialized scopes 255; optional folder_id length 64; expires_at/created_at required bigint; revoked_at/last_used_at nullable bigint. Primary key id; owner/created timestamp index. Only the SHA-256 verifier of a 256-bit random secret is persisted. The credential selector is not an authority on its own.
 
 Executed SQLite populated-schema upgrade and re-entry checks; MySQL/PostgreSQL SQL generation only. The user ran the actual 0.1-to-0.2 app upgrade successfully; live token and node queries passed on Snap MySQL. Populated-row preservation was separately verified in the SQLite schema test. Token lifecycle changes and external authorization share the app root write lock. User creation/deletion listeners transactionally purge tokens, bindings and nodes for exactly that UID, without touching filesystem contents.
+
+
+## Reference-action clarification — 2026-10-09
+
+Multiple media nodes may already bind the same original Nextcloud file. Each virtual name/parent is independent of physical file identity. Requested Copy/Paste should create fresh virtual IDs and revalidated bindings to the same source file, never duplicate media bytes. Move/Rename preserve virtual node identity; Remove deletes only the selected virtual subtree/bindings. No migration is made by this design update. The source-clone/clipboard workflow remains unimplemented; see [reference actions](../design/reference-actions.md).

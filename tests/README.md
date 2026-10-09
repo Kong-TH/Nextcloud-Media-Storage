@@ -62,3 +62,31 @@ The opt-in suite adds actual token issuance/read/revocation/rotation, raw bearer
 Following the user's successful 0.1-to-0.2 deployment, ran the opt-in Phase 2 command above: **70 live HTTP checks passed**. Combined lifecycle checks verified that deleting/recreating the same fixture UID cannot recover old virtual nodes or token metadata and that old credentials stay invalid; another test owner survived. The suite exercised the actual token table/middleware and Filesystem API through HTTP. It did not directly inspect SQL rows after deletion or instrument all in-flight deletion races. Test users/references/physical fixtures were cleaned up.
 
 The initial PHP CLI integration harness remains unexecuted; live evidence comes from the Python HTTP suite. Other database deployments remain unverified.
+
+
+## Standalone UI design study
+
+These checks exercise only docs/design/prototype sample data, without a Nextcloud session or server mutation. From the repository root:
+
+```sh
+node tests/design/reference-model.cjs
+```
+
+For the browser study, start an isolated Chrome profile with headless mode and local DevTools port 9322, then run `node tests/design/browser-checks.mjs`. Use a dedicated profile/port because the script navigates the first page in that DevTools session to the local prototype. `MEDIASTORAGE_DESIGN_CDP_URL` can override the localhost endpoint. No npm dependencies are required; Node 24 and Chrome 154 were used. The script writes screenshots/results under /tmp and checks the sample reference actions, FAB, toolbar, tooltips, keyboard and responsive geometry. Close the dedicated browser afterward. Sandbox permissions may be required for launching Chrome and local DevTools access.
+
+See [design validation](../docs/design/validation.md) for recorded results and untested production behavior. These tests do not replace backend tests or actual Nextcloud UI/accessibility verification.
+
+
+The design browser suite also measures bottom contextual-toolbar containment, unchanged list viewport/first-row position on selection, selected-count placement after the object count, short-height last-row clearance and reduced-motion entry behavior. It writes compact toolbar snapshots to `/tmp/mediastorage-toolbar-390.png` and `/tmp/mediastorage-toolbar-320.png` for visual review; these checks do not establish actual Nextcloud or assistive-technology integration.
+
+
+Compact action tests additionally verify toolbar-above-FAB geometry, expand-more overflow, menu occlusion through hit testing, preserved reference context on open/Escape/outside dismissal, both Add entries clearing context before their task, task cancellation, resize/RTL, and keyboard focus scrolling the last row above the stacked actions. Animation geometry waits for the toolbar's actual animation completion; cancelled-task focus checks wait for the native dialog close event.
+
+
+Cancellation coverage includes separate toolbar/X composition, 8px gap and 56px target, no duplicate clear commands, selection-only/clipboard-only/combined state at desktop/compact/short sizes, unchanged reference listings, Tab/Enter/Space focus and RTL placement. Native button activation in CDP includes virtual key codes and text events for Enter/Space.
+
+
+The study suite also checks mobile action-group/FAB edge alignment and sample bucket creation: placement, disclosure, blank/duplicate validation, cancellation, filtered-list recovery, new empty destination and compact drawer/task focus/inert lifecycle. It writes `/tmp/mediastorage-bucket-dialog.png`; sample bucket validation is not a production storage policy test.
+
+
+Adaptive-toolbar checks sweep 320/360/375/390/420/480px, verify 3/4/4/5/5/5 visible slots (including overflow where needed), 48px targets, hidden-command-only menu contents and disabled-state parity. They also check focus migration during shrink/grow, stable menu state when packing does not change, long-label fallback and label restoration at wide sizes.

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Media Storage · Responsive design study</title>
+<link rel="stylesheet" href="prototype.css"><script src="reference-model.js" defer></script><script src="overlays.js" defer></script><script src="prototype.js" defer></script>
+</head>
+<body>
+<header class="host"><strong>Nextcloud</strong><span>Host shell · illustrative only</span><span class="avatar" aria-hidden="true">K</span></header>
+<div id="media-design">
+<svg class="symbol-definitions" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"><defs><symbol id="symbol-add" viewBox="0 -960 960 960"><path d="M440-440H200v-80h240v-240h80v240h240v80H520v240h-80v-240Z"/></symbol><symbol id="symbol-arrow_forward" viewBox="0 -960 960 960"><path d="M647-440H160v-80h487L423-744l57-56 320 320-320 320-57-56 224-224Z"/></symbol><symbol id="symbol-close" viewBox="0 -960 960 960"><path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z"/></symbol><symbol id="symbol-description" viewBox="0 -960 960 960"><path d="M320-240h320v-80H320v80Zm0-160h320v-80H320v80ZM240-80q-33 0-56.5-23.5T160-160v-640q0-33 23.5-56.5T240-880h320l240 240v480q0 33-23.5 56.5T720-80H240Zm280-520v-200H240v640h480v-440H520ZM240-800v200-200 640-640Z"/></symbol><symbol id="symbol-expand_more" viewBox="0 -960 960 960"><path d="M480-345 240-585l56-56 184 184 184-184 56 56-240 240Z"/></symbol><symbol id="symbol-folder" viewBox="0 -960 960 960"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></symbol><symbol id="symbol-folder_open" viewBox="0 -960 960 960"><path d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640H447l-80-80H160v480l96-320h684L837-217q-8 26-29.5 41.5T760-160H160Zm84-80h516l72-240H316l-72 240Zm0 0 72-240-72 240Zm-84-400v-80 80Z"/></symbol><symbol id="symbol-grid_view" viewBox="0 -960 960 960"><path d="M120-520v-320h320v320H120Zm0 400v-320h320v320H120Zm400-400v-320h320v320H520Zm0 400v-320h320v320H520ZM200-600h160v-160H200v160Zm400 0h160v-160H600v160Zm0 400h160v-160H600v160Zm-400 0h160v-160H200v160Zm400-400Zm0 240Zm-240 0Zm0-240Z"/></symbol><symbol id="symbol-image" viewBox="0 -960 960 960"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z"/></symbol><symbol id="symbol-info" viewBox="0 -960 960 960"><path d="M440-280h80v-240h-80v240Zm40-320q17 0 28.5-11.5T520-640q0-17-11.5-28.5T480-680q-17 0-28.5 11.5T440-640q0 17 11.5 28.5T480-600Zm0 520q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z"/></symbol><symbol id="symbol-key" viewBox="0 -960 960 960"><path d="M280-400q-33 0-56.5-23.5T200-480q0-33 23.5-56.5T280-560q33 0 56.5 23.5T360-480q0 33-23.5 56.5T280-400Zm0 160q-100 0-170-70T40-480q0-100 70-170t170-70q67 0 121.5 33t86.5 87h352l120 120-180 180-80-60-80 60-85-60h-47q-32 54-86.5 87T280-240Zm0-80q56 0 98.5-34t56.5-86h125l58 41 82-61 71 55 75-75-40-40H435q-14-52-56.5-86T280-640q-66 0-113 47t-47 113q0 66 47 113t113 47Z"/></symbol><symbol id="symbol-menu" viewBox="0 -960 960 960"><path d="M120-240v-80h720v80H120Zm0-200v-80h720v80H120Zm0-200v-80h720v80H120Z"/></symbol><symbol id="symbol-movie" viewBox="0 -960 960 960"><path d="m160-800 80 160h120l-80-160h80l80 160h120l-80-160h80l80 160h120l-80-160h120q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800Zm0 240v320h640v-320H160Zm0 0v320-320Z"/></symbol><symbol id="symbol-search" viewBox="0 -960 960 960"><path d="M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Z"/></symbol><symbol id="symbol-content_copy" viewBox="0 -960 960 960"><path d="M360-240q-33 0-56.5-23.5T280-320v-480q0-33 23.5-56.5T360-880h360q33 0 56.5 23.5T800-800v480q0 33-23.5 56.5T720-240H360Zm0-80h360v-480H360v480ZM200-80q-33 0-56.5-23.5T120-160v-560h80v560h440v80H200Zm160-240v-480 480Z"/></symbol><symbol id="symbol-content_paste" viewBox="0 -960 960 960"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h167q11-35 43-57.5t70-22.5q40 0 71.5 22.5T594-840h166q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560h-80v120H280v-120h-80v560Zm280-560q17 0 28.5-11.5T520-800q0-17-11.5-28.5T480-840q-17 0-28.5 11.5T440-800q0 17 11.5 28.5T480-760Z"/></symbol><symbol id="symbol-drive_file_move" viewBox="0 -960 960 960"><path d="m488-400-65 65 56 56 161-161-161-161-56 56 65 65H320v80h168ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h240l80 80h320q33 0 56.5 23.5T880-640v400q0 33-23.5 56.5T800-160H160Zm0-80h640v-400H447l-80-80H160v480Zm0 0v-480 480Z"/></symbol><symbol id="symbol-delete" viewBox="0 -960 960 960"><path d="M280-120q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520ZM360-280h80v-360h-80v360Zm160 0h80v-360h-80v360ZM280-720v520-520Z"/></symbol><symbol id="symbol-edit" viewBox="0 -960 960 960"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></symbol><symbol id="symbol-more_horiz" viewBox="0 -960 960 960"><path d="M240-400q-33 0-56.5-23.5T160-480q0-33 23.5-56.5T240-560q33 0 56.5 23.5T320-480q0 33-23.5 56.5T240-400Zm240 0q-33 0-56.5-23.5T400-480q0-33 23.5-56.5T480-560q33 0 56.5 23.5T560-480q0 33-23.5 56.5T480-400Zm240 0q-33 0-56.5-23.5T640-480q0-33 23.5-56.5T720-560q33 0 56.5 23.5T800-480q0 33-23.5 56.5T720-400Z"/></symbol></defs></svg>
+<div class="study"><span>DESIGN STUDY · Sample data, no server changes</span><div><button id="theme" aria-pressed="false">Dark theme</button><button id="direction" aria-pressed="false">RTL</button></div></div>
+<div class="app">
+<aside class="drawer" id="drawer" aria-label="Media Storage navigation">
+<div class="brand"><span class="brand-icon" aria-hidden="true">M</span><strong>Media Storage</strong><button class="icon close-drawer" aria-label="Close navigation"><svg class="symbol " aria-hidden="true" focusable="false"><use href="#symbol-close"></use></svg></button></div>
+<p class="section-label">WORKSPACE</p>
+<nav aria-label="Plugin pages"><button class="destination active" id="objects-page" aria-current="page"><svg class="symbol " aria-hidden="true" focusable="false"><use href="#symbol-grid_view"></use></svg> Objects</button><button class="destination" id="tokens-page"><svg class="symbol " aria-hidden="true" focusable="false"><use href="#symbol-key"></use></svg> API tokens</button></nav>
+<div class="bucket-title"><h2>Buckets</h2><span class="small-pill">Proposed</span><button id="add-bucket" class="text" aria-label="Add bucket" data-tip="Add a sample bucket"><svg class="symbol" aria-hidden="true"><use href="#symbol-add"></use></svg>Add</button></div>
+<label class="filter"><span class="sr-only">Filter buckets</span><input id="bucket-filter" type="search" placeholder="Filter buckets"></label>
+<nav id="buckets" aria-label="Buckets"></nav>
+<p id="no-buckets" hidden>No matching buckets</p>
+<div class="drawer-footer">Your media, organized.<br><span>Files stay in Nextcloud.</span></div>
+</aside>
+<button id="scrim" class="scrim" aria-label="Close navigation" hidden></button>
+<main id="main" tabindex="-1">
+<header class="library-navbar">
+<button id="open-drawer" class="icon" aria-label="Open navigation" aria-expanded="false" aria-controls="drawer"><svg class="symbol" aria-hidden="true"><use href="#symbol-menu"></use></svg></button>
+<h1 id="bucket-name">Brand library</h1>
+<form id="search-form" role="search" aria-label="Current folder"><label class="search"><svg class="symbol" aria-hidden="true"><use href="#symbol-search"></use></svg><span class="sr-only">Search this folder by name</span><input id="search" type="search" placeholder="Search this folder by name"><button type="submit" class="icon" aria-label="Search"><svg class="symbol directional" aria-hidden="true"><use href="#symbol-arrow_forward"></use></svg></button></label></form>
+</header>
+<div class="main-scroll" id="main-scroll">
+<section id="explorer">
+<div class="path-row" id="path-row" hidden><nav id="breadcrumbs" aria-label="Folder path"></nav><button id="up" class="text" hidden>Up one level</button></div>
+<div class="collection-heading"><div class="collection-summary"><h2>Objects</h2><span id="count"></span><strong id="selected-count" hidden></strong><span id="clipboard-count" hidden></span></div><label class="sort"><span>Sort by</span><span class="select-control"><select id="sort"><option value="name">Name</option><option value="type">Type</option></select><svg class="symbol " aria-hidden="true" focusable="false"><use href="#symbol-expand_more"></use></svg></span></label></div>
+<div id="fab-area" class="fab-area">
+<button id="fab" class="fab" aria-label="Add" aria-haspopup="menu" aria-expanded="false" aria-controls="fab-menu" data-tip="Add a link or virtual folder"><svg class="symbol" aria-hidden="true"><use href="#symbol-add"></use></svg><span>Add</span></button>
+<div id="fab-menu" class="action-menu" role="menu" aria-label="Add to this folder" hidden>
+<button id="add" role="menuitem" tabindex="-1" data-tip="Reference an existing Nextcloud file"><svg class="symbol" aria-hidden="true"><use href="#symbol-add"></use></svg>Add from Nextcloud</button>
+<button id="new-folder" role="menuitem" tabindex="-1" data-tip="Create a virtual folder"><svg class="symbol" aria-hidden="true"><use href="#symbol-folder"></use></svg>New folder</button>
+</div></div>
+<div id="toolbar-menu" class="action-menu" role="menu" aria-label="More virtual reference actions" hidden>
+<button id="menu-move" role="menuitem" tabindex="-1" data-tip="Change virtual folder only">Move links</button>
+<button id="menu-paste" role="menuitem" tabindex="-1" data-tip="Create links in this folder">Paste links</button>
+<button id="menu-copy" role="menuitem" tabindex="-1" data-tip="Copy references, keep file contents in Nextcloud">Copy links</button>
+<button id="menu-rename" role="menuitem" tabindex="-1" data-tip="Rename the selected link">Rename</button>
+<button id="menu-remove" role="menuitem" tabindex="-1" class="danger" data-tip="Remove references, keep originals">Remove links</button>
+</div>
+<div class="column-head" aria-hidden="true"><span></span><span>Name</span><span>Type</span><span>Binding</span><span></span></div>
+<ul id="objects" class="objects" aria-label="Objects in current folder"></ul>
+<div id="empty" class="empty" hidden><svg class="symbol " aria-hidden="true" focusable="false"><use href="#symbol-folder_open"></use></svg><h3>No objects found</h3><p id="empty-copy"></p></div>
+<p id="status" class="status" role="status" aria-live="polite"></p>
+</section>
+<section id="tokens" hidden><p>Keep integrations separate from your personal session.</p><div class="empty"><h2>Token dashboard design</h2><p>Production will support scoped, expiring tokens. Secrets are shown once after creation.</p><p>No credentials are loaded or generated in this study.</p></div></section>
+</div>
+<footer class="library-footer" id="library-footer"><div id="selection" class="selection" hidden>
+<div id="reference-toolbar" class="toolbar-actions" role="toolbar" aria-label="Virtual reference actions">
+
+<button id="move-links" data-tip="Change virtual folder only">Move</button>
+<button id="copy-links" data-tip="Copy links, not file contents">Copy</button>
+<button id="paste-links" data-tip="Create links in this folder">Paste</button>
+<button id="rename-link" data-tip="Change the plugin name only">Rename</button>
+<button id="remove-links" class="danger" data-tip="Keep all original Nextcloud files">Remove links</button>
+<button id="more-actions" class="icon" aria-label="More reference actions" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbar-menu" data-tip="More link actions">…</button>
+</div><button id="cancel-selection" class="icon cancel-context" aria-label="Cancel reference actions" data-tip="Cancel selection and copied links">×</button></div>
+<p class="footnote">Removing links keeps the original files in Nextcloud.</p></footer>
+</main>
+<aside class="details" id="details" aria-labelledby="detail-name" hidden><div class="detail-top"><span class="eyebrow">OBJECT DETAILS</span><button id="close-detail" class="icon" aria-label="Close object details"><svg class="symbol " aria-hidden="true" focusable="false"><use href="#symbol-close"></use></svg></button></div><div class="detail-symbol" aria-hidden="true"><svg class="symbol " aria-hidden="true" focusable="false"><use href="#symbol-description"></use></svg></div><h2 id="detail-name"></h2><dl id="detail-fields"></dl><p>Preview and media delivery are planned separately. This view describes the reference.</p></aside>
+</div>
+<dialog id="bucket-task" aria-labelledby="bucket-task-title"><form id="bucket-form" method="dialog">
+<h2 id="bucket-task-title">New bucket</h2><p>Sample destination only. Nothing is saved to Nextcloud.</p>
+<label>Bucket name<input id="bucket-input" required maxlength="80" autocomplete="off"></label><p id="bucket-error" class="task-error" role="alert" hidden></p>
+<div class="dialog-actions"><button value="cancel" formnovalidate class="text">Cancel</button><button id="bucket-submit" value="create" class="filled">Create sample bucket</button></div>
+</form></dialog>
+<dialog id="task" aria-labelledby="task-title"><form method="dialog" id="task-form"><h2 id="task-title">New folder</h2><p id="task-copy"></p><label id="name-label">Folder name<input id="folder-input" required maxlength="255" autocomplete="off"></label><p id="task-error" class="task-error" role="alert" hidden></p><div class="dialog-actions"><button value="cancel" formnovalidate class="text">Cancel</button><button value="create" id="task-submit" class="filled">Create sample folder</button></div></form></dialog>
+<dialog id="reference-task" aria-labelledby="reference-title"><form id="reference-form" method="dialog">
+<h2 id="reference-title"></h2><p id="reference-copy"></p><div id="reference-fields"></div><p id="reference-error" class="task-error" role="alert" hidden></p>
+<div class="dialog-actions"><button value="cancel" formnovalidate class="text">Cancel</button><button id="reference-confirm" value="confirm" class="filled">Confirm</button></div>
+</form></dialog>
+<div id="action-tooltip" class="action-tooltip" role="tooltip" hidden></div>
+</div>
+</body></html>

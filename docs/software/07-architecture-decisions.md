@@ -19,3 +19,13 @@ Accepted user direction, 2026-10-09. Use Material Design 3 within the plugin are
 ## ADR-005: Bucket separation
 
 Requirement accepted; architecture pending, 2026-10-09. The user requires buckets in addition to virtual folders. Virtual namespaces versus real S3/MinIO buckets remains unanswered. Do not infer a storage-engine change. Resolve semantics and document populated upgrade, API/token boundaries, paths, and virtual-only deletion before persistence implementation. See the agent handoff.
+
+
+## ADR-006: Responsive explorer composition
+
+Proposed design, 2026-10-09, based on the user's MinIO-like layout and Material styling direction. Measure available plugin width, retain drawer-based navigation, adapt column metadata to compact rows, and use a nonmodal detail view/pane. Begin with the existing owner-root Library when bucket semantics remain unresolved. See [responsive design](../design/responsive-plugin.md) and [UI tasks](../agile/ui-tasks.md). The standalone study verifies sample interactions only; production component, CSP and host modal behavior require real integration checks. No schema, storage or API contract changes are made by this proposal.
+
+
+## ADR-007: Reference-only clipboard and contextual actions
+
+Accepted user semantics, 2026-10-09: Move/Rename/Copy/Paste/Remove operate on plugin virtual nodes and links only, preserving Nextcloud file names, placement and bytes. Multiple independently named references may bind the same original. Existing move/rename/remove and multiple binding support align with this requirement; dedicated copy/paste behavior is not implemented. Backend clone API/transaction/token details remain pending. UI will use a creation FAB, contextual toolbar and tooltips with separate overlay ownership; see [action requirements](../design/reference-actions.md). The user confirmed md3-extended-fab as the intended skill. This is a documentation-first record; production implementation remains pending.

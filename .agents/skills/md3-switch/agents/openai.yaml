@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material Design 3 switches"
+  short_description: "Design accessible Material on and off settings"
+  default_prompt: "Use $md3-switch to design or review an accessible Material Design 3 switch setting for this app."

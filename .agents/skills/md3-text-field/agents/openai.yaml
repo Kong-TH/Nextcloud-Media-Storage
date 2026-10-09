@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material Design 3 text fields"
+  short_description: "Design accessible Material text inputs and errors"
+  default_prompt: "Use $md3-text-field to design or review accessible Material Design 3 text fields for this app."

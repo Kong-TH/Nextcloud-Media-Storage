@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material Design 3 search"
+  short_description: "Design accessible Material search experiences"
+  default_prompt: "Use $md3-search to design or review a Material Design 3 search experience for this app."

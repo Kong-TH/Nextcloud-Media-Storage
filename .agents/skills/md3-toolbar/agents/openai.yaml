@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material Design 3 toolbars"
+  short_description: "Design accessible Material action toolbars"
+  default_prompt: "Use $md3-toolbar to design or review an accessible Material Design 3 toolbar for this app."

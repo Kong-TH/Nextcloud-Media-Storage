@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material Design 3 tooltips"
+  short_description: "Design accessible plain and rich Material tooltips"
+  default_prompt: "Use $md3-tooltip to design or review accessible Material Design 3 tooltips for this app."

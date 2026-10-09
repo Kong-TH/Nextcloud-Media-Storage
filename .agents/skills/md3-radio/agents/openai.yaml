@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material Design 3 radio buttons"
+  short_description: "Design accessible Material radio groups for web"
+  default_prompt: "Use $md3-radio to design or review an accessible Material Design 3 radio group for this app."

@@ -17,6 +17,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Sprint 01: App foundation](agile/sprint-backlogs/sprint-01.md)
 - [Sprint 02: Secure API foundation](agile/sprint-backlogs/sprint-02.md)
 - [Sprint 03: Buckets and Material explorer](agile/sprint-backlogs/sprint-03.md)
+- [UI implementation tasks](agile/ui-tasks.md)
 - [Foundation story](agile/user-stories/US-MS-01.md)
 - [Virtual hierarchy story](agile/user-stories/US-MS-02.md)
 - [Filesystem binding story](agile/user-stories/US-MS-03.md)
@@ -24,6 +25,11 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 
 ## Software
 
+- [Responsive plugin design](design/responsive-plugin.md)
+- [Library header, padding and footer refinement](design/layout-refinement.md)
+- [Reference actions, creation FAB and selection toolbar](design/reference-actions.md)
+- [Interactive UI design study](design/prototype/index.html)
+- [UI study validation](design/validation.md)
 - [Architecture](software/00-architecture.md)
 - [System design](software/01-system-design.md)
 - [Data schema](software/03-data-schema.md)
@@ -40,6 +46,13 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Troubleshooting](manual/troubleshooting.md)
 - [Wiki](wiki/wiki.md)
 - [Developer guide](wiki/development/development.md)
+- [Material menu design skill](../.agents/skills/md3-menu/SKILL.md)
+- [Material radio design skill](../.agents/skills/md3-radio/SKILL.md)
+- [Material search design skill](../.agents/skills/md3-search/SKILL.md)
+- [Material switch design skill](../.agents/skills/md3-switch/SKILL.md)
+- [Material text field design skill](../.agents/skills/md3-text-field/SKILL.md)
+- [Material toolbar design skill](../.agents/skills/md3-toolbar/SKILL.md)
+- [Material tooltip design skill](../.agents/skills/md3-tooltip/SKILL.md)
 - [Requirements](wiki/requirement/project-requirements.md)
 
 Status labels: Planned means no implementation; Implemented means code exists; Verified requires recorded test evidence. Documentation alone is not verification.

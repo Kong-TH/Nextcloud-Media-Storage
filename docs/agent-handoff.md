@@ -2,7 +2,7 @@
 
 ## Start here
 
-The app is `mediastorage` 0.2.0. Phase 1 and Phase 2 backend work is implemented and live-tested. Phase 3 explorer/upload UI has not started. This handoff and Sprint 03 supersede earlier historical paragraphs that say tokens or the live upgrade are pending.
+The app is `mediastorage` 0.2.0. Phase 1 and Phase 2 backend work is implemented and live-tested. Phase 3 production explorer/upload UI has not started; a standalone responsive design study and implementation backlog now exist. This handoff and Sprint 03 supersede earlier historical paragraphs that say tokens or the live upgrade are pending.
 
 Read the documentation index, [Sprint 03](agile/sprint-backlogs/sprint-03.md), architecture decisions, schema, API contract, security design, and tests/README.md. The original `.chat/prompt1.md` is ignored by Git and may not exist on another machine; the tracked docs plus this handoff carry the continuation context. Do not require the original Downloads knowledge folders or screenshot to apply the tracked skills.
 
@@ -13,7 +13,23 @@ Read the documentation index, [Sprint 03](agile/sprint-backlogs/sprint-03.md), a
 - Use Vue compatible with the target Nextcloud release. `@material/web` is the intended component direction; actual frontend dependencies/build integration are not installed yet. Check versions and real browser integration before claiming support.
 - The user supplied navigation rail/drawer skills and prefers `md3-navigation-drawer` for bucket navigation, similar in structure to MinIO. Do not replace it with a rail merely because one is available.
 - The reference layout has a left bucket list/filter/create action, main search, bucket heading and actions, breadcrumb, and object listing. It is a functional layout reference; the desired visual treatment is Material rather than an exact MinIO dark-theme copy.
-- Buckets are a newly requested requirement in addition to folders. No bucket schema, migration, API, or UI is implemented.
+- Buckets are a newly requested requirement in addition to folders. No bucket schema, migration, API, or production UI is implemented. The standalone study includes sample-only bucket creation.
+
+## Responsive UI design study
+
+The user requested mobile/desktop design using MinIO-like organization with Material styling. See [responsive plugin design](design/responsive-plugin.md), [interactive sample](design/prototype/index.html), [UI task backlog](agile/ui-tasks.md) and [study validation](design/validation.md). The proposal uses a standard drawer from 840px available app width, compact modal navigation below that, rows on narrow panes and optional desktop details from 1200px. Breakpoints use the plugin container, not device labels. The sample is standalone, uses in-memory data and changes no production template/API/storage. Preserve this distinction when reporting progress.
+
+Use the Add FAB to open Add from Nextcloud or New folder; uploads/delivery remain unimplemented. Bucket destinations in the study are proposed only. Production can begin with the existing owner-root Library while bucket semantics are unresolved. Chrome study checks passed; actual Nextcloud integration, screen-reader, touch and full zoom/contrast validation remain pending.
+
+## Latest action revision — documentation updated before code
+
+The user requests a creation FAB combining Add from Nextcloud and New folder, contextual md3-toolbar for Move/Copy/Paste/Remove links and single-reference Rename, md3-tooltip hover/focus feedback without dismissing open menus, and approximately +3px small desktop text. See [reference action specification](design/reference-actions.md). These commands affect plugin metadata only; many independently named links may share one physical Nextcloud file. Dedicated source-reference Copy/Paste is not implemented and requires a validated backend contract. Existing move/rename/remove semantics remain virtual-only.
+
+The user corrected the skill name and confirmed `.agents/skills/md3-extended-fab/`; use that skill with md3-menu for the creation menu. The standalone prototype now implements this action revision on sample data. In-memory reference-model tests and 71 Chrome/CDP UI checks passed; snapshots are refreshed. Production source/template/API behavior is unchanged, and backend Copy/Paste remains pending. See design/validation.md for exact evidence and limitations.
+
+## Latest layout revision
+
+The user requested equal left/right padding, a lower footer, increased desktop FAB inset and fewer stacked/duplicate headings. See [layout refinement](design/layout-refinement.md), written before code. The standalone header now combines title/search; root breadcrumbs are hidden while nested navigation remains. Balanced scrollbar gutters align content across header/list/footer; the bottom footer reserves FAB space only as needed. Desktop FAB inset is 29px; compact remains 24px. The latest user correction moves the contextual toolbar into a 64px bottom floating surface reusing the FAB band, with selected/clipboard counts beside the object count. Selection preserves first-row position and list viewport height. Latest compact behavior: below 1200px plugin width, show a regular icon-only FAB below the toolbar (12px gap), and use expand-more for toolbar overflow. The FAB menu may cover the toolbar; open/dismiss preserves context, while invoking either Add entry clears selection/clipboard before its task. Cancelling that task keeps context cleared. Scroll-end padding lets final-row keyboard/pointer controls clear both floating surfaces without reducing list viewport height. Wide layouts remain exclusive. Latest cancellation correction: one separate trailing 56px X surface sits 8px outside the toolbar. It replaces inline Clear selection and Clear clipboard (including overflow), clears both selection/clipboard, closes action overlays and restores Add focus. It stays enabled in clipboard-only context and has its own Tab stop. Applied reference operations remain intact. Latest width/creation correction: below 600px the toolbar/X group spans equal 24px pane insets, matching the FAB edge. A + Add button beside Buckets opens a sample-only bucket dialog with empty/duplicate validation; creation selects an in-memory empty destination and compact cancel/create restores focus/navigation. Reload resets sample buckets; persistence/storage semantics remain unresolved. Latest adaptive packing correction: command visibility is measured from pane/group space instead of fixed action breakpoints. Labels remain when all fit; otherwise 48px icons pack with Move/Paste priority and only hidden commands enter overflow. At 390px all five commands fit; resize/font changes update packing and repair focus while unchanged packing preserves open menus. The current study passed 333 Chrome checks including nine widths, short heights, equal measured insets, footer/action clearance, reduced motion, selection/details/search and existing action/tooltip regressions. Refreshed snapshots were visually inspected. Production integration remains pending.
 
 ## Bucket question still open
 
@@ -51,9 +67,23 @@ For each slice, keep docs synchronized and record meaningful observed checks. Wo
 
 ## Skills available in the repository
 
-`md3-button`, `md3-extended-fab`, `md3-card`, `md3-dialog`, `md3-divider`, `md3-list`, `md3-loading-indicator`, `md3-navigation-drawer`, `md3-navigation-rail`.
+`md3-button`, `md3-extended-fab`, `md3-card`, `md3-dialog`, `md3-divider`, `md3-list`, `md3-loading-indicator`, `md3-menu`, `md3-radio`, `md3-search`, `md3-switch`, `md3-text-field`, `md3-toolbar`, `md3-tooltip`, `md3-navigation-drawer`, `md3-navigation-rail`.
 
 Each newly created component skill includes do/don't guidance and source limits. Cards need semantic custom HTML/CSS unless installed APIs prove otherwise. Extended FAB uses `md-fab` with `label`. Expressive loading morphs need custom work or an explicitly labeled baseline progress fallback. Some downloaded pages were duplicated/mislabeled/empty; provenance files record these gaps. The drawer skill has a contradictory width/padding arithmetic sentence; verify source measurements rather than blindly copying it. Library APIs/tokens must be verified against the installed version.
+
+Menu preparation: `md3-menu` was added after studying all four supplied menu captures and cross-checking Material Web and WAI-ARIA. It distinguishes baseline web support from Expressive design, covers do/don't rules and accessibility, and records missing token details. This is skill preparation only; no menu UI or frontend build is implemented.
+
+Radio preparation: `md3-radio` covers single-choice groups, default versus unanswered state, density, keyboard/form behavior and the Material Web label warning. The supplied apparent Overview is a duplicate Specs capture; provenance records this gap. Skill validation passed; no radio UI or browser integration was executed.
+
+Search preparation: `md3-search` covers contained/divided styles, docked/full-screen layouts, focus/announcements, async query state and actual name-search scope. All four supplied Search captures were studied; Web availability is marked unavailable, so implementation requires custom composition rather than invented md-search APIs. Skill validation passed; no search UI or browser integration was executed.
+
+Switch preparation: `md3-switch` covers independent binary settings, track/handle/target sizes, stable labels, keyboard/form behavior and async persistence. Supplied -3/-4 captures both contain Accessibility; Guidelines content remains unavailable. Material Web label and event-documentation caveats are recorded. Skill validation passed; no switch UI or browser integration was executed.
+
+Text-field preparation: `md3-text-field` covers filled/outlined variants, persistent labels, helper/error regions, textareas, readonly fields, affixes, counters and accessible validation. All four supplied pages were studied. References record Material Web external-label limitations, image-source issues and the project UTF-8 byte limits. Skill validation passed; no text-field UI or browser integration was executed.
+
+Toolbar preparation: `md3-toolbar` covers docked/floating Expressive designs, action hierarchy, responsive overflow, geometry, FAB pairing and composite keyboard focus. All four supplied pages were studied and relevant specification images inspected. References record web placement exceptions, Material/APG keyboard differences and the unavailable web component. Skill validation passed; no toolbar UI or browser integration was executed.
+
+Tooltip preparation: `md3-tooltip` covers plain/rich variants, geometry, placement, transient/persistent behavior and accessible hover/focus dismissal. All four supplied pages and both measurement images were studied. References distinguish noninteractive tooltip semantics from interactive rich popups, record the exit-delay interpretation and unavailable web component. Skill validation passed; no tooltip UI or browser integration was executed.
 
 ## Environment and secrets
 
