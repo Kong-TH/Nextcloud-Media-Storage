@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material 3 Loading Indicator"
+  short_description: "Design accessible short-wait Material loading states"
+  default_prompt: "Use $md3-loading-indicator to design short indeterminate loading feedback with accessible status and reduced motion."

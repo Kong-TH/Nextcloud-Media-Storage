@@ -1,0 +1,194 @@
+/* ---------------------------------------------------------------------------
+   MD3 navigation drawer — drop-in CSS
+   Implements the official spec: 360dp sheet, 28dp inline padding, 56dp rows,
+   336dp × 56dp fully-rounded active indicator, MD3 colour roles.
+
+   Works over either the @material/web labs drawer or a hand-built sheet.
+   Every colour is a --md-sys-color-* role, so dark mode needs no extra rules.
+   All spacing uses logical properties, so RTL works from `dir="rtl"` alone.
+   --------------------------------------------------------------------------- */
+
+:root {
+  --drawer-width: 360px;
+  --drawer-inline-padding: 28px;   /* 360 - 28 - 28 = 336 indicator width */
+  --drawer-row-height: 56px;
+  --drawer-indicator-radius: 28px; /* fully rounded at 56px tall */
+
+  /* M3 defines a `scrim` role; many token sets omit it. Fallback keeps the
+     modal variant actually modal instead of silently transparent. */
+  --drawer-scrim: var(--md-sys-color-scrim, #000);
+  --drawer-scrim-opacity: 0.32;
+}
+
+/* --- Sheet ---------------------------------------------------------------- */
+
+/* Hand-built sheet. Skip if you are using <md-navigation-drawer>. */
+.md3-drawer {
+  box-sizing: border-box;
+  inline-size: var(--drawer-width);
+  block-size: 100%;
+  padding-inline: var(--drawer-inline-padding);
+  padding-block: 12px;
+  overflow-y: auto;                /* drawer scrolls independently of content */
+  overscroll-behavior: contain;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-on-surface-variant);
+
+  /* Standard drawer: square on the start edge, 16dp on the end edge. Logical
+     corners so this mirrors in RTL without a second rule. */
+  border-start-start-radius: 0;
+  border-end-start-radius: 0;
+  border-start-end-radius: 16px;
+  border-end-end-radius: 16px;
+}
+
+/* Styling the labs component instead */
+md-navigation-drawer,
+md-navigation-drawer-modal {
+  --md-navigation-drawer-container-color: var(--md-sys-color-surface-container-low);
+  --md-navigation-drawer-container-width: var(--drawer-width);
+  --md-navigation-drawer-container-shape: 0 16px 16px 0;
+  --md-navigation-drawer-divider-color: var(--md-sys-color-outline-variant);
+  --md-navigation-drawer-modal-container-color: var(--md-sys-color-surface-container-low);
+  --md-navigation-drawer-modal-container-width: var(--drawer-width);
+  --md-navigation-drawer-modal-scrim-color: var(--drawer-scrim);
+  --md-navigation-drawer-modal-scrim-opacity: var(--drawer-scrim-opacity);
+}
+
+/* Custom elements do not server-render. Reserve the width so the browser
+   upgrading the element is not a visible jump. */
+md-navigation-drawer:not(:defined),
+md-navigation-drawer-modal:not(:defined) {
+  display: block;
+  inline-size: var(--drawer-width);
+}
+
+/* Content inside the labs drawer still needs the spec's own padding. */
+md-navigation-drawer .md3-drawer-content,
+md-navigation-drawer-modal .md3-drawer-content {
+  padding-inline: var(--drawer-inline-padding);
+  padding-block: 12px;
+}
+
+/* --- Headline and section labels ----------------------------------------- */
+
+.md3-drawer-headline {
+  margin: 0;
+  padding-block: 16px;
+  font: var(--md-sys-typescale-title-small, 500 14px/20px system-ui);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* Short subheads that group related destinations. */
+.md3-drawer-section-label {
+  margin: 0;
+  padding-block: 16px 8px;
+  padding-inline-start: 16px;
+  font: var(--md-sys-typescale-title-small, 500 14px/20px system-ui);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+/* --- Destinations -------------------------------------------------------- */
+
+.md3-drawer md-list,
+.md3-drawer-content md-list {
+  --md-list-container-color: transparent;  /* the sheet paints the background */
+  padding: 0;
+}
+
+md-list-item {
+  /* 56dp rows whether active or not — if only the active row were 56px the
+     list would shift as selection moves. */
+  --md-list-item-one-line-container-height: var(--drawer-row-height);
+  --md-list-item-leading-space: 16px;
+  --md-list-item-trailing-space: 24px;
+  --md-list-item-label-text-color: var(--md-sys-color-on-surface-variant);
+  --md-list-item-leading-icon-color: var(--md-sys-color-on-surface-variant);
+  --md-list-item-hover-state-layer-color: var(--md-sys-color-on-surface);
+  --md-list-item-pressed-state-layer-color: var(--md-sys-color-on-surface);
+
+  /* md-list-item has no shape token, so the indicator radius lives here.
+     Applied to every row so the ripple and hover layer are clipped to the
+     same rounded shape the active indicator uses. */
+  border-radius: var(--drawer-indicator-radius);
+  overflow: hidden;
+}
+
+/* The active indicator. `data-active` drives the visual; aria-current drives
+   the announcement. Set both — neither implies the other. */
+md-list-item[data-active] {
+  background: var(--md-sys-color-secondary-container);
+  --md-list-item-label-text-color: var(--md-sys-color-on-secondary-container);
+  --md-list-item-leading-icon-color: var(--md-sys-color-on-secondary-container);
+  --md-list-item-hover-state-layer-color: var(--md-sys-color-on-secondary-container);
+  --md-list-item-pressed-state-layer-color: var(--md-sys-color-on-secondary-container);
+}
+
+/* M3 asks the selected icon to switch outlined -> filled. This is a second
+   channel beside colour for "which destination is current", so it is an
+   accessibility requirement rather than decoration. Material Symbols only. */
+md-list-item[data-active] md-icon {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* Truncate long labels. Never wrap, never shrink the font — both break the
+   56dp rhythm that makes the list scannable. */
+md-list-item::part(headline) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* --- Dividers ------------------------------------------------------------ */
+
+/* Full width, and only between GROUPS of destinations. A divider between every
+   item destroys the grouping signal it exists to provide. */
+.md3-drawer md-divider,
+.md3-drawer-content md-divider {
+  --md-divider-color: var(--md-sys-color-outline-variant);
+  margin-block: 8px;
+  /* Cancel the sheet's inline padding so the divider spans the full sheet. */
+  margin-inline: calc(-1 * var(--drawer-inline-padding));
+}
+
+/* --- Modal scrim (hand-built variant) ----------------------------------- */
+
+.md3-drawer-scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--drawer-scrim);
+  opacity: var(--drawer-scrim-opacity);
+  border: 0;
+  padding: 0;
+  z-index: 10;
+}
+
+.md3-drawer-modal {
+  position: fixed;
+  inset-block: 0;
+  inset-inline-start: 0;           /* start edge: left in LTR, right in RTL */
+  z-index: 11;
+  border-start-end-radius: 16px;
+  border-end-end-radius: 16px;
+}
+
+/* --- Responsive --------------------------------------------------------- */
+
+/* One primary navigation component per breakpoint. Showing a navigation bar and
+   a drawer together is the most common M3 navigation mistake. */
+.md3-drawer-standard { display: none; }
+
+@media (min-width: 840px) {         /* expanded and up */
+  .md3-drawer-standard { display: block; }
+  .md3-drawer-menu-button { display: none; }   /* permanent: no toggle needed */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  md-navigation-drawer,
+  md-navigation-drawer-modal,
+  .md3-drawer-modal,
+  .md3-drawer-scrim {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material 3 Dialogs"
+  short_description: "Design accessible Material 3 dialogs and task flows"
+  default_prompt: "Use $md3-dialog to design a focused Material 3 dialog with clear actions, accessible focus, and reliable dismissal."

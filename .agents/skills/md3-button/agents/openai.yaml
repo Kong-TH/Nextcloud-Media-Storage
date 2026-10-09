@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material 3 Buttons"
+  short_description: "Design accessible Material 3 buttons for the web"
+  default_prompt: "Use $md3-button to design and implement Material 3 buttons with clear action hierarchy and accessible states."

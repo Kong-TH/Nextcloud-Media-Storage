@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material 3 Dividers"
+  short_description: "Design subtle Material 3 dividers and content groups"
+  default_prompt: "Use $md3-divider to choose and implement Material 3 dividers with clear grouping, appropriate insets, and accessible semantics."

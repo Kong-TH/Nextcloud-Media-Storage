@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material 3 Lists"
+  short_description: "Design accessible Material 3 lists and selection"
+  default_prompt: "Use $md3-list to design a scannable Material 3 list with clear action or selection modes and accessible keyboard behavior."

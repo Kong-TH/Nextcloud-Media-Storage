@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material 3 Cards"
+  short_description: "Design accessible Material 3 cards and collections"
+  default_prompt: "Use $md3-card to design Material 3 cards with clear content hierarchy, responsive layout, and accessible actions."

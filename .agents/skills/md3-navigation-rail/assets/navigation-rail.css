@@ -1,0 +1,205 @@
+/* ---------------------------------------------------------------------------
+   MD3 navigation rail — drop-in CSS
+
+   Every value comes from the official baseline token set
+   (@material/web/tokens/versions/v0_192/_md-comp-navigation-rail.scss):
+   80px container on `surface`, 56×32 `corner-full` indicator in
+   `secondary-container`, 24px icons, label-medium type.
+
+   @material/web ships no rail component, so this builds one. Colours are
+   --md-sys-color-* roles, so dark mode and dynamic colour come for free.
+   Spacing uses logical properties, so the leading edge flips under dir="rtl".
+   --------------------------------------------------------------------------- */
+
+:root {
+  --rail-width: 80px;
+  --rail-indicator-width: 56px;
+  --rail-indicator-height: 32px;        /* 56px when the item has no label */
+  --rail-icon-size: 24px;
+  --rail-item-gap: 12px;
+  /* The indicator is the visual pill; the hit area must still reach 48px. */
+  --rail-min-target: 48px;
+}
+
+/* --- Container ----------------------------------------------------------- */
+
+.md3-rail {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;               /* never horizontal — that's a nav bar */
+  align-items: center;
+  gap: 4px;
+  inline-size: var(--rail-width);
+  block-size: 100%;
+  padding-block: 12px;
+
+  /* `surface`, NOT surface-container-low. The drawer uses the latter; reaching
+     for it here gives a rail that sits subtly wrong against the background. */
+  background: var(--md-sys-color-surface);
+  border-radius: 0;                     /* container-shape: corner-none */
+}
+
+/* Items align as a group to the top or centre. Centre is easier to reach on
+   tablets, which is what M3 recommends there. */
+.md3-rail--center { justify-content: center; }
+
+/* Optional vertical divider on the content-facing edge, to separate the rail
+   from content scrolling underneath it. */
+.md3-rail--divided {
+  border-inline-end: 1px solid var(--md-sys-color-outline-variant);
+}
+
+/* The alternative to a divider: raise to level 1 so horizontally scrolling
+   content clearly passes beneath. */
+.md3-rail--elevated {
+  box-shadow: 0 1px 3px 1px rgb(0 0 0 / 0.15), 0 1px 2px 0 rgb(0 0 0 / 0.3);
+}
+
+/* --- Menu and FAB -------------------------------------------------------- */
+
+/* Order matters: menu, then FAB, then destinations. M3 is explicit that the FAB
+   must not sit below the navigation items. */
+.md3-rail-menu { margin-block-end: 4px; }
+
+.md3-rail-fab {
+  margin-block-end: 24px;
+  --md-fab-container-elevation: 0;      /* level 0 inside the rail */
+}
+
+/* --- Destination list ---------------------------------------------------- */
+
+.md3-rail-items {
+  display: flex;
+  flex-direction: column;
+  gap: var(--rail-item-gap);
+  inline-size: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md3-rail-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-block-size: var(--rail-min-target);
+  padding-block: 4px;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* --- Active indicator ---------------------------------------------------- */
+
+/* Wraps the ICON ONLY. That is what produces a pill behind the icon with the
+   label below it — the visual signature of an M3 rail. Wrapping the label too
+   gives you something closer to a drawer row. */
+.md3-rail-indicator {
+  position: relative;                   /* contains md-ripple */
+  display: grid;
+  place-items: center;
+  inline-size: var(--rail-indicator-width);
+  block-size: var(--rail-indicator-height);
+  border-radius: var(--md-sys-shape-corner-full, 9999px);
+  transition: background-color 150ms ease-out;
+}
+
+/* No label: the pill has no text to make room for, so it becomes a circle. */
+.md3-rail-item--no-label .md3-rail-indicator { block-size: var(--rail-indicator-width); }
+
+.md3-rail-item[data-active] .md3-rail-indicator {
+  background: var(--md-sys-color-secondary-container);
+}
+
+/* State layer, clipped to the pill by the indicator's own radius. */
+.md3-rail-indicator md-ripple {
+  --md-ripple-hover-color: var(--md-sys-color-on-surface);
+  --md-ripple-pressed-color: var(--md-sys-color-on-surface);
+  border-radius: inherit;
+  inset: 0;
+}
+
+/* --- Icon ---------------------------------------------------------------- */
+
+.md3-rail-indicator md-icon {
+  --md-icon-size: var(--rail-icon-size);
+  color: var(--md-sys-color-on-surface-variant);
+  transition: color 150ms ease-out;
+}
+
+.md3-rail-item[data-active] .md3-rail-indicator md-icon {
+  color: var(--md-sys-color-on-secondary-container);
+}
+
+/* Inactive icons darken toward on-surface on hover/focus rather than shifting
+   hue — that is what the token set specifies. */
+.md3-rail-item:hover .md3-rail-indicator md-icon,
+.md3-rail-item:focus-visible .md3-rail-indicator md-icon {
+  color: var(--md-sys-color-on-surface);
+}
+
+/* The active icon fills. This is a second channel beside colour for "which
+   destination is current", so it is an accessibility requirement rather than
+   decoration. Material Symbols only. */
+.md3-rail-item[data-active] .md3-rail-indicator md-icon {
+  font-variation-settings: 'FILL' 1;
+}
+
+/* --- Label --------------------------------------------------------------- */
+
+.md3-rail-label {
+  /* label-medium */
+  font: var(--md-sys-typescale-label-medium, 500 12px/16px system-ui);
+  letter-spacing: 0.5px;
+  text-align: center;
+  /* Never truncate and never shrink the type. M3 would rather the label wrap —
+     at 80px wide an ellipsis carries almost no information. This is the
+     opposite of the navigation drawer's rule. */
+  overflow-wrap: break-word;
+  hyphens: auto;
+  max-inline-size: calc(var(--rail-width) - 8px);
+  color: var(--md-sys-color-on-surface-variant);
+}
+
+.md3-rail-item[data-active] .md3-rail-label {
+  /* on-surface, NOT on-secondary-container. The label sits below the indicator
+     on the plain container, so it takes a different role from the icon.
+     Colouring both the same is the most common rail styling bug. */
+  color: var(--md-sys-color-on-surface);
+  font-weight: 700;                     /* label-medium-weight-prominent */
+}
+
+.md3-rail-item:hover .md3-rail-label,
+.md3-rail-item:focus-visible .md3-rail-label {
+  color: var(--md-sys-color-on-surface);
+}
+
+/* --- Focus --------------------------------------------------------------- */
+
+.md3-rail-item:focus-visible { outline: none; }
+
+.md3-rail-item:focus-visible .md3-rail-indicator {
+  outline: 3px solid var(--md-sys-color-secondary);
+  outline-offset: 2px;
+}
+
+/* --- Responsive: rail above 600px, navigation bar below ----------------- */
+
+/* M3 says this twice: never show a rail and a navigation bar together. They are
+   two presentations of one thing, so each breakpoint gets exactly one. */
+.md3-rail { display: none; }
+.md3-rail-bar { display: flex; }        /* the compact-window navigation bar */
+
+@media (min-width: 600px) {             /* medium and up */
+  .md3-rail { display: flex; }
+  .md3-rail-bar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .md3-rail-indicator,
+  .md3-rail-indicator md-icon,
+  .md3-rail-label {
+    transition: none;
+  }
+}

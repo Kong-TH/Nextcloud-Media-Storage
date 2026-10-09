@@ -1,0 +1,4 @@
+interface:
+  display_name: "Material 3 Extended FAB"
+  short_description: "Design accessible extended floating action buttons"
+  default_prompt: "Use $md3-extended-fab to design a persistent Material 3 primary action with accessible responsive placement."
