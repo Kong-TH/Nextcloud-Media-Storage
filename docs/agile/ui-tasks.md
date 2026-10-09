@@ -37,13 +37,13 @@ Add UI-12: FAB/toolbar/tooltip interaction regression, including tooltip appeari
 
 ## Design-study evidence
 
-The standalone prototype now exercises creation FAB/menu, contextual reference actions, clipboard aliases and tooltip/menu interactions on sample data; sample-model tests passed; the current layout/action suite passes 333 Chrome checks. Production UI-01 through UI-12 remain pending; see [prototype validation](../design/validation.md). It provides no deployment, API integration, upload, bucket persistence or production accessibility evidence.
+The standalone prototype now exercises creation FAB/menu, contextual reference actions, clipboard aliases and tooltip/menu interactions on sample data; sample-model tests passed; the current layout/action suite passes 332 Chrome checks. Production UI-01 through UI-12 remain pending; see [prototype validation](../design/validation.md). It provides no deployment, API integration, upload, bucket persistence or production accessibility evidence.
 
 8. Copy a reference to another virtual folder, give it a different name, and verify both references retain the same original Nextcloud binding. Move/remove one reference and confirm the original file and other references remain. Copying a folder duplicates only virtual structure/references; clipboard conflicts/errors are explicit.
 9. Display the selection toolbar and paste destination state without overlapping content or a competing creation FAB. Tooltips must not close menus or steal focus. Small desktop text follows the updated sizing and remains readable in both themes.
 
 
-10. Preserve the [refined library layout](../design/layout-refinement.md) in production: one title/search navbar, conditional nested breadcrumbs, equal measured content insets, a bottom-aligned content-sized footer and responsive FAB clearance. Recheck proportions after each component integration across pane widths/heights and selection/details/search states. Use the bottom floating toolbar in the existing FAB band, with selected counts after the object count. Selection must preserve list height and first-row position. Standalone evidence is now 333 Chrome checks; production UI tasks remain pending.
+10. Preserve the [refined library layout](../design/layout-refinement.md) in production: one title/search navbar, conditional nested breadcrumbs, equal measured content insets, a bottom-aligned content-sized footer and responsive FAB clearance. Recheck proportions after each component integration across pane widths/heights and selection/details/search states. Use the bottom floating toolbar in the existing FAB band, with selected counts after the object count. Selection must preserve list height and first-row position. Standalone evidence is now 332 Chrome checks; production UI tasks remain pending.
 
 
 11. Below the toolbar overflow breakpoint, retain an icon-only Add FAB below the floating toolbar and use an expand-more arrow for the final toolbar action. Add menus may cover the toolbar. Test selection/clipboard preservation on open, tooltip, Escape/outside dismissal; clear context only on invoking either Add command and keep it cleared after task cancellation. Verify both stack levels, last-row keyboard/pointer clearance, resize/RTL and no extra permanently reserved list height. Wide layouts retain exclusive FAB/toolbar behavior.
@@ -56,3 +56,12 @@ The standalone prototype now exercises creation FAB/menu, contextual reference a
 
 
 14. Pack toolbar commands from actual pane/group width, not fixed Copy/Rename/Remove breakpoint rules. Reserve X, toolbar padding/gaps and overflow, keep 48px icon targets, prefer readable labels when all fit, and expose only hidden commands in overflow. Observe resize/font changes and preserve focus/menu state. Verify 320/360/375/390/420/480px widths, including five visible commands at 390px.
+
+
+15. Latest user decision supersedes compact action stacking: hide Add FAB whenever selection/clipboard context displays the toolbar at every width. Place contextual actions in the existing bottom band with no extra compact scroll-end padding. Keep full mobile width and measured packing. Test clipboard-only context, cancellation restoring Add, resize/RTL and final-row reachability. Historical paired-action acceptance scenarios are superseded.
+
+
+16. Size anchored creation menus independently of fixed offsets before measuring placement. Align the menu with the FAB logical trailing edge (29px desktop inset), preserve compact layout, and clamp very narrow menus inside the viewport. Verify final geometry on first/repeated open, live resize and RTL alongside tooltip/menu regression checks.
+
+
+17. Give object rows a full-row primary hit area and hover/press/keyboard focus feedback, retaining independent sibling checkbox and information controls. Preserve native semantics, row dimensions, dividers and bottom action clearance. Verify whitespace activation, selection without opening, folder information without navigation, RTL and both themes.

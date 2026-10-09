@@ -60,7 +60,7 @@ class DesignOverlays {
  bounds(){const r=this.root.getBoundingClientRect();return {left:Math.max(8,r.left+8),right:Math.min(innerWidth-8,r.right-8),top:Math.max(58,r.top+8),bottom:innerHeight-8};}
  place(element,trigger,above=false){
   const bounds=this.bounds(),r=trigger.getBoundingClientRect();element.style.maxWidth=Math.max(0,bounds.right-bounds.left)+'px';
-  const box=element.getBoundingClientRect();let x=r.right-box.width,y=above?r.top-box.height-8:r.bottom+8;
+  const box=element.getBoundingClientRect();let x=trigger.id==='fab'&&getComputedStyle(this.root).direction==='rtl'?r.left:r.right-box.width,y=above?r.top-box.height-8:r.bottom+8;
   if(y+box.height>bounds.bottom)y=r.top-box.height-8;
   element.style.left=Math.max(bounds.left,Math.min(x,bounds.right-box.width))+'px';element.style.top=Math.max(bounds.top,y)+'px';
  }

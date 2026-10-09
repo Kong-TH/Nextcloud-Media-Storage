@@ -91,7 +91,7 @@ body { margin:0; font:14px/1.5 system-ui,sans-serif; background:#f7f8fa; color:#
 #media-design .fab-area {position:fixed;z-index:10;}
 #media-design button.fab {display:flex;align-items:center;gap:12px;min-height:56px;min-width:56px;border-radius:16px;padding:16px 22px;background:var(--secondary);color:var(--on);box-shadow:0 3px 8px #0003;font-size:16px;}
 #media-design .fab[aria-expanded=true] {background:var(--container);}
-#media-design .action-menu {position:fixed;z-index:15;min-width:240px;background:var(--container);border-radius:12px;padding:8px;box-shadow:0 4px 16px #0003;max-height:calc(100dvh - 100px);overflow:auto;}
+#media-design .action-menu {position:fixed;z-index:15;width:max-content;min-width:min(240px,calc(100vw - 16px));background:var(--container);border-radius:12px;padding:8px;box-shadow:0 4px 16px #0003;max-height:calc(100dvh - 100px);overflow:auto;}
 #media-design .action-menu button {display:flex;align-items:center;gap:12px;width:100%;text-align:start;border-radius:8px;font-size:15px;font-weight:500;}
 #media-design .selection {z-index:9;display:flex;align-items:center;gap:8px;max-width:100%;min-height:64px;flex-shrink:0;}
 #media-design #reference-toolbar {background:var(--secondary);border-radius:32px;padding:8px;min-height:64px;box-shadow:0 3px 8px #0003;min-width:0;}
@@ -167,22 +167,31 @@ body { margin:0; font:14px/1.5 system-ui,sans-serif; background:#f7f8fa; color:#
  @keyframes toolbar-enter {from {opacity:0;translate:0 16px;} to {opacity:1;translate:0 0;}}
 }
 
-/* Compact creation stays available below reference actions until Add is invoked. */
+/* The FAB collapses to an icon on narrow panes and hides during reference actions. */
 @container plugin (max-width:1199px) {
  #media-design button.fab {padding:16px;}
  #media-design .fab>span {display:none;}
- #media-design main.has-toolbar.has-fab .selection {position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 32px);}
- #media-design main.has-toolbar.has-fab .library-footer {min-height:88px;padding:8px 16px 24px;}
- #media-design main.has-toolbar.has-fab .main-scroll {padding-block-end:92px;scroll-padding-block-end:92px;}
 }
 
 #media-design #add-bucket {margin-inline-start:auto;display:inline-flex;align-items:center;gap:4px;padding-inline:10px;white-space:nowrap;}
 #media-design .bucket-title {padding-inline-end:12px;}
 @container plugin (max-width:599px) {
- #media-design main.has-toolbar.has-fab .selection {width:calc(100% - 48px);max-width:calc(100% - 48px);}
- #media-design main.has-toolbar.has-fab #reference-toolbar {flex:1;justify-content:space-evenly;}
+ #media-design main.has-toolbar .library-footer {padding-inline:24px;}
+ #media-design main.has-toolbar .selection {width:100%;max-width:100%;}
+ #media-design main.has-toolbar #reference-toolbar {flex:1;justify-content:space-evenly;}
 }
 
 /* Packing is measured from pane space; icon targets never shrink below 48px. */
 #media-design .toolbar-actions.icon-actions .action-label {display:none;}
 #media-design .toolbar-actions.icon-actions button {width:48px;flex:0 0 48px;padding:0;}
+
+/* Extend the primary action without nesting the independent row controls. */
+#media-design .object {position:relative;isolation:isolate;}
+#media-design .object:hover,#media-design .object:has(:focus-visible) {background:var(--container);}
+#media-design .object:has(:active) {background:color-mix(in srgb,var(--on) 12%,var(--surface));}
+#media-design .object-name:hover {background:transparent;}
+#media-design .object-name::before {content:"";position:absolute;inset:0;cursor:pointer;}
+#media-design .object-name:focus-visible {outline:none;}
+#media-design .object-name:focus-visible::before {outline:3px solid var(--primary);outline-offset:-3px;}
+#media-design .object>.check,#media-design .object>.icon {position:relative;z-index:1;}
+#media-design .object>.type,#media-design .object>.binding {pointer-events:none;}

@@ -69,3 +69,12 @@ No deadline, implementation owner, new app version, or tested dependency version
 
 
 2026-10-09: Replaced fixed toolbar action hiding with measured adaptive packing after documenting the requirement. Five icon commands fit at 390px; narrower sizes reserve overflow for exactly hidden commands, retaining 48px targets. Resize/font/group updates preserve focus and stable menus, with labels restored when space permits. 333 Chrome checks passed, including a continuous compact sweep, long labels and focus/menu resize regressions. Updated mobile snapshot visually inspected; production integration remains pending.
+
+
+2026-10-09: Latest user correction makes FAB/toolbar mutually exclusive at every width, superseding compact stacking. Toolbar returns to the existing bottom band with full mobile width/adaptive packing; X clears context and restores Add. 332 Chrome checks passed including clipboard-only exclusion, resize/RTL and both Add entries after cancellation. Snapshots refreshed; mobile visually inspected. No backend changes or production integration.
+
+
+2026-10-09: Documented and corrected desktop creation-menu alignment. Intrinsic width removes position-dependent sizing; the menu aligns with FAB trailing edge, including RTL, while compact layout and narrow viewport clamping remain intact. 365 Chrome checks passed, including initial/repeated open and live resize. Desktop/mobile menu snapshots visually inspected; standalone study only.
+
+
+2026-10-09: Documented and implemented full-row primary hit area and hover/press/focus feedback, replacing the name-only pill. Checkbox/info remain independent native controls. 383 Chrome checks passed including desktop/mobile whitespace activation, selection/info isolation, keyboard focus and RTL/dark theme. Mobile screenshot inspected; standalone study only.

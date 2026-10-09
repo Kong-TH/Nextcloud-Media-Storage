@@ -1,6 +1,13 @@
 # Library layout refinement
 
+## FAB menu alignment correction — 2026-10-09
+
+Record before implementation: keep the creation menu width independent of its previous fixed position. Align its trailing edge with the FAB trailing edge (leading physical edge in RTL), retaining the 8px vertical anchor gap and viewport containment. Desktop must preserve the FAB's 29px trailing inset instead of letting the menu grow beyond that edge. Preserve the compact layout and its 24px FAB inset; clamp wider menus only when space requires it. Verify initial open, repeated open, live resizing, RTL and tooltip/menu ownership with measured final geometry. This affects only the standalone study.
+
+
 Requested 2026-10-09; specification written before changing the prototype.
+
+Current decision — FAB/toolbar exclusivity on every width: the latest user correction supersedes compact stacking and menu-over-toolbar behavior below. Hide Add FAB whenever selection or clipboard context displays the toolbar, on both mobile and desktop. Place the toolbar/X group in the existing bottom action band, removing the compact extra scroll-end clearance. Retain full mobile group width, adaptive command packing and separate X. X clears selection/clipboard and restores Add with focus; clipboard-only context also hides Add. Test all viewport widths, clipboard-only state, resize/RTL, final-row reachability and Add availability after cancellation. Historical paired-action screenshots/tests are superseded; no Add menu can be opened while contextual actions are active.
 
 Latest adaptive-action correction, recorded before code: remove fixed breakpoint rules that hide Copy/Rename/Remove. Measure the actual main-pane action budget after reserving the separate 56px X, 8px separation, toolbar padding/gaps and any overflow trigger. Show all labeled commands when they fit; otherwise use 48px icon targets and show as many commands as fit. Prefer Move and Paste, then Copy, Rename and Remove when overflow is necessary. Overflow contains exactly the hidden commands, preserving names, disabled state and keyboard behavior. Hide its arrow when all commands fit. Recompute after context changes, pane/group resize and font loading. Repair focus when a focused command moves into overflow or the focused overflow trigger disappears. At the supplied 390px layout, five 48px commands fit inside the expanded toolbar; narrower widths may still require overflow. Verify continuous width changes rather than only breakpoint classes.
 
@@ -27,3 +34,8 @@ Replace the unconditional 112px bottom padding with a separate, content-sized fo
 Retain the compact FAB inset of 24px. Increase the desktop trailing inset to 29px (approximately 21% above 24px, rounded to whole CSS pixels). Keep 24px bottom spacing and safe-area support. Bound the action to the main pane, including when details are open, and preserve mutually exclusive selection/FAB behavior.
 
 Verify equal measured content insets, header/search alignment, root breadcrumb removal, nested navigation, footer position, FAB clearance and toolbar fit after each layout slice. Check expanded, breakpoint-adjacent, compact, short-height, details, search/empty, selection, dark and RTL states. Record observed results separately from pending host integration and accessibility checks. This revision changes only the standalone study; reference semantics and backend contracts are unchanged.
+
+
+## Full-row interaction feedback — 2026-10-09
+
+Recorded before code: extend the primary file/folder action hit area through unused row space and show hover, press and primary keyboard-focus feedback across the complete row rather than a rounded name-only pill. Keep the row itself a non-interactive list item, with sibling native checkbox, primary button and information button. Checkbox and information targets retain independent hit areas and keyboard focus; selecting never opens details or a folder. Keep row dimensions, dividers, list insets and toolbar clearance unchanged. Verify pointer hit testing at row edges, pressed/focus styling, independent actions, RTL and both themes on desktop/compact widths. Standalone study only.

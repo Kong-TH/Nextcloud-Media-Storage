@@ -80,7 +80,7 @@ See [design validation](../docs/design/validation.md) for recorded results and u
 The design browser suite also measures bottom contextual-toolbar containment, unchanged list viewport/first-row position on selection, selected-count placement after the object count, short-height last-row clearance and reduced-motion entry behavior. It writes compact toolbar snapshots to `/tmp/mediastorage-toolbar-390.png` and `/tmp/mediastorage-toolbar-320.png` for visual review; these checks do not establish actual Nextcloud or assistive-technology integration.
 
 
-Compact action tests additionally verify toolbar-above-FAB geometry, expand-more overflow, menu occlusion through hit testing, preserved reference context on open/Escape/outside dismissal, both Add entries clearing context before their task, task cancellation, resize/RTL, and keyboard focus scrolling the last row above the stacked actions. Animation geometry waits for the toolbar's actual animation completion; cancelled-task focus checks wait for the native dialog close event.
+Action tests verify FAB/toolbar mutual exclusion at every width, including clipboard-only context and resize/RTL. X restores Add and clears selection/clipboard before either Add task can open. Final-row focus/scroll, toolbar overflow and tooltip ownership remain covered. Geometry waits for actual toolbar animation completion; cancelled-task focus checks wait for the native dialog close event.
 
 
 Cancellation coverage includes separate toolbar/X composition, 8px gap and 56px target, no duplicate clear commands, selection-only/clipboard-only/combined state at desktop/compact/short sizes, unchanged reference listings, Tab/Enter/Space focus and RTL placement. Native button activation in CDP includes virtual key codes and text events for Enter/Space.
@@ -90,3 +90,9 @@ The study suite also checks mobile action-group/FAB edge alignment and sample bu
 
 
 Adaptive-toolbar checks sweep 320/360/375/390/420/480px, verify 3/4/4/5/5/5 visible slots (including overflow where needed), 48px targets, hidden-command-only menu contents and disabled-state parity. They also check focus migration during shrink/grow, stable menu state when packing does not change, long-label fallback and label restoration at wide sizes.
+
+
+FAB-menu geometry checks assert final trailing alignment and viewport containment at nine widths, repeat opening after viewport changes, resize an already-open menu through desktop/compact widths, and verify RTL anchoring. At very narrow widths, alignment yields to the 8px viewport boundary. Current standalone Chrome result: 365 checks passed; production integration remains untested.
+
+
+Object-row regression checks cover desktop/mobile primary whitespace hit area and activation, full-row hover/press/keyboard focus styling, independent checkbox and folder-info actions, and RTL/dark-theme hit testing. The suite writes `/tmp/mediastorage-row-feedback.png`. Current standalone Chrome result: 383 checks passed; real touch/screen-reader and production integration remain pending.

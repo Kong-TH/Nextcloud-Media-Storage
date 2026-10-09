@@ -18,6 +18,43 @@ const pause=(ms)=>new Promise(r=>setTimeout(r,ms));
 async function moveTo(selector){const r=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2};})()`);await send('Input.dispatchMouseEvent',{type:'mouseMoved',...r});return r;}
 async function click(selector){const r=await moveTo(selector);await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...r});await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...r});}
 async function key(key){const virtual=key==='Enter'?13:key===' '?32:undefined;const event={key,code:key===' '?'Space':key,...(virtual?{windowsVirtualKeyCode:virtual,nativeVirtualKeyCode:virtual}:{})};await send('Input.dispatchKeyEvent',{type:'keyDown',...event,...(key==='Enter'?{text:'\r'}:key===' '?{text:' '}:{})});await send('Input.dispatchKeyEvent',{type:'keyUp',...event});}
+await click('#fab');
+for(const width of [1440,1024,390,320,1440]){
+ await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});await pause(150);
+ check('Open FAB menu follows resize '+width,await evaluate("(()=>{const m=document.getElementById('fab-menu').getBoundingClientRect(),f=document.getElementById('fab').getBoundingClientRect();return Math.abs(m.left-Math.max(8,f.right-m.width))<=1&&Math.abs(m.bottom+8-f.top)<=1;})()"));
+}
+await click('#fab');
+for(const width of [1440,390]){
+ await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});await pause(120);
+ check('Primary action covers row whitespace '+width,await evaluate("(()=>{const row=document.querySelector('#objects li'),r=row.getBoundingClientRect();return document.elementFromPoint(r.left+2,r.top+3).closest('button')===row.querySelector('.object-name');})()"));
+ const rowPoint=await evaluate("(()=>{const r=document.querySelector('#objects li').getBoundingClientRect();return {x:r.left+2,y:r.top+3}})()");
+ await send('Input.dispatchMouseEvent',{type:'mouseMoved',...rowPoint});
+ check('Hover colors full row without name pill '+width,await evaluate("(()=>{const r=document.querySelector('#objects li');return getComputedStyle(r).backgroundColor!=='rgba(0, 0, 0, 0)'&&getComputedStyle(r.querySelector('.object-name')).backgroundColor==='rgba(0, 0, 0, 0)';})()"));
+ await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...rowPoint});
+ check('Pressed row has full state layer '+width,await evaluate("document.querySelector('#objects li').matches(':has(:active)')"));
+ await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...rowPoint});
+ check('Whitespace opens details without selecting '+width,await evaluate("!document.getElementById('details').hidden&&!document.querySelector('#objects input').checked"));
+ await click('#close-detail');
+ await click('#objects .check');
+ check('Checkbox selects without opening '+width,await evaluate("document.getElementById('details').hidden&&document.querySelector('#objects input').checked"));
+ await click('#cancel-selection');
+ await click('#objects li:nth-child(2)>.icon');
+ check('Folder info remains an independent action '+width,await evaluate("!document.getElementById('details').hidden&&document.getElementById('path-row').hidden"));
+ await click('#close-detail');
+ await evaluate("document.querySelector('#objects .object-name').focus()");await key('Tab');await key('Tab');await key('Tab');
+ // Focus the primary action with keyboard modality for its row-wide outline.
+ await evaluate("document.querySelector('#objects .object-name').focus()");
+ check('Keyboard primary focus covers row '+width,await evaluate("(()=>{const b=document.querySelector('#objects .object-name'),p=getComputedStyle(b,'::before');return b.matches(':focus-visible')&&p.outlineStyle==='solid'&&p.inset==='0px';})()"));
+
+ await click('#theme');await click('#direction');
+ const rtlPoint=await evaluate("(()=>{const r=document.querySelector('#objects li').getBoundingClientRect();return {x:r.right-2,y:r.top+3}})()");
+ await send('Input.dispatchMouseEvent',{type:'mouseMoved',...rtlPoint});
+ check('RTL dark row retains full primary hit area '+width,await evaluate("(()=>{const row=document.querySelector('#objects li'),r=row.getBoundingClientRect();return document.elementFromPoint(r.right-2,r.top+3).closest('button')===row.querySelector('.object-name')&&getComputedStyle(row).backgroundColor!=='rgba(0, 0, 0, 0)';})()"));
+ check('RTL secondary hit targets remain independent '+width,await evaluate("(()=>{const row=document.querySelector('#objects li');return ['.check','.icon'].every(s=>{const e=row.querySelector(s),r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));});})()"));
+ await click('#direction');await click('#theme');
+ if(width===390){await moveTo('#objects li:nth-child(4) .object-name');await evaluate('document.activeElement.blur()');const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-row-feedback.png',Buffer.from(shot.data,'base64'));}
+
+}
 for(const [width,height] of [[1920,1080],[1440,1000],[1317,918],[1024,900],[840,900],[839,900],[768,1024],[390,844],[320,740]]){
  await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await pause(120);
  check('No horizontal overflow '+width,await evaluate('document.documentElement.scrollWidth<=innerWidth'));
@@ -29,23 +66,30 @@ for(const [width,height] of [[1920,1080],[1440,1000],[1317,918],[1024,900],[840,
  check('Responsive FAB inset '+width,await evaluate(`Math.abs(document.getElementById('main').getBoundingClientRect().right-document.getElementById('fab').getBoundingClientRect().right-${width>=840?29:24})<=1`));
 
 
+ // Measure final menu geometry, including reopening after a different viewport.
+ await click('#fab');await pause(40);
+ check('FAB menu trailing alignment '+width,await evaluate("(()=>{const m=document.getElementById('fab-menu').getBoundingClientRect(),f=document.getElementById('fab').getBoundingClientRect();return Math.abs(m.left-Math.max(8,f.right-m.width))<=1;})()"));
+ check('FAB menu contained '+width,await evaluate("(()=>{const r=document.getElementById('fab-menu').getBoundingClientRect();return r.left>=8&&r.right<=innerWidth-8;})()"));
+ await click('#fab');await click('#fab');await pause(40);
+ check('FAB menu stable on reopen '+width,await evaluate("(()=>{const m=document.getElementById('fab-menu').getBoundingClientRect(),f=document.getElementById('fab').getBoundingClientRect();return Math.abs(m.left-Math.max(8,f.right-m.width))<=1;})()"));
+ await click('#fab');
  check('FAB clears list viewport '+width,await evaluate("document.getElementById('fab').getBoundingClientRect().top>=document.getElementById('main-scroll').getBoundingClientRect().bottom+8"));
  check('FAB inside plugin '+width,await evaluate("(()=>{const f=document.getElementById('fab').getBoundingClientRect(),m=document.getElementById('main').getBoundingClientRect();return f.left>=m.left&&f.right<=m.right&&f.bottom<=innerHeight;})()"));
  if(width===1440||width===1317||width===390){await evaluate('document.activeElement.blur()');const shot=await send('Page.captureScreenshot',{format:'png',captureBeyondViewport:true});await writeFile('/tmp/mediastorage-design-'+width+'.png',Buffer.from(shot.data,'base64'));}
  const beforeSelection=await evaluate("({rowTop:document.querySelector('#objects li').getBoundingClientRect().top,height:document.getElementById('main-scroll').clientHeight})");
  await evaluate("document.querySelector('input[aria-label=\"Select Brand guidelines.pdf\"]').click()");
  await evaluate("Promise.all(document.getElementById('selection').getAnimations().map(animation=>animation.finished))");
- check('Responsive toolbar/FAB coexistence '+width,await evaluate(`!document.getElementById('selection').hidden&&document.getElementById('fab-area').hidden===${width>=1200}`));
+ check('Toolbar hides FAB at every width '+width,await evaluate("!document.getElementById('selection').hidden&&document.getElementById('fab-area').hidden"));
  check('Toolbar fits '+width,await evaluate("document.getElementById('reference-toolbar').scrollWidth<=document.getElementById('reference-toolbar').clientWidth"));
  check('Selection preserves list position and height '+width,await evaluate(`Math.abs(document.querySelector('#objects li').getBoundingClientRect().top-${beforeSelection.rowTop})<=1&&Math.abs(document.getElementById('main-scroll').clientHeight-${beforeSelection.height})<=1`));
  check('Toolbar occupies bottom band '+width,await evaluate("(()=>{const t=document.getElementById('selection').getBoundingClientRect(),s=document.getElementById('main-scroll').getBoundingClientRect(),m=document.getElementById('main').getBoundingClientRect();return (document.getElementById('fab-area').hidden?t.top>=s.bottom+8:t.bottom<=document.getElementById('fab').getBoundingClientRect().top-12)&&t.bottom<=m.bottom&&t.left>=m.left+16&&t.right<=m.right-16&&Math.abs(t.height-64)<=1;})()"));
- if(width<600)check('Mobile action group aligns with FAB inset '+width,await evaluate("(()=>{const t=document.getElementById('selection').getBoundingClientRect(),m=document.getElementById('main').getBoundingClientRect(),f=document.getElementById('fab').getBoundingClientRect();return Math.abs(t.left-m.left-24)<=1&&Math.abs(t.right-f.right)<=1;})()"));
+ if(width<600)check('Mobile action group aligns with FAB inset '+width,await evaluate("(()=>{const t=document.getElementById('selection').getBoundingClientRect(),m=document.getElementById('main').getBoundingClientRect(),f=document.getElementById('fab').getBoundingClientRect();return Math.abs(t.left-m.left-24)<=1&&Math.abs(m.right-t.right-24)<=1;})()"));
  check('Selected count follows object count '+width,await evaluate("document.getElementById('selected-count').previousElementSibling.id==='count'&&document.getElementById('selected-count').textContent==='1 selected'&&!document.getElementById('selected-count').hidden"));
  await evaluate("document.getElementById('main-scroll').scrollTop=10000");
  check('Last selected row clears toolbar '+width,await evaluate("document.querySelector('#objects li:last-child .icon').getBoundingClientRect().bottom<=document.getElementById('selection').getBoundingClientRect().top"));
  if(width<1200){
   await evaluate("document.querySelector('#objects li:last-child .icon').focus()");
-  check('Focused last row clears paired actions '+width,await evaluate("document.querySelector('#objects li:last-child .icon').getBoundingClientRect().bottom<=document.getElementById('selection').getBoundingClientRect().top"));
+  check('Focused last row clears toolbar '+width,await evaluate("document.querySelector('#objects li:last-child .icon').getBoundingClientRect().bottom<=document.getElementById('selection').getBoundingClientRect().top"));
  }
  await evaluate("document.getElementById('main-scroll').scrollTop=0");
  if(width===390||width===320){await pause(200);await evaluate('document.activeElement.blur()');const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-toolbar-'+width+'.png',Buffer.from(shot.data,'base64'));}
@@ -79,6 +123,9 @@ for(const [width,height] of [[1440,600],[1024,600],[390,600],[320,568]]){
 await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await pause(100);
 await evaluate("document.getElementById('direction').click()");
 check('Desktop RTL FAB uses trailing edge',await evaluate("Math.abs(document.getElementById('fab').getBoundingClientRect().left-document.getElementById('main').getBoundingClientRect().left-29)<=1"));
+await click('#fab');
+check('RTL FAB menu aligns to trigger',await evaluate("Math.abs(document.getElementById('fab-menu').getBoundingClientRect().left-document.getElementById('fab').getBoundingClientRect().left)<=1"));
+await click('#fab');
 check('Desktop RTL list remains balanced',await evaluate("(()=>{const m=document.getElementById('main').getBoundingClientRect(),o=document.getElementById('objects').getBoundingClientRect();return Math.abs((o.left-m.left)-(m.right-o.right))<=1;})()"));
 await evaluate("document.getElementById('direction').click()");
 await click('#fab');await moveTo('#new-folder');await pause(500);
@@ -141,34 +188,29 @@ await click('#fab');await moveTo('#new-folder');await moveTo('#add');await pause
 
 check('Rapid hover cancels stale tooltip',await evaluate("document.getElementById('action-tooltip').textContent==='Reference an existing Nextcloud file'&&!document.getElementById('fab-menu').hidden"));
 await click('#search');check('Outside click closes menu without stealing focus',await evaluate("document.getElementById('fab-menu').hidden&&document.activeElement.id==='search'"));
-// Compact Add preserves context until an actual creation entry is invoked.
-for(const [width,height] of [[1024,900],[390,844],[320,568]]){
+// Add becomes available after explicitly ending reference actions on every width.
+for(const [width,height] of [[1440,1000],[1024,900],[390,844],[320,568]]){
  await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await pause(120);
  for(const entry of ['add','new-folder']){
-  await evaluate("document.querySelector('input[aria-label=\"Select Brand guidelines.pdf\"]').click();document.getElementById('menu-copy').click()");await pause(200);
-  check('Overflow uses dropdown arrow '+width,await evaluate("document.querySelector('#more-actions use').getAttribute('href')==='#symbol-expand_more'"));
-  await click('#fab');await pause(400);
-  check('FAB menu preserves selection and clipboard '+width+' '+entry,await evaluate("!document.getElementById('selection').hidden&&document.getElementById('selected-count').textContent==='1 selected'&&document.getElementById('clipboard-count').textContent==='1 copied'"));
-  check('FAB menu covers toolbar '+width+' '+entry,await evaluate("(()=>{const menu=document.getElementById('fab-menu').getBoundingClientRect(),t=document.getElementById('selection').getBoundingClientRect(),x=Math.max(menu.left,t.left)+4,y=Math.max(menu.top,t.top)+4;return x<Math.min(menu.right,t.right)&&y<Math.min(menu.bottom,t.bottom)&&document.getElementById('fab-menu').contains(document.elementFromPoint(x,y));})()"));
-  await key('Escape');await key('Escape');
-  check('Escape retains reference context '+width,await evaluate("document.getElementById('fab-menu').hidden&&!document.getElementById('selection').hidden&&document.getElementById('clipboard-count').textContent==='1 copied'"));
-  await click('#fab');await click('#search');
-  check('Outside dismissal retains reference context '+width,await evaluate("document.getElementById('fab-menu').hidden&&!document.getElementById('selection').hidden&&document.getElementById('clipboard-count').textContent==='1 copied'"));
+  await evaluate("document.querySelector('input[aria-label=\"Select Brand guidelines.pdf\"]').click();document.getElementById('menu-copy').click()");
+  check('Selected and copied context hides Add '+width+' '+entry,await evaluate("!document.getElementById('selection').hidden&&document.getElementById('fab-area').hidden&&document.getElementById('fab-menu').hidden"));
+  await click('#cancel-selection');
+  check('Cancel restores Add at every width '+width,await evaluate("document.getElementById('selection').hidden&&!document.getElementById('fab-area').hidden&&document.getElementById('clipboard-count').hidden&&document.activeElement.id==='fab'"));
   await click('#fab');await click('#'+entry);
-  check('Add invocation clears context '+width+' '+entry,await evaluate("document.getElementById('task').open&&document.getElementById('selection').hidden&&document.getElementById('selected-count').hidden&&document.getElementById('clipboard-count').hidden&&![...document.querySelectorAll('#objects input')].some(x=>x.checked)"));
+  check('Add task opens after cancellation '+width+' '+entry,await evaluate("document.getElementById('task').open&&document.getElementById('selection').hidden&&document.getElementById('fab-area').hidden"));
   await evaluate("new Promise(resolve=>{document.getElementById('task').addEventListener('close',()=>requestAnimationFrame(resolve),{once:true});document.querySelector('#task-form button[value=cancel]').click();})");
-  check('Cancelled Add does not resurrect clipboard '+width+' '+entry,await evaluate("!document.getElementById('task').open&&document.getElementById('selection').hidden&&document.getElementById('paste-links').disabled&&document.activeElement.id==='fab'"));
+  check('Task cancel restores Add without old context '+width+' '+entry,await evaluate("!document.getElementById('task').open&&document.getElementById('selection').hidden&&!document.getElementById('fab-area').hidden&&document.getElementById('paste-links').disabled&&document.activeElement.id==='fab'"));
  }
 }
 await evaluate("document.querySelector('input[aria-label=\"Select Brand guidelines.pdf\"]').click();document.getElementById('direction').click()");await pause(200);
-check('Compact RTL stacks toolbar above FAB',await evaluate("document.getElementById('selection').getBoundingClientRect().bottom<=document.getElementById('fab').getBoundingClientRect().top-12&&document.documentElement.scrollWidth<=innerWidth"));
+check('Compact RTL hides FAB during toolbar context',await evaluate("!document.getElementById('selection').hidden&&document.getElementById('fab-area').hidden&&document.documentElement.scrollWidth<=innerWidth"));
 await evaluate("document.getElementById('direction').click()");
 await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await pause(150);
 check('Resize wide restores exclusive toolbar',await evaluate("!document.getElementById('selection').hidden&&document.getElementById('fab-area').hidden"));
 await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:false});await pause(200);
-check('Resize narrow restores paired actions',await evaluate("!document.getElementById('selection').hidden&&!document.getElementById('fab-area').hidden"));
+check('Resize narrow retains exclusive toolbar',await evaluate("!document.getElementById('selection').hidden&&document.getElementById('fab-area').hidden"));
 await evaluate('document.activeElement.blur()');let compactShot=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-toolbar-390.png',Buffer.from(compactShot.data,'base64'));
-await click('#fab');await moveTo('#new-folder');await pause(450);
+await click('#cancel-selection');await click('#fab');await moveTo('#new-folder');await pause(450);
 compactShot=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-compact-add-menu.png',Buffer.from(compactShot.data,'base64'));
 await evaluate("document.getElementById('cancel-selection').click()");
 for(const [width,height] of [[1440,1000],[390,844],[320,568]]){
@@ -179,6 +221,7 @@ for(const [width,height] of [[1440,1000],[390,844],[320,568]]){
   if(mode==='clipboard')await evaluate("[...document.querySelectorAll('#objects .object-name')].find(x=>x.textContent.includes('Campaigns')).click()");
   await evaluate("Promise.all(document.getElementById('selection').getAnimations().map(animation=>animation.finished))");
   const listing=await evaluate("document.getElementById('objects').textContent");
+  check('Context including clipboard-only hides FAB '+width+' '+mode,await evaluate("!document.getElementById('selection').hidden&&document.getElementById('fab-area').hidden"));
   check('One separate cancel action '+width+' '+mode,await evaluate("!document.getElementById('reference-toolbar').contains(document.getElementById('cancel-selection'))&&!document.getElementById('clear-clipboard')&&!document.getElementById('menu-clear')&&!document.getElementById('cancel-selection').disabled"));
   check('Cancel surface separated by 8px '+width+' '+mode,await evaluate("(()=>{const t=document.getElementById('reference-toolbar').getBoundingClientRect(),c=document.getElementById('cancel-selection').getBoundingClientRect();return Math.abs(c.left-t.right-8)<=1&&c.width===56&&c.height===56;})()"));
   await click('#cancel-selection');

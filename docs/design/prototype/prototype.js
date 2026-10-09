@@ -108,9 +108,8 @@ function layoutToolbar(){
  const priority=['move-links','paste-links','copy-links','rename-link','remove-links'];
  const signature=()=>[...actions,'more-actions'].map(id=>$(id).hidden).join(',');
  const previous=signature();
- const mainWidth=$('main').getBoundingClientRect().width;
  const footerStyle=getComputedStyle($('library-footer'));
- const groupBudget=root.clientWidth<1200?mainWidth-(root.clientWidth<600?48:32):$('library-footer').clientWidth-parseFloat(footerStyle.paddingLeft)-parseFloat(footerStyle.paddingRight);
+ const groupBudget=$('library-footer').clientWidth-parseFloat(footerStyle.paddingLeft)-parseFloat(footerStyle.paddingRight);
  const style=getComputedStyle(toolbar),gap=parseFloat(style.columnGap)||0;
  const available=groupBudget-$('cancel-selection').getBoundingClientRect().width-8-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
  toolbar.classList.remove('icon-actions');actions.forEach(id=>$(id).hidden=false);$('more-actions').hidden=true;
@@ -132,9 +131,8 @@ function layoutToolbar(){
  const controls=toolbarControls();const current=controls.includes(document.activeElement)?document.activeElement:controls.find(x=>x.tabIndex===0)??controls[0];controls.forEach(x=>x.tabIndex=x===current?0:-1);
 }
 function syncSurfaces(){
- const narrow=root.clientWidth<1200;
  const suspended=!$('details').hidden||$('explorer').hidden||$('task').open||$('reference-task').open||$('bucket-task').open||drawerOpen;
- const hide=suspended||(!narrow&&(selection.size>0||clipboard.length>0));
+ const hide=suspended||selection.size>0||clipboard.length>0;
  const contextual=(selection.size>0||clipboard.length>0)&&$('details').hidden&&!$('explorer').hidden&&!$('task').open&&!$('reference-task').open&&!$('bucket-task').open&&!drawerOpen;
  $('selection').hidden=!contextual;
  $('main').classList.toggle('has-toolbar',contextual);
