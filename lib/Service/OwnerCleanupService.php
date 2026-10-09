@@ -12,7 +12,7 @@ class OwnerCleanupService {
             $q->update('ms_nodes')->set('lock_version', $q->createFunction('lock_version + 1'))
                 ->where($q->expr()->eq('owner_id', $q->createNamedParameter($owner)))
                 ->andWhere($q->expr()->eq('node_type', $q->createNamedParameter('root')))->executeStatement();
-            foreach (['ms_tokens', 'ms_bindings', 'ms_nodes'] as $table) {
+            foreach (['ms_tokens', 'ms_buckets', 'ms_bindings', 'ms_nodes'] as $table) {
                 $q = $this->db->getQueryBuilder();
                 $q->delete($table)->where($q->expr()->eq('owner_id', $q->createNamedParameter($owner)))->executeStatement();
             }

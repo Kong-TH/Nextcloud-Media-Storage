@@ -14,7 +14,8 @@
     "test": [
       "php tests/run.php",
       "php tests/tokens.php",
-      "php tests/schema.php"
+      "php tests/schema.php",
+      "php tests/explorer.php"
     ]
   },
   "license": "AGPL-3.0-or-later"

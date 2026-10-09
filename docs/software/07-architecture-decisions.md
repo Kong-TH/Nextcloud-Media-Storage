@@ -29,3 +29,8 @@ Proposed design, 2026-10-09, based on the user's MinIO-like layout and Material 
 ## ADR-007: Reference-only clipboard and contextual actions
 
 Accepted user semantics, 2026-10-09: Move/Rename/Copy/Paste/Remove operate on plugin virtual nodes and links only, preserving Nextcloud file names, placement and bytes. Multiple independently named references may bind the same original. Existing move/rename/remove and multiple binding support align with this requirement; dedicated copy/paste behavior is not implemented. Backend clone API/transaction/token details remain pending. UI will use a creation FAB, contextual toolbar and tooltips with separate overlay ownership; see [action requirements](../design/reference-actions.md). The user confirmed md3-extended-fab as the intended skill. This is a documentation-first record; production implementation remains pending.
+
+
+## ADR-008: Approved virtual bucket and production frontend direction
+
+Accepted 2026-10-09. The user explicitly confirmed virtual buckets, superseding ADR-005 pending semantics. Preserve the existing root as default Library; additional bucket roots are separate virtual trees. Implement session-backed Vue/Material explorer with locally bundled assets, no storage engine changes. See 08-production-explorer.md for populated upgrade, token/path and reference-copy contracts.

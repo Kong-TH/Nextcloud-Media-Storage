@@ -96,3 +96,26 @@ FAB-menu geometry checks assert final trailing alignment and viewport containmen
 
 
 Object-row regression checks cover desktop/mobile primary whitespace hit area and activation, full-row hover/press/keyboard focus styling, independent checkbox and folder-info actions, and RTL/dark-theme hit testing. The suite writes `/tmp/mediastorage-row-feedback.png`. Current standalone Chrome result: 383 checks passed; real touch/screen-reader and production integration remain pending.
+
+
+## Production explorer 0.3.0
+
+Run `sh scripts/php-snap.sh tests/explorer.php` for the 69 baseline checks plus 23 additional bucket/copy checks. The token suite now passes 66 checks, including separate bucket-root restrictions and scope changes after a session move. Schema checks cover populated 0.1 → 0.2 → 0.3 upgrades and re-entry with nodes/tokens preserved (SQLite execution; MySQL/PostgreSQL SQL generation).
+
+`npm ci --ignore-scripts && npm run build` builds the real Vue/Material frontend. `npm test` checks name byte bounds and media picker allowlist. `node tests/frontend/browser.mjs` uses the built bundle with an ephemeral HTTP fixture server and Chrome CDP on 9322: 32 pointer/browser checks passed, with 20 CSRF-backed fixture requests. This is **not** live Nextcloud evidence.
+
+After deploying 0.3.0, run `MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py`. The current local instance passed **91 live HTTP checks**, including bucket concurrency, copy aliases, physical preservation and all Phase 2 token/lifecycle regressions. The suite owns and cleans up its own accounts/files.
+
+`MEDIASTORAGE_TEST_DISPOSABLE=yes node tests/frontend/live.mjs` exercises the actual Nextcloud host with its own disposable account/DAV image and writes /tmp/mediastorage-live-mobile.png, /tmp/mediastorage-live-desktop.png and /tmp/mediastorage-live-ui-results.json. Installed assets passed 30 checks; the final host layout correction passed 46 checks with `MEDIASTORAGE_TEST_CANDIDATE_ASSETS=yes`. Candidate mode intercepts only app JS/CSS with locally built assets while using real Nextcloud sessions/APIs; it is not proof that those assets have been deployed. The user subsequently redeployed; running without that flag and with browser cache disabled passed **46 checks against final installed assets**. Neither suite prints credentials or token secrets.
+
+2026-10-10 regression expansion: 96 candidate browser checks passed, including dialog centering/containment at 1914×914, 1440×1000, 390×844, 320×568 and 1024×360; large picker/action scroll reachability; light/dark text and filled-button hover/focus/pressed colors; heading colors; successful clipboard copying and denied-clipboard fallback; native authenticated viewer redirects and anonymous login redirects. Candidate asset tests use real backend/session data. The user redeployed this correction; all 96 checks passed against installed assets with cache disabled and no interception. Dedicated account/physical fixtures are removed afterward. CDP page selection excludes Chrome extension background pages.
+
+Corrected Copy intent: the latest suite removes native viewer/authentication redirect tests because no native Nextcloud URL is generated anymore. It verifies exact plugin virtual_path copying, displayed bucket context, denied-clipboard manual copying and success feedback, plus copied-path updates after virtual rename and folder move. All dialog/theme/action regressions remain. Candidate correction passed 96 checks. User deployment was followed by all 96 passing against installed assets with cache disabled and no interception.
+
+## Asset cache upgrade regression
+
+Before a frontend release, record existing app asset URLs with `MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_RECORD_ASSETS=yes node tests/frontend/live.mjs`. The snapshot defaults to /tmp/mediastorage-assets-before-upgrade.json; MEDIASTORAGE_TEST_PREVIOUS_ASSETS can override it. After building and deploying the incremented release, run `MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_CACHE_ENABLED=yes node tests/frontend/live.mjs`. Keep the same dedicated Chrome profile to preserve its HTTP cache. This mode enables browser caching, asserts that both JS/CSS URLs differ from the recorded release and compares actual HTTP bytes with the local build before the full UI regression checks. It clears fixture login cookies, not the HTTP cache. Do not combine record and cache-upgrade modes.
+
+0.3.1 preparation: installed 0.3.0 JS/CSS bytes matched the build; unchanged cache URLs reproduced the new failing regression. Frontend build/rules and schema checks pass. The user deployed 0.3.1; 99 checks passed against installed assets with cache enabled, changed JS/CSS URLs and matching served/build bytes. The same Chrome profile retained its HTTP cache; only fixture login cookies were cleared.
+
+0.3.2 footer verification: built-frontend fixture coverage is now 33 checks, including supplied-version rendering and removal of both slogan lines. The live suite also asserts the server-provided data-version and displayed footer match the release metadata. Production build and both changed PHP files pass syntax checks. Installed verification pending deployment.

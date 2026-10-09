@@ -60,6 +60,15 @@ Node/binding fields match the corresponding session routes. Metadata resolution 
 Folder restrictions follow the current hierarchy. Default parent/root is the restricted folder. Both move source and destination must be descendants; the boundary itself cannot be renamed, moved or deleted. Output paths are relative to the boundary and omit its parent ID. Restricted search stays within the selected parent. File-ID bind/rebind are prohibited for restricted tokens to prevent importing other owner files by guessing IDs. The dashboard or an owner-wide management token can prepare bindings. Renaming/moving a boundary using a session preserves its ID; deleting it makes scoped access fail closed.
 
 
-## Requested reference Copy/Paste — not implemented
+## Historical Copy/Paste request — superseded by Phase 3
 
 The user clarified that virtual Move/Rename/Copy/Paste/Remove must preserve physical Nextcloud files. Multiple virtual names/paths can reference the same original. Existing PATCH/DELETE node and binding routes retain their documented semantics. No copy, paste, physical file mutation or batch endpoint is added by this requirement. A source-reference clone contract must be designed before production Copy/Paste, including source/destination authorization, stable binding revalidation, conflict handling, subtree bounds and scoped-token behavior. File-ID binding must not be advertised as an already implemented general clone API. See [reference action design](../design/reference-actions.md).
+
+
+## Phase 3 session explorer — implementation contract
+
+GET /api/v1/buckets accepts nonnegative offset and returns {buckets:[{id,name,is_default}],has_more,offset}; pages include up to 100 additional buckets, with default Library prepended only at offset zero. POST /api/v1/buckets accepts name and returns 201 bucket. Default Library preserves the existing owner-root ID. POST /api/v1/nodes/{id}/copy accepts parent_id and optional name, clones bounded virtual metadata transactionally and revalidates bindings. No physical file is copied. These new routes require session authentication/CSRF and provide no external bearer exception. See 08-production-explorer.md for compatibility and deferred bucket rename/removal.
+
+## Plugin virtual-path copying (frontend only)
+
+Details exposes Copy virtual path for media references using the existing server-derived `virtual_path` returned by GET /nodes/{id}. The exact path is relative to the displayed bucket and follows virtual rename/move independently of the physical file. This command adds no API or delivery route. Paths do not grant access and are not currently browser-openable media URLs. No Nextcloud native viewer link is copied.

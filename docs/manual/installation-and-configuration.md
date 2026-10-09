@@ -35,3 +35,26 @@ After reviewing the source/local tests, run the same root deployment script. It 
 0.2.0 adds a token table and server-to-server metadata/management routes, not a browser explorer or binary delivery. The test-host dashboard remains a foundation page. Token lifetime policy can be configured through Nextcloud's supported app configuration facility using `max_token_lifetime` seconds, default 31536000. Prefer short lifetimes and explicit least-privilege scopes. After deployment run the Phase 2 HTTP suite described in [tests](../../tests/README.md).
 
 The local 0.2.0 upgrade and Phase 2 HTTP suite have now completed successfully (70 checks). The management page remains a foundation page; token management is currently API-based until Phase 3 UI work.
+
+
+## Current source version 0.3.0 — real explorer
+
+2026-10-09: the current instance was found uninitialized and was initialized through Snap's web setup using its preconfigured MySQL. The user ran the updated deployment script and reported `mediastorage 0.3.0 enabled`. Live API checks were then rerun successfully (91 checks); 30 installed-frontend browser checks passed. Final host layout fixes were redeployed by the user and passed 46 browser checks against installed assets, with cache disabled and no asset interception. Historical 0.2 paragraphs above describe earlier execution, not the current installed UI.
+
+Build before deployment with Node 24/npm 12 on this host:
+
+```bash
+npm ci --ignore-scripts
+npm run build
+sudo sh scripts/deploy-snap.sh
+```
+
+Pinned frontend dependencies are recorded in package-lock.json. The build emits a classic IIFE in js/mediastorage-main.js and scoped CSS in css/mediastorage.css, plus third-party notices. Compiled output and node_modules are ignored by Git and must be included in an installable package. The deployment script checks for built assets before disabling the app, then copies js/css alongside PHP and enables migrations. It never copies local credentials, tests or node_modules into the live app.
+
+Open `/index.php/apps/mediastorage/` while signed in. The real explorer supports default Library and additional virtual buckets; existing Nextcloud image/video binding and explicit rebind; virtual folders, rename/move/copy/remove; and scoped API token management. Supported binding MIME types are the backend's image/video allowlist, excluding SVG/HTML/PDF/audio. Upload, playback/previews, public/signed media delivery and bucket rename/removal remain unavailable.
+
+The private admin credential file at /tmp/mediastorage-nextcloud-admin.json is mode 0600. Its fields are url, username and password. Read it locally to sign in; do not paste its contents into tickets, documentation or Git. Keep credentials in a suitable password store if retaining the instance, since /tmp is temporary.
+
+## 0.3.1 frontend cache fix
+
+0.3.1 increments release metadata so Nextcloud generates new JS/CSS cache URLs. Same-version 0.3.0 replacement had left earlier user browsers on old UI even though installed bytes matched the build. Build/deploy with the same commands above; verify `mediastorage 0.3.1 enabled`, then reload the app normally. Restarting Nextcloud and deleting global caches are not required for this fix. Always increment app metadata and npm root version metadata when publishing changed frontend assets. No schema migration is added by 0.3.1.

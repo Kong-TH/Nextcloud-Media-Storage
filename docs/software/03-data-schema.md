@@ -31,3 +31,8 @@ Executed SQLite populated-schema upgrade and re-entry checks; MySQL/PostgreSQL S
 ## Reference-action clarification — 2026-10-09
 
 Multiple media nodes may already bind the same original Nextcloud file. Each virtual name/parent is independent of physical file identity. Requested Copy/Paste should create fresh virtual IDs and revalidated bindings to the same source file, never duplicate media bytes. Move/Rename preserve virtual node identity; Remove deletes only the selected virtual subtree/bindings. No migration is made by this design update. The source-clone/clipboard workflow remains unimplemented; see [reference actions](../design/reference-actions.md).
+
+
+## Phase 3 virtual buckets — implementation contract
+
+Add ms_buckets with 64-character id/owner_id/name_key, 255-character name and bigint created_at, primary id and unique owner_id/name_key. IDs also identify separate ms_nodes bucket roots (empty parent, owner-qualified name_key). Keep the existing owner root as synthetic default Library: no populated node/path rewrite. Root nodes remain mutation-protected and excluded from ordinary listing/search. See 08-production-explorer.md; migration/provider validation is pending.

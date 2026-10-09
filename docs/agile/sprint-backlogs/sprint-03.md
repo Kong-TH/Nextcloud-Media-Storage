@@ -1,10 +1,10 @@
 # Sprint 03: Buckets and Material Explorer
 
-Status: Planned; responsive design study prepared, no bucket or production frontend implementation yet. Phase 2 is verified on the local Nextcloud 34.0.4 / Snap MySQL environment. See [agent handoff](../../agent-handoff.md) for current decisions and execution context.
+Status: In progress; virtual buckets and the production Vue/Material frontend are implemented and installed locally as 0.3.1; 99 actual-host browser checks passed with cache enabled against the final installed assets; later upload/preview tasks remain open. Phase 2 is verified on the local Nextcloud 34.0.4 / Snap MySQL environment. See [agent handoff](../../agent-handoff.md) for current decisions and execution context.
 
 ## Scope and dependency
 
-The user added bucket separation and app-scoped Material UI. Virtual bucket versus real S3/MinIO semantics remain unanswered. Resolve that storage-model question before persistence/migration code; independent frontend setup may proceed. The proposed virtual owner/bucket/folder/reference hierarchy is not accepted yet.
+The user approved the prototype and confirmed virtual buckets inside the plugin. Buckets, reference-only Copy/Paste, the Vue/Material explorer, existing-file picker/rebind, and token management are implemented. Upload and previews remain deferred, so the complete original sprint is still in progress. See software/08-production-explorer.md for the current contract; dated preparation entries below are historical.
 
 ## Work packages
 
@@ -22,7 +22,7 @@ The user added bucket separation and app-scoped Material UI. Virtual bucket vers
 - Token issue shows secrets once; no long-lived external token in browser persistence/logs.
 - URL copying never advertises nonexistent delivery/security guarantees; signed access and streaming remain Phase 4.
 
-No deadline, implementation owner, new app version, or tested dependency version is assigned by this document. Keep deployment and test claims tied to recorded execution.
+Current app version is 0.3.0. Exact frontend dependencies are pinned in package-lock.json. Keep deployment and test claims tied to recorded execution.
 
 ## Design preparation
 
@@ -78,3 +78,21 @@ No deadline, implementation owner, new app version, or tested dependency version
 
 
 2026-10-09: Documented and implemented full-row primary hit area and hover/press/focus feedback, replacing the name-only pill. Checkbox/info remain independent native controls. 383 Chrome checks passed including desktop/mobile whitespace activation, selection/info isolation, keyboard focus and RTL/dark theme. Mobile screenshot inspected; standalone study only.
+
+
+2026-10-09: Documented and applied 16px corners to full-row feedback and primary keyboard focus on mobile/desktop, preserving straight dividers, insets and targets. 383 Chrome checks passed; mobile snapshot inspected. Standalone study only.
+
+
+2026-10-09: User approved production implementation and confirmed virtual buckets. Local Nextcloud web setup completed; deployment still requires privileged app-directory access. Production contract documented in software/08-production-explorer.md before implementation. Frontend, bucket persistence and copy endpoint work now in progress; no live UI verification claimed.
+
+## Current execution
+
+0.3.0 installed by the user on the initialized Nextcloud 34.0.4 / Snap MySQL instance. 91 live HTTP checks passed. 30 installed-frontend browser checks passed; subsequent host layout fixes passed 46 checks with candidate frontend assets against actual deployed APIs. The user redeployed the final built assets; 46 browser checks then passed with installed assets, cache disabled and no interception. Local service/token/schema checks and production build pass. Upload, previews, assistive-technology/touch validation and broader deployment validation remain open.
+
+2026-10-10: User reported native dialog centering and Material interaction-color regressions, and requested a copyable file-opening path beside Rebind. Requirements and root-cause evidence recorded in software/08-production-explorer.md before implementation. Use a clearly labeled authenticated native Nextcloud file link; public/signed/binary delivery remains deferred. Revision deployed by the user; 96 installed-asset browser checks passed, including dialog/interaction colors and native-link permission behavior.
+
+2026-10-10 user clarification supersedes the native file-link feature: Copy means the plugin's exact bucket-relative virtual_path, including virtual alias/folders. Replace Copy Nextcloud link with Copy virtual path, retain manual-copy fallback and show bucket context. This is metadata only; plugin browser media delivery is still deferred. Dialog and green interaction-state fixes remain. User redeployed the correction; 96 browser checks passed against installed assets with cache disabled and no interception.
+
+0.3.1 cache revision: user browser retained old 0.3.0 UI after same-version asset replacement. Installed bytes match the build; Nextcloud version-derived asset URLs did not change. Increment release metadata, document frontend release discipline and verify changed asset URLs plus all UI regressions with cache enabled. No new schema migration. User deployed 0.3.1; 99 installed-asset browser checks passed with cache enabled, including JS/CSS cache-URL change and served-byte equality.
+
+0.3.2: replace the drawer footer slogan with the installed plugin version only, using server-provided app version data. Increment asset-release metadata; no API/schema change. Verification/deployment pending.

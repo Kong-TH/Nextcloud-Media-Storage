@@ -7,9 +7,10 @@ use OCP\AppFramework\Http\TemplateResponse;
 use OCP\AppFramework\Http\Attribute\NoAdminRequired;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\IRequest;
+use OCP\App\IAppManager;
 final class PageController extends Controller {
-    public function __construct(IRequest $request) { parent::__construct('mediastorage', $request); }
+    public function __construct(IRequest $request, private IAppManager $appManager) { parent::__construct('mediastorage', $request); }
     #[NoAdminRequired]
     #[NoCSRFRequired]
-    public function index(): TemplateResponse { return new TemplateResponse('mediastorage', 'index'); }
+    public function index(): TemplateResponse { return new TemplateResponse('mediastorage', 'index', ['version' => $this->appManager->getAppVersion('mediastorage')]); }
 }

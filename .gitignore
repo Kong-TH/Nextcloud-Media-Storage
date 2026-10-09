@@ -1,1 +1,9 @@
 .chat/*
+
+node_modules/
+js/
+css/
+*.local
+
+__pycache__/
+*.pyc

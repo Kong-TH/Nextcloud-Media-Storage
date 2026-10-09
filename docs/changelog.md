@@ -45,3 +45,27 @@ User successfully upgraded mediastorage from 0.1.0 to 0.2.0. Executed the combin
 Added nine project Material skills: button, extended FAB, card, dialog, divider, list, loading indicator, navigation drawer and navigation rail. All passed skill-structure validation; this does not claim runtime verification of UI assets. Recorded source gaps and distinctions between Expressive design and baseline web APIs.
 
 Recorded the user's app-only Material UI direction and drawer-based bucket navigation. Bucket separation is a new requirement; virtual versus S3/MinIO semantics remain open. Added agent entry point, portable handoff, and planned Sprint 03 with migration/security/UI acceptance gates. Corrected stale current-state and licence guidance while retaining clearly historical checkpoints. No new application runtime code or tests were executed for this documentation update.
+
+## 0.3.0 — Virtual buckets and production explorer
+
+User confirmed virtual buckets and approved the responsive prototype for real implementation. Added incremental bucket persistence preserving the existing default root, session bucket APIs, bounded atomic metadata Copy, scoped-token bucket boundaries and owner cleanup. Added a locally bundled Vue/Material explorer for buckets/folders, existing-file DAV binding/rebind, reference actions, responsive drawer/search/toolbar/tooltips and token management. Original Nextcloud files remain unchanged. Upload, previews and binary delivery are deferred.
+
+User installed 0.3.0 on initialized Nextcloud 34.0.4 / Snap MySQL; 91 live HTTP and 30 installed-frontend browser checks passed. Real host inspection identified drawer-close, closed-dialog visibility and content-height integration issues; corrected candidate assets passed 46 live browser checks. The user redeployed the final correction; all 46 checks passed again against installed assets with cache disabled and no interception. Local tests pass: 69 baseline + 23 bucket/copy, 66 token checks, populated SQLite migration checks, frontend rules and production build.
+
+## 2026-10-10 — Dialog placement, green interaction states and file links
+
+Explicitly centered native dialogs against Nextcloud's margin reset and mapped Material system roles to the plugin's green palette for hover/focus/pressed states. Kept heading colors app-scoped in both themes. Added Copy Nextcloud link beside Rebind for available bindings, with a stable authenticated native viewer URL and manual-copy fallback on clipboard failure. No public share, bearer credential, streaming route or schema change.
+
+User deployed the revision. 96 actual-host browser checks passed against installed assets with cache disabled and no interception; build/frontend rules and 32 built-frontend HTTP-fixture regressions also passed. Native link authentication and physical-file preservation remain verified.
+
+## 2026-10-10 — Correct Copy to use plugin virtual paths
+
+User clarified that Copy means the plugin's path. Removed the native Nextcloud viewer-link helper and replaced the action with Copy virtual path, copying the exact server-derived bucket-relative virtual_path. Details shows bucket context separately; missing physical bindings do not invalidate virtual metadata paths. Clipboard success/failure and manual-copy fallback remain. Rename and Move are verified to update copied plugin paths independently of original filenames. Plugin media-URL delivery remains deferred. Candidate assets passed 96 actual-host browser checks. After user deployment, all 96 passed against installed assets with cache disabled and no interception.
+
+## 0.3.1 — Invalidate cached frontend assets
+
+Incremented release metadata after repeated same-version deployments left old browser UI. Confirmed actual installed JS/CSS matched the latest build, while Nextcloud's version-derived URLs were unchanged. Added a cache-enabled upgrade regression that requires new asset URLs and matching served bytes before exercising dialog/theme/path actions. No schema migration or host cache settings change. Build/rules/schema checks pass. User deployed 0.3.1; 99 browser checks passed against installed assets with cache enabled, including changed JS/CSS URLs and served-build byte equality. No restart or global cache clearing.
+
+## 0.3.2 — Installed version in drawer footer
+
+Removed both footer slogan lines. The drawer now shows only the installed plugin version supplied by IAppManager through PageController/template data to Vue. Incremented app/npm release metadata for asset cache invalidation. Production build, PHP syntax checks and 33 built-frontend HTTP-fixture checks passed. Installed verification pending user deployment. No schema/API change.

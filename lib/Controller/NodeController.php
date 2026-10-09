@@ -43,6 +43,10 @@ final class NodeController extends Controller {
         return $this->response(fn($owner) => $this->vfs->create($owner, $name, $parent_id, $file_id), 201);
     }
     #[NoAdminRequired]
+    public function copy(string $id, string $parent_id, ?string $name = null): JSONResponse {
+        return $this->response(fn($owner) => $this->vfs->copy($owner, $id, $parent_id, $name), 201);
+    }
+    #[NoAdminRequired]
     public function rebind(string $id, int $file_id): JSONResponse {
         return $this->response(fn($owner) => $this->vfs->rebind($owner, $id, $file_id));
     }

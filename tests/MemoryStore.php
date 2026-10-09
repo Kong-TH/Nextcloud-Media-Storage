@@ -24,7 +24,7 @@ final class MemoryStore extends NodeStore {
         $this->rows[$id] = array_replace($this->get($owner, $id), $values);
     }
     public function children(string $owner, ?string $parent, string $search = '', int $limit = 100, int $offset = 0): array {
-        $rows = array_values(array_filter($this->rows, fn($r) => $r['owner_id'] === $owner && $r['node_type'] !== 'root'
+        $rows = array_values(array_filter($this->rows, fn($r) => $r['owner_id'] === $owner && !in_array($r['node_type'], ['root', 'bucket'], true)
             && ($parent === null || $r['parent_id'] === $parent) && ($search === '' || str_contains($r['name'], $search))));
         usort($rows, fn($a, $b) => [$a['name_key'], $a['id']] <=> [$b['name_key'], $b['id']]);
         return array_slice($rows, $offset, $limit);

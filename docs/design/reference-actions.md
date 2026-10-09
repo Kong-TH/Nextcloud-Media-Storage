@@ -92,3 +92,6 @@ Creation-menu geometry: compute placement from a stable intrinsic width; align t
 
 
 Object-row feedback spans the full row rather than only the name button. Whitespace activates the primary open/inspect action. Checkbox and information controls remain independent siblings; neither checkbox activation nor keyboard focus implicitly opens/navigates or changes other reference context.
+
+
+Full-row primary feedback and its keyboard-focus outline use 16px corners at every width. Checkbox and information hit targets remain independent.

@@ -2,9 +2,13 @@
 
 ## Start here
 
-The app is `mediastorage` 0.2.0. Phase 1 and Phase 2 backend work is implemented and live-tested. Phase 3 production explorer/upload UI has not started; a standalone responsive design study and implementation backlog now exist. This handoff and Sprint 03 supersede earlier historical paragraphs that say tokens or the live upgrade are pending.
+The app is `mediastorage` 0.3.1. The user approved production implementation and confirmed virtual buckets. Nextcloud 34.0.4 was initialized and the user installed 0.3.0. Current source includes a Vue/Material explorer, persistent virtual buckets, reference Copy/Paste and token management. Live HTTP: 91 checks passed. Final deployed frontend: **46 browser checks passed with installed assets, cache disabled and no candidate interception** after the user redeployed the host CSS/layout correction. Upload, previews, signed URLs and binary delivery remain deferred. The sections below record historical decisions; this current status and the production contract supersede their unresolved-bucket/unimplemented-UI statements.
 
 Read the documentation index, [Sprint 03](agile/sprint-backlogs/sprint-03.md), architecture decisions, schema, API contract, security design, and tests/README.md. The original `.chat/prompt1.md` is ignored by Git and may not exist on another machine; the tracked docs plus this handoff carry the continuation context. Do not require the original Downloads knowledge folders or screenshot to apply the tracked skills.
+
+Latest correction: Copy means the plugin virtual_path, not a Nextcloud native URL. Corrected source is deployed; 96 browser checks passed against installed assets with cache disabled and no interception. See the latest clarification below.
+
+Latest cache correction: 0.3.1 is installed. Replacing 0.3.0 assets under the same version left cache URLs unchanged; prior cache-disabled tests missed existing-browser behavior. The version bump changed both JS/CSS URLs. All 99 installed browser checks passed with cache enabled and no HTTP-cache clearing, including served-byte equality and existing dialog/theme/plugin-path regressions. No schema change or Nextcloud restart is needed.
 
 ## Latest user decisions
 
@@ -107,3 +111,23 @@ The user authorized committing and pushing the handoff and skills on 2026-10-09.
 
 
 Latest row feedback correction: the primary action extends through row whitespace and hover/press/keyboard focus feedback spans the whole row. Keep sibling checkbox/info actions independent and preserve dimensions/insets. Current standalone evidence: **383 Chrome checks passed**, including desktop/mobile, RTL/dark theme and existing regressions. Mobile row feedback screenshot visually inspected; production integration remains pending.
+
+
+Latest visual correction: full-row feedback and the primary focus outline use 16px corners on desktop/mobile. Existing insets, dimensions, straight dividers and independent controls are preserved. 383 Chrome checks passed after the change; mobile row-feedback image refreshed and inspected. Standalone study only.
+
+
+## Production work started — latest user decision
+
+2026-10-09: User approved the prototype for implementation and explicitly confirmed virtual buckets. This resolves the previous bucket question. See software/08-production-explorer.md for the documentation-first contract. Current localhost Nextcloud was uninitialized despite historical evidence above; web setup has now initialized 34.0.4 using Snap MySQL. Admin credentials are in the private /tmp file (0600), never Git. sudo currently requires a password; do not claim deployment until verified. Production frontend/backend work is in progress.
+
+## Current production evidence and next step
+
+See software/08-production-explorer.md and tests/README.md. `tests/explorer.php` passes 69 baseline + 23 bucket/copy checks; tokens.php passes 66; schema.php verifies populated SQLite upgrades/re-entry and MySQL/PostgreSQL SQL generation. Build and frontend rules pass. Live browser tests create and delete a dedicated account/file, and cover real DAV binding, rename/copy/move/remove, bucket/folder navigation, token issue/rotate/revoke, ephemeral secrets, responsive geometry, drawer Escape and physical-byte preservation. Candidate assets were CDP-intercepted only for app JS/CSS during preparation. Final deployment has now passed the same 46 checks without interception and with cache disabled. No credentials belong in Git. No commit or push authorized for this implementation yet.
+
+## 2026-10-10 UI correction
+
+User reported dialogs at top-left and purple Material hover/focus/pressed states. Actual-host probes confirmed dialog margin:0 from Nextcloud core and absent Material system primary roles. Explicit scoped centering and app color-role mappings now fix both; heading colors also follow the plugin theme. Added Copy Nextcloud link beside Rebind for available bindings, using authenticated native `/f/{fileId}?openfile=true`, with clipboard-denied manual-copy fallback. This is a native viewer link, not public/signed/raw media delivery. Candidate assets passed 96 live browser checks; the user redeployed, and all 96 passed again against installed assets with cache disabled and no interception. No commit or push requested for this revision.
+
+2026-10-10 user clarification supersedes the native file-link feature: Copy means the plugin's exact bucket-relative virtual_path, including virtual alias/folders. Replace Copy Nextcloud link with Copy virtual path, retain manual-copy fallback and show bucket context. This is metadata only; plugin browser media delivery is still deferred. Dialog and green interaction-state fixes remain. User redeployed the correction; 96 browser checks passed against installed assets with cache disabled and no interception.
+
+0.3.2 latest source: user required replacing the drawer footer slogan with only the plugin version. PageController now supplies IAppManager version through escaped template data and a Vue prop. Both slogan lines are removed from the production UI; footer shows v0.3.2. Metadata increments preserve cache invalidation. Build/PHP syntax and 33 fixture checks pass; installed verification pending deployment.

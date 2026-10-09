@@ -186,11 +186,13 @@ body { margin:0; font:14px/1.5 system-ui,sans-serif; background:#f7f8fa; color:#
 #media-design .toolbar-actions.icon-actions button {width:48px;flex:0 0 48px;padding:0;}
 
 /* Extend the primary action without nesting the independent row controls. */
-#media-design .object {position:relative;isolation:isolate;}
+#media-design .object {position:relative;isolation:isolate;border-radius:16px;border-bottom-color:transparent;}
+#media-design .object::after {content:"";position:absolute;inset-inline:0;bottom:-1px;height:1px;background:var(--container);pointer-events:none;}
 #media-design .object:hover,#media-design .object:has(:focus-visible) {background:var(--container);}
 #media-design .object:has(:active) {background:color-mix(in srgb,var(--on) 12%,var(--surface));}
 #media-design .object-name:hover {background:transparent;}
-#media-design .object-name::before {content:"";position:absolute;inset:0;cursor:pointer;}
+#media-design .object-name {border-radius:inherit;}
+#media-design .object-name::before {content:"";position:absolute;inset:0;border-radius:inherit;cursor:pointer;}
 #media-design .object-name:focus-visible {outline:none;}
 #media-design .object-name:focus-visible::before {outline:3px solid var(--primary);outline-offset:-3px;}
 #media-design .object>.check,#media-design .object>.icon {position:relative;z-index:1;}

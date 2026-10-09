@@ -30,6 +30,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Reference actions, creation FAB and selection toolbar](design/reference-actions.md)
 - [Interactive UI design study](design/prototype/index.html)
 - [UI study validation](design/validation.md)
+- [Production explorer implementation](software/08-production-explorer.md)
 - [Architecture](software/00-architecture.md)
 - [System design](software/01-system-design.md)
 - [Data schema](software/03-data-schema.md)

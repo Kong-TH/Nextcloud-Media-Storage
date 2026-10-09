@@ -32,7 +32,8 @@ class NodeStore {
     public function children(string $owner, ?string $parent, string $search = '', int $limit = 100, int $offset = 0): array {
         $q = $this->db->getQueryBuilder(); $q->select('*')->from('ms_nodes')
             ->where($q->expr()->eq('owner_id', $q->createNamedParameter($owner)))
-            ->andWhere($q->expr()->neq('node_type', $q->createNamedParameter('root')));
+            ->andWhere($q->expr()->neq('node_type', $q->createNamedParameter('root')))
+            ->andWhere($q->expr()->neq('node_type', $q->createNamedParameter('bucket')));
         if ($parent !== null) { $q->andWhere($q->expr()->eq('parent_id', $q->createNamedParameter($parent))); }
         if ($search !== '') { $q->andWhere($q->expr()->like('name', $q->createNamedParameter('%' . $this->db->escapeLikeParameter($search) . '%'))); }
         $q->orderBy('name_key', 'ASC')->addOrderBy('id', 'ASC')->setMaxResults($limit)->setFirstResult($offset);

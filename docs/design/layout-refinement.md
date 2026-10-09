@@ -39,3 +39,8 @@ Verify equal measured content insets, header/search alignment, root breadcrumb r
 ## Full-row interaction feedback — 2026-10-09
 
 Recorded before code: extend the primary file/folder action hit area through unused row space and show hover, press and primary keyboard-focus feedback across the complete row rather than a rounded name-only pill. Keep the row itself a non-interactive list item, with sibling native checkbox, primary button and information button. Checkbox and information targets retain independent hit areas and keyboard focus; selecting never opens details or a folder. Keep row dimensions, dividers, list insets and toolbar clearance unchanged. Verify pointer hit testing at row edges, pressed/focus styling, independent actions, RTL and both themes on desktop/compact widths. Standalone study only.
+
+
+## Rounded full-row feedback — 2026-10-09
+
+Recorded before code: soften the full-row interaction surface with 16px corners on desktop and compact layouts, including the stretched primary hit surface and keyboard-focus outline. This user-requested custom shape adapts the continuous list treatment. Preserve the existing outer content insets, row size and independent checkbox/information targets.

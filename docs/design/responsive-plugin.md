@@ -110,3 +110,6 @@ Creation-menu placement: use intrinsic width independent of fixed position, alig
 
 
 Object rows use full-row hover/press feedback and a row-wide primary keyboard-focus outline on compact and expanded panes. The primary native button extends through unused row space; sibling checkbox and information controls retain independent hit targets. Row activation opens its item; only the checkbox changes selection.
+
+
+Full-row feedback uses a custom 16px corner radius on both compact and expanded panes, including the primary keyboard-focus outline. Outer insets, row size and straight dividers remain unchanged.

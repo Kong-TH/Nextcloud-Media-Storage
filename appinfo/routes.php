@@ -3,6 +3,9 @@
 declare(strict_types=1);
 return ['routes' => [
     ['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
+    ['name' => 'bucket#index', 'url' => '/api/v1/buckets', 'verb' => 'GET'],
+    ['name' => 'bucket#create', 'url' => '/api/v1/buckets', 'verb' => 'POST'],
+    ['name' => 'node#copy', 'url' => '/api/v1/nodes/{id}/copy', 'verb' => 'POST'],
     ['name' => 'node#index', 'url' => '/api/v1/nodes', 'verb' => 'GET'],
     ['name' => 'node#show', 'url' => '/api/v1/nodes/{id}', 'verb' => 'GET'],
     ['name' => 'node#resolve', 'url' => '/api/v1/resolve', 'verb' => 'GET'],

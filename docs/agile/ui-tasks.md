@@ -65,3 +65,10 @@ The standalone prototype now exercises creation FAB/menu, contextual reference a
 
 
 17. Give object rows a full-row primary hit area and hover/press/keyboard focus feedback, retaining independent sibling checkbox and information controls. Preserve native semantics, row dimensions, dividers and bottom action clearance. Verify whitespace activation, selection without opening, folder information without navigation, RTL and both themes.
+
+
+18. Soften full-row hover/press/focus surfaces with 16px corners on compact and desktop layouts. Retain existing margins, row sizes, straight dividers and independent controls; verify focus-outline shape alongside the existing row interaction checks.
+
+## Current production implementation
+
+The user approved this prototype and confirmed virtual buckets. Version 0.3.0 implements real session-backed bucket/folder navigation and creation, current-folder search, existing-file binding/rebind, reference rename/move/copy/paste/remove and token management. The latest FAB/toolbar exclusion, measured overflow, separate cancel and rounded-row decisions supersede earlier stacking proposals. See [production contract and evidence](../software/08-production-explorer.md). Upload, previews and binary media delivery remain open; earlier sample-only descriptions above record prototype preparation.

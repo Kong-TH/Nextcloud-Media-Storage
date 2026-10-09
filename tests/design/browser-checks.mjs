@@ -26,8 +26,8 @@ for(const width of [1440,1024,390,320,1440]){
 await click('#fab');
 for(const width of [1440,390]){
  await send('Emulation.setDeviceMetricsOverride',{width,height:1000,deviceScaleFactor:1,mobile:false});await pause(120);
- check('Primary action covers row whitespace '+width,await evaluate("(()=>{const row=document.querySelector('#objects li'),r=row.getBoundingClientRect();return document.elementFromPoint(r.left+2,r.top+3).closest('button')===row.querySelector('.object-name');})()"));
- const rowPoint=await evaluate("(()=>{const r=document.querySelector('#objects li').getBoundingClientRect();return {x:r.left+2,y:r.top+3}})()");
+ check('Primary action covers row whitespace '+width,await evaluate("(()=>{const row=document.querySelector('#objects li'),r=row.getBoundingClientRect();return document.elementFromPoint(r.left+24,r.top+3).closest('button')===row.querySelector('.object-name');})()"));
+ const rowPoint=await evaluate("(()=>{const r=document.querySelector('#objects li').getBoundingClientRect();return {x:r.left+24,y:r.top+3}})()");
  await send('Input.dispatchMouseEvent',{type:'mouseMoved',...rowPoint});
  check('Hover colors full row without name pill '+width,await evaluate("(()=>{const r=document.querySelector('#objects li');return getComputedStyle(r).backgroundColor!=='rgba(0, 0, 0, 0)'&&getComputedStyle(r.querySelector('.object-name')).backgroundColor==='rgba(0, 0, 0, 0)';})()"));
  await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...rowPoint});
@@ -44,12 +44,12 @@ for(const width of [1440,390]){
  await evaluate("document.querySelector('#objects .object-name').focus()");await key('Tab');await key('Tab');await key('Tab');
  // Focus the primary action with keyboard modality for its row-wide outline.
  await evaluate("document.querySelector('#objects .object-name').focus()");
- check('Keyboard primary focus covers row '+width,await evaluate("(()=>{const b=document.querySelector('#objects .object-name'),p=getComputedStyle(b,'::before');return b.matches(':focus-visible')&&p.outlineStyle==='solid'&&p.inset==='0px';})()"));
+ check('Keyboard primary focus covers row '+width,await evaluate("(()=>{const b=document.querySelector('#objects .object-name'),p=getComputedStyle(b,'::before');return b.matches(':focus-visible')&&p.outlineStyle==='solid'&&p.inset==='0px'&&p.borderRadius==='16px'&&getComputedStyle(b.parentElement).borderRadius==='16px';})()"));
 
  await click('#theme');await click('#direction');
- const rtlPoint=await evaluate("(()=>{const r=document.querySelector('#objects li').getBoundingClientRect();return {x:r.right-2,y:r.top+3}})()");
+ const rtlPoint=await evaluate("(()=>{const r=document.querySelector('#objects li').getBoundingClientRect();return {x:r.right-24,y:r.top+3}})()");
  await send('Input.dispatchMouseEvent',{type:'mouseMoved',...rtlPoint});
- check('RTL dark row retains full primary hit area '+width,await evaluate("(()=>{const row=document.querySelector('#objects li'),r=row.getBoundingClientRect();return document.elementFromPoint(r.right-2,r.top+3).closest('button')===row.querySelector('.object-name')&&getComputedStyle(row).backgroundColor!=='rgba(0, 0, 0, 0)';})()"));
+ check('RTL dark row retains full primary hit area '+width,await evaluate("(()=>{const row=document.querySelector('#objects li'),r=row.getBoundingClientRect();return document.elementFromPoint(r.right-24,r.top+3).closest('button')===row.querySelector('.object-name')&&getComputedStyle(row).backgroundColor!=='rgba(0, 0, 0, 0)';})()"));
  check('RTL secondary hit targets remain independent '+width,await evaluate("(()=>{const row=document.querySelector('#objects li');return ['.check','.icon'].every(s=>{const e=row.querySelector(s),r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));});})()"));
  await click('#direction');await click('#theme');
  if(width===390){await moveTo('#objects li:nth-child(4) .object-name');await evaluate('document.activeElement.blur()');const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-row-feedback.png',Buffer.from(shot.data,'base64'));}

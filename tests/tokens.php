@@ -114,6 +114,20 @@ check($tokens->listing('alice')[0]['status'] === 'revoked', 'Revocation idempote
 // Deleting the restriction does not grant owner-wide access.
 $vfs->destroy('alice', $folder['id']);
 denied(fn() => $api->contains($limitedRow, $outside['id']), 403, 'Deleted restriction cannot widen access');
+// Separate bucket roots do not widen existing default-root or folder restrictions.
+$bucketRoot = ['id' => 'test-bucket', 'owner_id' => 'alice', 'parent_id' => '', 'name' => 'Brand', 'name_key' => hash('sha256', 'bucket-alice-brand'), 'node_type' => 'bucket', 'created_at' => time(), 'updated_at' => time(), 'lock_version' => 0];
+$nodes->insert($bucketRoot);
+$bucketChild = $vfs->create('alice', 'bucket-child', $bucketRoot['id']);
+$defaultScoped = $tokens->issue('alice', 'Default only', ['media:read'], time() + 3600, $vfs->root('alice')['id']);
+$defaultRow = $tokens->authenticate('Bearer ' . $defaultScoped['secret']);
+denied(fn() => $api->contains($defaultRow, $bucketChild['id']), 403, 'Default-root token cannot reach another bucket');
+$bucketScoped = $tokens->issue('alice', 'Bucket only', ['media:read', 'media:manage'], time() + 3600, $bucketRoot['id']);
+$bucketRow = $tokens->authenticate('Bearer ' . $bucketScoped['secret']);
+check($api->show($bucketRow, $bucketChild['id'])['virtual_path'] === '/bucket-child', 'Bucket-scoped paths omit namespace ancestors');
+denied(fn() => $api->contains($bucketRow, $outside['id']), 403, 'Bucket-scoped token cannot reach default Library');
+denied(fn() => $api->update($bucketRow, $bucketChild['id'], null, $outside['id']), 403, 'Scoped move cannot cross bucket boundary');
+$vfs->update('alice', $bucketChild['id'], null, $outside['id']);
+denied(fn() => $api->contains($bucketRow, $bucketChild['id']), 403, 'Session move out of bucket removes bucket-token access');
 // Lifecycle listener delegates only exact UID and never touches filesystem APIs/passwords.
 $cleanup = new class extends OwnerCleanupService {
     public array $owners = [];
