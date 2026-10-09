@@ -1,0 +1,17 @@
+{
+  "name": "mediastorage/mediastorage",
+  "description": "Native Nextcloud virtual media storage app",
+  "type": "nextcloud-app",
+  "require": {
+    "php": ">=8.2"
+  },
+  "autoload": {
+    "psr-4": {
+      "OCA\\MediaStorage\\": "lib/"
+    }
+  },
+  "scripts": {
+    "test": "php tests/run.php"
+  },
+  "license": "AGPL-3.0-or-later"
+}

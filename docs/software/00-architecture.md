@@ -1,6 +1,6 @@
 # Architecture
 
-Design status: Planned.
+Phase 1 foundation implemented. Later-phase token, delivery and policy services remain planned.
 
 The app lives at repository root and is installed as `custom_apps/mediastorage`. Expected directories are `appinfo`, `lib/AppInfo`, `lib/Controller`, `lib/Service`, `lib/Db`, `lib/Migration`, `lib/Exception`, `src`, `templates`, and `tests`.
 

@@ -10,7 +10,9 @@ External backends will use scoped bearer tokens. Browsers will use a backend pro
 
 ## Current state
 
-The repository initially contained only a staged `.gitignore` and the task specification. Documentation is now established before code. No app, migrations, tokens, explorer, delivery controls, or tests are implemented. PHP and Composer are absent from the current shell. Access to the Docker daemon was denied during read-only inspection; container contents and installed Nextcloud version remain unknown.
+Phase 1 backend code now exists: app bootstrap/routes, session-protected controller endpoints, portable migration, virtual hierarchy, owner-context file binding/recovery, strict-double tests, SQLite schema checks and a live integration harness. The explorer, upload workflow, API tokens, signed URLs and media delivery are not implemented.
+
+The local Snap test instance is initialized: Nextcloud 34.0.4, PHP 8.4.26, SELinux enforcing. 69 service/controller checks and the schema suite pass. The app is enabled as version 0.1.0; 33 live HTTP checks passed against the actual Nextcloud database and filesystem. Upgrade testing and the wider compatibility matrix remain pending.
 
 ## Delivery phases
 
@@ -22,8 +24,20 @@ The repository initially contained only a staged `.gitignore` and the task speci
 
 ## Decisions still needed
 
-Confirm installed Nextcloud version and test-instance access. Choose dependency versions against that release. Confirm project license and copyright ownership before public distribution; none are invented here. Establish a private vulnerability reporting channel before release.
+Use Nextcloud 34.0.4 as the initial target; confirm app enablement and live integration. Choose dependency versions against that release. Author is Kongphai Wutthichaiya and the owner selected AGPL-3.0-or-later; retain third-party notices before distribution. Establish a private vulnerability reporting channel before release.
 
 ## Completion rule
 
 Each feature needs implementation, meaningful tests, documented limitations, and status updates. No version or database support is claimed until tested on the corresponding environment.
+
+## Test environment update — 2026-10-09
+
+Nextcloud Snap revision 54326 is installed and contains Nextcloud 34.0.4. SELinux is enforcing. Public filesystem/bootstrap/migration interfaces were inspected in installed source. App enablement, PHP runtime, database, and instance initialization remain unverified; see [compatibility evidence](software/06-compatibility-and-testing.md).
+
+## Project author
+
+The owner confirmed the app author as **Kongphai Wutthichaiya**. The owner subsequently selected AGPL-3.0-or-later to align with Nextcloud; the full licence is included in the repository.
+
+## Live Phase 1 verification
+
+The user ran the prepared root deployment script successfully: `mediastorage 0.1.0 enabled`. The live HTTP suite then passed 33 checks using dedicated non-admin accounts. It exercised actual app queries, filesystem bindings, authentication/CSRF and concurrent operations on the Snap MySQL instance. The suite removed its virtual references, physical fixtures and test accounts; empty owner roots may remain.
