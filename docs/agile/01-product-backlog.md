@@ -1,6 +1,6 @@
 # Product Backlog
 
-US-MS-01–03 are implemented and verified by unit/schema checks and 33 live HTTP checks on Nextcloud 34.0.4 / Snap MySQL. Extended acceptance gates remain pending. US-MS-04–08 remain Planned. Phase 1 has priority.
+US-MS-01–03 are implemented and verified by unit/schema checks and 33 live HTTP checks on Nextcloud 34.0.4 / Snap MySQL. Extended acceptance gates remain pending. US-MS-04 passed local tests and the combined 70-check live suite after upgrade to 0.2.0. US-MS-05–08 remain Planned. Phase 1 has priority.
 
 | ID | Phase | Deliverable | Acceptance evidence |
 | --- | --- | --- | --- |
@@ -15,4 +15,4 @@ US-MS-01–03 are implemented and verified by unit/schema checks and 33 live HTT
 
 Later-phase work does not count as implemented merely because interfaces are designed.
 
-Release gate: add user-deletion lifecycle cleanup for app-owned metadata and verify that recreated user IDs cannot inherit previous account media metadata.
+Lifecycle cleanup is implemented in deployed 0.2.0; live deletion/recreation isolation passed. Wider concurrent lifecycle races remain a release review item.

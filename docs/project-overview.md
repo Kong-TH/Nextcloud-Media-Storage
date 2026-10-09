@@ -12,7 +12,7 @@ External backends will use scoped bearer tokens. Browsers will use a backend pro
 
 Phase 1 backend code now exists: app bootstrap/routes, session-protected controller endpoints, portable migration, virtual hierarchy, owner-context file binding/recovery, strict-double tests, SQLite schema checks and a live integration harness. The explorer, upload workflow, API tokens, signed URLs and media delivery are not implemented.
 
-The local Snap test instance is initialized: Nextcloud 34.0.4, PHP 8.4.26, SELinux enforcing. 69 service/controller checks and the schema suite pass. The app is enabled as version 0.1.0; 33 live HTTP checks passed against the actual Nextcloud database and filesystem. Upgrade testing and the wider compatibility matrix remain pending.
+The local Snap test instance is initialized: Nextcloud 34.0.4, PHP 8.4.26, SELinux enforcing. 69 service/controller checks and the schema suite pass. The app is enabled as version 0.2.0; 70 live HTTP checks passed against the actual Nextcloud database/filesystem and the 0.1-to-0.2 upgrade succeeded. The wider compatibility matrix remains pending.
 
 ## Delivery phases
 
@@ -41,3 +41,11 @@ The owner confirmed the app author as **Kongphai Wutthichaiya**. The owner subse
 ## Live Phase 1 verification
 
 The user ran the prepared root deployment script successfully: `mediastorage 0.1.0 enabled`. The live HTTP suite then passed 33 checks using dedicated non-admin accounts. It exercised actual app queries, filesystem bindings, authentication/CSRF and concurrent operations on the Snap MySQL instance. The suite removed its virtual references, physical fixtures and test accounts; empty owner roots may remain.
+
+## Phase 2 source — awaiting live upgrade
+
+Version 0.2.0 source implements token lifecycle, scoped bearer JSON APIs and user metadata lifecycle cleanup. Local tests: 69 Phase 1 checks plus 61 new token/security checks; SQLite incremental upgrade passed. The deployed instance remains verified at 0.1.0 until root redeployment. The Vue explorer, upload workflow, binary streaming and signed URLs are future phases.
+
+## Phase 2 live completion
+
+App 0.2.0 deployed successfully. The combined HTTP suite passed 70 checks on Nextcloud 34.0.4 / Snap MySQL, including token lifecycle and user-ID recreation isolation. Local checks total 130 plus migration/schema checks. The next roadmap phase is the Vue virtual file explorer and upload/binding/token-management UI. This verification does not make the app production ready; media delivery, abuse controls and the release matrix remain future work.

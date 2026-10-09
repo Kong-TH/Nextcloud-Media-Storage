@@ -36,6 +36,19 @@ $pdo->exec("DELETE FROM test_ms_nodes WHERE id = 'a1'");
 $pdo->rollBack();
 if ((int)$pdo->query("SELECT count(*) FROM test_ms_nodes WHERE id = 'a1'")->fetchColumn() !== 1) throw new RuntimeException('Rollback failed');
 if ((int)$pdo->query("SELECT lock_version FROM test_ms_nodes WHERE id = 'root-a'")->fetchColumn() !== 0) throw new RuntimeException('Lock rollback failed');
+// Execute the incremental token migration over the populated Phase 1 SQLite schema.
+$before = clone $schema;
+$upgrade = new OCA\MediaStorage\Migration\Version000200Date20261009000000();
+$upgrade->changeSchema($output, fn() => $wrapper, []);
+$platform = new SqlitePlatform();
+$diff = (new Doctrine\DBAL\Schema\Comparator($platform))->compareSchemas($before, $schema);
+foreach ($platform->getAlterSchemaSQL($diff) as $sql) $pdo->exec($sql);
+if ((int)$pdo->query('SELECT count(*) FROM test_ms_nodes')->fetchColumn() !== 5) throw new RuntimeException('Upgrade changed existing nodes');
+$upgrade->changeSchema($output, fn() => $wrapper, []);
+if (count($schema->getTables()) !== 3) throw new RuntimeException('Token migration re-entry failed');
+$tokenInsert = $pdo->prepare('INSERT INTO test_ms_tokens (id, owner_id, name, token_hash, scopes, expires_at, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)');
+$tokenInsert->execute([str_repeat('a', 32), 'alice', 'Test fixture', str_repeat('b', 64), '["media:read"]', time() + 60, time()]);
+if ($pdo->query('SELECT revoked_at FROM test_ms_tokens')->fetchColumn() !== null) throw new RuntimeException('New token is not unrevoked');
 // SQL compilation is distinct from provider execution/support.
 foreach ([new Doctrine\DBAL\Platforms\MySQL80Platform(), new Doctrine\DBAL\Platforms\PostgreSQLPlatform()] as $platform) {
     if (!$schema->toSql($platform)) throw new RuntimeException('Empty schema SQL');
@@ -47,4 +60,4 @@ $metadata->getElementsByTagName('author')->item(0)->textContent = 'Test fixture'
 $metadata->getElementsByTagName('licence')->item(0)->textContent = 'AGPL-3.0-or-later';
 $source = getenv('NEXTCLOUD_SOURCE') ?: '/snap/nextcloud/current/htdocs';
 if (!$metadata->schemaValidate($source . '/resources/app-info.xsd')) throw new RuntimeException('App metadata template invalid');
-echo "PASS: migration schema creation/re-entry, SQLite installation, root isolation, sibling constraints, case-sensitive keys and rollback; MySQL/PostgreSQL SQL generation only; app metadata template schema valid.\n";
+echo "PASS: migration schema creation/re-entry, SQLite installation and populated 0.1-to-0.2 schema upgrade, root isolation, sibling constraints, case-sensitive keys and rollback; MySQL/PostgreSQL SQL generation only; app metadata template schema valid.\n";

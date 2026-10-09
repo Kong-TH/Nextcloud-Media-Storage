@@ -1,5 +1,7 @@
 # Compatibility and Testing
 
+Current result: deployed app 0.2.0 on Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL; 130 local checks, schema tests and 70 live HTTP checks passed. Earlier sections retain chronological inspection evidence.
+
 ## Compatibility evidence
 
 Installed package: Nextcloud 34.0.4, stable, Snap revision 54326, confirmed from `/snap/nextcloud/current/htdocs/version.php` on 2026-10-09. This establishes the initial development target as Nextcloud 34; it does not verify app compatibility or instance initialization. PHP and Composer are unavailable on the host PATH. Snap includes PHP, but invoking its binary outside Snap failed with missing `libldap_r-2.4.so.2`; use the supported Snap execution environment rather than treating that as a broken installation. Vue dependencies are not selected. No database backend or app test has been verified.
@@ -56,3 +58,17 @@ App version 0.1.0 was successfully enabled through the root deployment script, i
 The verified deployment is Nextcloud 34.0.4 with the Snap-configured MySQL backend and PHP 8.4.26. This is not a PostgreSQL/SQLite deployment claim or a guarantee for other Nextcloud versions. Previous-version migration upgrades are not tested. Owner deletion event cleanup is not implemented; app-owned roots and metadata can outlive account deletion, so this remains a release security/lifecycle gate.
 
 The HTTP suite creates disposable non-admin users, removes virtual references before account cleanup, and deletes its own user accounts/physical fixtures. Empty owner roots remain by app design; early exploratory runs may have retained additional virtual fixture metadata. Do not use this harness on a production instance. See [test instructions](../../tests/README.md).
+
+## Phase 2 local evidence
+
+Source version 0.2.0: 69 existing checks and 61 token/scope/lifecycle checks passed on PHP 8.4.26. SQLite schema test executed the incremental token-table upgrade while preserving existing Phase 1 rows. 26 PHP files and Python/shell/JSON syntax passed. New listener/controller declarations were checked against installed Nextcloud 34 public source.
+
+Installed app remains 0.1.0; no 0.2.0 live test or actual MySQL migration upgrade has run yet. The extended HTTP suite is opt-in with MEDIASTORAGE_TEST_PHASE=2 and covers token scopes/lifecycle plus user-ID recreation. It must run after root redeployment.
+
+## Phase 2 live evidence
+
+The user executed the updated deployment script: 0.1.0 disabled, 0.2.0 enabled. The incremental token migration completed and real node/token/binding queries succeeded. Ran `MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_PHASE=2 python3 tests/http_integration.py`: **70 live checks passed**, exit 0.
+
+Verified actual session/CSRF and bearer-only boundaries; expiry/revocation/rotation; last use/cache headers; owner and optional folder scope; real owner-wide binding; physical-file preservation; concurrent duplicate/move safety; and deletion/recreation isolation without affecting the other owner. No credential values were logged by the test harness.
+
+This establishes local Nextcloud 34.0.4 / Snap MySQL behavior only. MySQL version, other Nextcloud versions, PostgreSQL/full Nextcloud SQLite deployments, all shared/mounted contexts, and arbitrary in-flight lifecycle races remain unverified. Populated-schema preservation is separately checked in in-memory SQLite; direct MySQL row preservation across the upgrade was not instrumented.

@@ -16,6 +16,9 @@ status=$(/snap/bin/nextcloud.occ status --output=json)
 case "$status" in *'"installed":true'*|*'"installed": true'*) ;; *) echo 'Initialize Nextcloud first.' >&2; exit 2;; esac
 app_root=/var/snap/nextcloud/current/nextcloud/extra-apps/mediastorage
 if [ -L "$app_root" ]; then echo 'Refusing symlink app destination.' >&2; exit 2; fi
+# Disable this app before replacing code, so enable runs its pending migrations.
+# Nextcloud app:enable exits early for an already enabled app.
+/snap/bin/nextcloud.occ app:disable mediastorage
 mkdir -p "$app_root"
 for item in appinfo lib img templates composer.json README.md LICENSE; do
     cp -R "$repo_root/$item" "$app_root/"

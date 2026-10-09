@@ -11,7 +11,11 @@
     }
   },
   "scripts": {
-    "test": "php tests/run.php"
+    "test": [
+      "php tests/run.php",
+      "php tests/tokens.php",
+      "php tests/schema.php"
+    ]
   },
   "license": "AGPL-3.0-or-later"
 }

@@ -20,3 +20,9 @@ Node IDs are random 128-bit hex strings; per-owner roots use deterministic SHA-2
 App table `ms_nodes` uses 64-character ID/owner/parent/hash fields, 255-character names (service limits to 255 bytes), type length 10, integer timestamps and a lock counter. The app-owned root row is updated inside each mutation transaction before hierarchy reads, to serialize per-owner writes. Actual concurrent MySQL/PostgreSQL behavior is not yet tested.
 
 `ms_bindings` is keyed by virtual node ID and also stores owner for isolated lookups. Storage identifiers are SHA-256 hashes; file IDs and last-known paths are hints evaluated within the owner’s current filesystem context. File paths are never used for silent recovery. Last-known path allows up to 4000 characters, MIME up to 127; sizes/IDs/timestamps are bigint. No tokens or policies exist in the current migration.
+
+## Phase 2 incremental schema
+
+`Version000200Date20261009000000` adds ms_tokens without changing existing nodes/bindings. id is a 32-character random selector; owner length 64; name 100; token_hash 64; serialized scopes 255; optional folder_id length 64; expires_at/created_at required bigint; revoked_at/last_used_at nullable bigint. Primary key id; owner/created timestamp index. Only the SHA-256 verifier of a 256-bit random secret is persisted. The credential selector is not an authority on its own.
+
+Executed SQLite populated-schema upgrade and re-entry checks; MySQL/PostgreSQL SQL generation only. The user ran the actual 0.1-to-0.2 app upgrade successfully; live token and node queries passed on Snap MySQL. Populated-row preservation was separately verified in the SQLite schema test. Token lifecycle changes and external authorization share the app root write lock. User creation/deletion listeners transactionally purge tokens, bindings and nodes for exactly that UID, without touching filesystem contents.

@@ -9,6 +9,9 @@ use OCP\AppFramework\Bootstrap\IRegistrationContext;
 final class Application extends App implements IBootstrap {
     public const APP_ID = 'mediastorage';
     public function __construct(array $urlParams = []) { parent::__construct(self::APP_ID, $urlParams); }
-    public function register(IRegistrationContext $context): void {}
+    public function register(IRegistrationContext $context): void {
+        $context->registerEventListener(\OCP\User\Events\UserDeletedEvent::class, \OCA\MediaStorage\Listener\OwnerLifecycleListener::class);
+        $context->registerEventListener(\OCP\User\Events\UserCreatedEvent::class, \OCA\MediaStorage\Listener\OwnerLifecycleListener::class);
+    }
     public function boot(IBootContext $context): void {}
 }

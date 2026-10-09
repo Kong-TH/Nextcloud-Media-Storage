@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import secrets
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -165,6 +166,102 @@ try:
     check(status == 200, 'Virtual deletion preserves physical file')
     status, _ = api(a, at, 'GET', '/api/v1/nodes/' + media['id'])
     check(status == 404, 'Deleted subtree no longer visible')
+    if os.environ.get('MEDIASTORAGE_TEST_PHASE') == '2':
+        external_prefix = '/external/v1'
+        backend = urllib.request.build_opener()
+        def bearer(secret, method, path, value=None):
+            headers = {'Accept': 'application/json'}
+            if secret is not None: headers['Authorization'] = 'Bearer ' + secret
+            body = json.dumps(value).encode() if value is not None else None
+            if body is not None: headers['Content-Type'] = 'application/json'
+            status, raw, response_headers = request(backend, method, prefix + external_prefix + path, body, headers)
+            try: result = json.loads(raw) if raw else None
+            except json.JSONDecodeError: result = None
+            return status, result, response_headers
+        def issue(name, scopes, folder_id=None, lifetime=3600):
+            payload = {'name': name, 'scopes': scopes, 'expires_at': int(time.time()) + lifetime}
+            if folder_id is not None: payload['folder_id'] = folder_id
+            status, result = api(a, at, 'POST', '/api/v1/tokens', payload)
+            if status != 201: raise RuntimeError('Issue token failed; deploy app 0.2.0 first. HTTP ' + str(status))
+            return result
+        read = issue('read-only', ['media:read'])
+        status, listing, headers = bearer(read['secret'], 'GET', '/nodes')
+        check(status == 200 and 'root_id' in listing, 'Bearer-only request without browser metadata')
+        check('no-store' in headers.get('Cache-Control', ''), 'Bearer metadata is not cacheable')
+        for secret in [None, 'invalid', read['secret'] + 'x']:
+            status, _, _ = bearer(secret, 'GET', '/nodes')
+            check(status == 401, 'Missing/malformed credential denied')
+        status, _, _ = request(a, 'GET', prefix + external_prefix + '/nodes', headers={'Accept': 'application/json'})
+        check(status == 401, 'Session cannot replace external bearer')
+        status, _, _ = bearer(read['secret'], 'POST', '/folders', {'name': 'not-allowed'})
+        check(status == 403, 'Read token cannot mutate')
+        status, listed = api(a, at, 'GET', '/api/v1/tokens')
+        check(status == 200 and all('secret' not in row and 'token_hash' not in row for row in listed['tokens']), 'List hides secrets and verifiers')
+        entry = next(row for row in listed['tokens'] if row['id'] == read['token']['id'])
+        check(entry['last_used_at'] is not None, 'Live last-used timestamp')
+        status, _, _ = request(a, 'POST', prefix + '/api/v1/tokens', b'{"name":"bad","scopes":["media:read"],"expires_at":9999999999}', {'Accept': 'application/json', 'Content-Type': 'application/json'})
+        check(status in (401, 403, 412), 'Token creation retains CSRF middleware')
+        status, _ = api(a, at, 'POST', '/api/v1/tokens', {'name': 'expired', 'scopes': ['media:read'], 'expires_at': int(time.time()) - 1})
+        check(status == 400, 'Already-expired token issuance rejected')
+        status, area = api(a, at, 'POST', '/api/v1/folders', {'name': 'token-area'})
+        if status != 201: raise RuntimeError('Token fixture creation failed')
+        status, hidden = api(a, at, 'POST', '/api/v1/folders', {'name': 'outside-token-area'})
+        if status != 201: raise RuntimeError('Token fixture creation failed')
+        limited = issue('restricted', ['media:read', 'media:manage', 'media:delete'], area['id'])
+        status, scoped, _ = bearer(limited['secret'], 'GET', '/nodes')
+        check(status == 200 and scoped['root_id'] == area['id'], 'Restricted listing uses virtual boundary')
+        status, inside, _ = bearer(limited['secret'], 'POST', '/folders', {'name': 'inside'})
+        check(status == 201 and inside['parent_id'] == area['id'], 'Restricted create stays inside boundary')
+        status, _, _ = bearer(limited['secret'], 'GET', '/nodes/' + hidden['id'])
+        check(status == 403, 'Restricted read outside boundary denied')
+        status, _, _ = bearer(limited['secret'], 'PATCH', '/nodes/' + inside['id'], {'parent_id': hidden['id']})
+        check(status == 403, 'Restricted move out denied')
+        status, _, _ = bearer(limited['secret'], 'PATCH', '/nodes/' + hidden['id'], {'parent_id': area['id']})
+        check(status == 403, 'Restricted move in from outside denied')
+        status, _, _ = bearer(limited['secret'], 'DELETE', '/nodes/' + area['id'])
+        check(status == 403, 'Restriction boundary deletion denied')
+        status, _, _ = bearer(limited['secret'], 'POST', '/bindings', {'name': 'guessed.png', 'file_id': second_id})
+        check(status == 403, 'Restricted File ID binding denied')
+        ownerwide = issue('ownerwide', ['media:read', 'media:manage', 'media:delete'])
+        status, bound, _ = bearer(ownerwide['secret'], 'POST', '/bindings', {'name': 'backend.png', 'file_id': second_id, 'parent_id': area['id']})
+        check(status == 201, 'Owner-wide bearer binds actual file')
+        status, metadata, _ = bearer(limited['secret'], 'GET', '/nodes/' + bound['id'])
+        check(status == 200 and metadata['binding_status'] == 'available' and metadata['media']['mime_type'] == 'image/png' and 'binding' not in metadata, 'Scoped metadata hides physical path/context')
+        status, _, _ = bearer(limited['secret'], 'GET', '/nodes/' + area['id'])
+        check(status == 200, 'Restriction boundary can be read')
+        status, _, _ = bearer(ownerwide['secret'], 'DELETE', '/nodes/' + bound['id'])
+        check(status == 204, 'Bearer delete scope removes reference')
+        status, _, _ = request(admin, 'GET', dav + 'replacement.png', headers=dav_headers)
+        check(status == 200, 'Bearer deletion preserves physical data')
+        status, rotated = api(a, at, 'POST', '/api/v1/tokens/' + read['token']['id'] + '/rotate', {})
+        check(status == 201 and rotated['secret'] != read['secret'], 'Rotation issues one-time replacement')
+        check(bearer(read['secret'], 'GET', '/nodes')[0] == 200 and bearer(rotated['secret'], 'GET', '/nodes')[0] == 200, 'Rotation overlap supports backend migration')
+        status, _ = api(b, bt, 'DELETE', '/api/v1/tokens/' + read['token']['id'])
+        check(status == 404, 'Cross-user token revocation denied')
+        status, _ = api(a, at, 'DELETE', '/api/v1/tokens/' + read['token']['id'])
+        check(status == 204 and bearer(read['secret'], 'GET', '/nodes')[0] == 401, 'Revocation invalidates old credential')
+        short = issue('short-lived', ['media:read'], lifetime=3)
+        time.sleep(4)
+        check(bearer(short['secret'], 'GET', '/nodes')[0] == 401, 'Expired bearer denied')
+        manager = issue('token-manager', ['token:manage'])
+        check(bearer(manager['secret'], 'GET', '/tokens')[0] == 200, 'Explicit token management scope')
+        check(bearer(read['secret'], 'GET', '/tokens')[0] == 401, 'Revoked token cannot manage credentials')
+        check(bearer(ownerwide['secret'], 'GET', '/tokens')[0] == 403, 'Media management does not imply token management')
+        check(bearer(manager['secret'], 'DELETE', '/tokens/' + rotated['token']['id'])[0] == 204, 'Token manager can revoke owner credential')
+        status, survivor = api(b, bt, 'POST', '/api/v1/folders', {'name': 'must-survive-other-owner-deletion'})
+        if status != 201: raise RuntimeError('Lifecycle survivor fixture failed')
+        old_uid, old_password = users[0]
+        provision('DELETE', '/' + urllib.parse.quote(old_uid)); created.remove(old_uid); sessions.pop(old_uid, None)
+        check(bearer(ownerwide['secret'], 'GET', '/nodes')[0] == 401, 'Deleted owner bearer denied')
+        provision('POST', '', {'userid': old_uid, 'password': old_password}); created.append(old_uid)
+        a, at = login(old_uid, old_password); sessions[old_uid] = (a, at)
+        status, fresh = api(a, at, 'GET', '/api/v1/nodes')
+        check(status == 200 and fresh['nodes'] == [], 'Recreated user cannot inherit prior virtual nodes')
+        status, fresh_tokens = api(a, at, 'GET', '/api/v1/tokens')
+        check(status == 200 and fresh_tokens['tokens'] == [], 'Recreated user cannot inherit prior tokens')
+        check(bearer(ownerwide['secret'], 'GET', '/nodes')[0] == 401, 'Old credential stays invalid after UID recreation')
+        status, _ = api(b, bt, 'GET', '/api/v1/nodes/' + survivor['id'])
+        check(status == 200, 'Lifecycle purge preserves other owner')
     print('PASS:', passed, 'live HTTP checks', flush=True)
 finally:
     cleanup_errors = []
@@ -183,5 +280,5 @@ finally:
             provision('DELETE', '/' + urllib.parse.quote(user))
         except Exception as error:
             cleanup_errors.append(type(error).__name__ + ': user cleanup failed')
-    print('Cleaned up test users, physical fixtures and virtual references; empty app owner-root rows may remain.', flush=True)
+    print('Cleaned up test users, physical fixtures and virtual references; owner roots are removed by the lifecycle listener when app 0.2.0 is deployed.', flush=True)
     if cleanup_errors: raise RuntimeError('; '.join(cleanup_errors))

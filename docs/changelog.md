@@ -29,3 +29,13 @@ The owner selected AGPL-3.0-or-later to align with Nextcloud. Added the full lic
 ## Live Phase 1 integration
 
 User deployed/enabled mediastorage 0.1.0 successfully. Added and executed a reusable Python HTTP suite: 33 checks passed against Nextcloud 34.0.4 / Snap MySQL using non-admin sessions and real Filesystem/DAV fixtures. Verified cross-owner boundaries, CSRF/anonymous denials, concurrent duplicates/moves and physical-file preservation. Updated current compatibility and acceptance evidence. Earlier-version migration upgrades, other deployments and user-deletion lifecycle cleanup remain unverified/unimplemented.
+
+## 0.2.0 — Secure API foundation (source, live upgrade pending)
+
+Added scoped bearer credentials with one-time secrets, secure verifiers, expiry, revocation, rotation overlap and last use. Added session token management and narrowly isolated external endpoints with owner/folder/source/destination authorization under transaction locks. Restricted credentials cannot bind guessed physical IDs or alter their boundary. Added user-created/deleted listeners to purge only the exact owner's app rows and protect recreated UIDs.
+
+Added incremental token schema, 61 passing local token/scope/lifecycle checks, populated SQLite schema upgrade checks and opt-in Phase 2 live HTTP acceptance. Fixed deployment sequencing to disable this app before copying and re-enable so pending migrations execute. Existing 69 checks pass; no 0.2.0 live upgrade/integration is claimed yet.
+
+## 0.2.0 — Live upgrade and acceptance passed
+
+User successfully upgraded mediastorage from 0.1.0 to 0.2.0. Executed the combined Phase 1/2 HTTP suite: 70 checks passed against Nextcloud 34.0.4 / Snap MySQL. Verified real token issue/expiry/revocation/rotation, scope/folder boundaries, session/CSRF isolation, last-used/no-store behavior, actual filesystem bindings and deletion/recreation isolation without affecting another owner. Test fixtures cleaned up. Updated current docs to distinguish this evidence from untested providers, lifecycle races and later-phase features.

@@ -36,3 +36,25 @@ All JSON endpoints require the authenticated Nextcloud session and the platform 
 - `PATCH /api/v1/bindings/{id}`: `file_id`; here `{id}` is the **virtual media node ID**, not a separate binding ID. Revalidates and replaces binding explicitly.
 
 Errors from domain validation return `{ "error": "safe message" }`. Names are UTF-8, at most 255 bytes, without leading/trailing whitespace, slash/backslash, dot segments or controls. Exact UTF-8 bytes define sibling name equality; case and Unicode-normalization variants are distinct. Paths are derived and change on virtual rename/move. No delivery URL is advertised before the delivery phase. Root plus descendants is limited to 128 levels; deleting/moving a subtree larger than 1000 nodes is rejected transactionally.
+
+## Phase 2 contract — verified on local Nextcloud 34.0.4
+
+All routes use the same Nextcloud app prefix. Session routes `/api/v1/tokens` (GET/POST), `/api/v1/tokens/{id}` (DELETE) and `/api/v1/tokens/{id}/rotate` (POST) retain authentication and CSRF. Issue JSON: `name`, unique nonempty `scopes` array, required integer Unix `expires_at`, optional owner-accessible folder/root `folder_id`. Success 201 includes `token` metadata and one-time `secret`. List returns `{ "tokens": [...] }` without secrets/verifiers, with limit/offset pagination and active/expired/revoked status. Delete is idempotent revocation (204). Rotation creates a fresh credential with identical permissions/folder/expiration; the old one remains usable until explicitly revoked. No long-lived secret may be embedded in a browser/backend-free client.
+
+Bearer-only namespace: `/external/v1`. The controller deliberately has narrow public/CSRF exceptions and verifies `Authorization: Bearer ms_<selector>.<secret>` on every method. Session cookies never replace bearer authentication. No Origin/Referer/Fetch Metadata headers are required. No query-string credential is accepted. Unauthorized credentials produce 401 and WWW-Authenticate; insufficient scope 403. All token/bearer JSON responses set Cache-Control no-store.
+
+| Method | External route | Required scope |
+| --- | --- | --- |
+| GET | /nodes | media:read |
+| GET | /nodes/{id} | media:read |
+| POST | /folders | media:manage |
+| PATCH | /nodes/{id} | media:manage |
+| DELETE | /nodes/{id} | media:delete |
+| POST | /bindings | media:manage, owner-wide token only |
+| PATCH | /bindings/{id} | media:manage, owner-wide token only |
+| GET | /tokens | token:manage |
+| DELETE | /tokens/{id} | token:manage |
+
+Node/binding fields match the corresponding session routes. Metadata resolution includes virtual node and binding_status; available media has MIME and size under `media`, without physical path/storage identifiers. No bytes, generated public URL, upload or physical-delete endpoint exists. `media:upload` is an accepted reserved scope but gives no current permission. `token:manage` must be owner-wide and allows owner token list/revocation only; issuance/rotation requires a session. Permissions do not imply one another.
+
+Folder restrictions follow the current hierarchy. Default parent/root is the restricted folder. Both move source and destination must be descendants; the boundary itself cannot be renamed, moved or deleted. Output paths are relative to the boundary and omit its parent ID. Restricted search stays within the selected parent. File-ID bind/rebind are prohibited for restricted tokens to prevent importing other owner files by guessing IDs. The dashboard or an owner-wide management token can prepare bindings. Renaming/moving a boundary using a session preserves its ID; deleting it makes scoped access fail closed.
