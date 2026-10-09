@@ -1,0 +1,41 @@
+# Documentation Index
+
+Updated: 2026-10-09
+
+This documentation uses the organizational structure of `tiktok-live-sandbox-game/docs`, adapted for a native Nextcloud application. Game-specific GDD, audio, and renderer directories are intentionally omitted.
+
+## Project
+
+- [Project overview](project-overview.md)
+- [Changelog](changelog.md)
+
+## Agile delivery
+
+- [Product backlog](agile/01-product-backlog.md)
+- [Sprint planning](agile/02-sprint-planning.md)
+- [Sprint 01: App foundation](agile/sprint-backlogs/sprint-01.md)
+- [Foundation story](agile/user-stories/US-MS-01.md)
+- [Virtual hierarchy story](agile/user-stories/US-MS-02.md)
+- [Filesystem binding story](agile/user-stories/US-MS-03.md)
+
+## Software
+
+- [Architecture](software/00-architecture.md)
+- [System design](software/01-system-design.md)
+- [Data schema](software/03-data-schema.md)
+- [Security design](software/04-security-design.md)
+- [API contract](software/05-api-contract.md)
+- [Compatibility and validation](software/06-compatibility-and-testing.md)
+- [Architecture decisions](software/07-architecture-decisions.md)
+
+## Operations and development
+
+- [Installation and configuration](manual/installation-and-configuration.md)
+- [User guide](manual/user-guide.md)
+- [Reverse proxy guidance](manual/reverse-proxy.md)
+- [Troubleshooting](manual/troubleshooting.md)
+- [Wiki](wiki/wiki.md)
+- [Developer guide](wiki/development/development.md)
+- [Requirements](wiki/requirement/project-requirements.md)
+
+Status labels: Planned means no implementation; Implemented means code exists; Verified requires recorded test evidence. Documentation alone is not verification.

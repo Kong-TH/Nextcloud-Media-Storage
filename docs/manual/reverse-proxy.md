@@ -1,0 +1,9 @@
+# Reverse Proxy Guidance
+
+Optional deployment design; no configuration has been tested against an installed app.
+
+The app must function with standard Nextcloud routes. A future clean `/media/` location may internally route to `/index.php/apps/mediastorage/delivery/v1/` while preserving path encoding, query parameters and authentication. Final Nginx examples require verified routes and the actual deployment's front-controller rules; an untested copy-paste rewrite is intentionally not provided.
+
+Configure proxy request-body limits together with PHP and app upload limits. Use deployment-specific Nginx `limit_req_zone`/`limit_req` and `limit_conn_zone`/`limit_conn` for per-client traffic and concurrent downloads. Verify real client IP handling only through trusted proxies, account for NAT, and return 429 for enforced throttling. Optional WAF controls supplement application authorization.
+
+Never share-cache authenticated or signed private media by default. Redact credential-bearing query strings and Authorization headers in access logs. Preserve HEAD, Range, If-Range and conditional request behavior. Domain filtering is advisory and must not replace credentials. Any future example must document its scope, trusted proxy assumptions, and validation commands.
