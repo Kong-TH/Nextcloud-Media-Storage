@@ -53,6 +53,11 @@ final class VirtualFileSystemService {
             return $node;
         });
     }
+    /** Call under the owner lock before a new physical upload is added. */
+    public function validateCreation(string $owner, string $name, string $parent): void {
+        NodeRules::name($name); $this->folder($owner, $parent); $this->checkDepth($owner, $parent, 1);
+        if ($this->store->sibling($owner, $parent, $name)) { throw new MediaException('Sibling name already exists.', 409); }
+    }
     private function checkDepth(string $owner, string $parent, int $extra): void {
         $seen = [];
         while ($parent !== '') {

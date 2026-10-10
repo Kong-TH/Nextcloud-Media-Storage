@@ -2,7 +2,7 @@
 
 Native Nextcloud app foundation (`mediastorage`) for private virtual media organization, using Nextcloud filesystem, database, and session authentication.
 
-**Status:** Installed 0.3.4 passed 172 actual-Nextcloud browser checks with no interception. Source 0.3.5 prepares a responsive token dashboard, server-authoritative expiry bounds and one-time secret copying; build, 132 browser fixture checks and 73 token service/controller checks pass. Privileged deployment and installed 0.3.5 acceptance are pending. The Vue/Material explorer supports virtual buckets, reference-only Copy/Paste and plugin virtual paths. Upload, previews, signed URLs and binary delivery remain planned. See [implementation and evidence](docs/software/08-production-explorer.md).
+**Status:** Source 0.4.1 fixes first-upload stream cleanup and adds upload success/path notifications with a Nextcloud folder action, alongside per-account daily uploads with idempotent retry, measured progress/cancellation reconciliation, authenticated Nextcloud previews and session video delivery, plus UI-03 history restoration and bucket/token management. Installed 0.4.1 passed 26 upload/preview HTTP checks and 257 cache-enabled actual-Nextcloud browser checks; fixture/unit evidence is recorded separately. Signed/public and external-token binary delivery remain planned. See [implementation and evidence](docs/software/08-production-explorer.md).
 
 Initial target: installed Nextcloud 34.0.4 / PHP 8.4.26. Live HTTP integration is verified on this Nextcloud 34.0.4 / Snap MySQL environment only. Other Nextcloud releases and database deployments remain unverified.
 

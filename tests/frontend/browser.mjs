@@ -3,11 +3,15 @@
 import {createServer} from 'node:http'
 import {readFile,writeFile} from 'node:fs/promises'
 import assert from 'node:assert/strict'
+import {uploadChecks} from './upload-checks.mjs'
+import {bucketChecks} from './bucket-checks.mjs'
+import {navigationChecks} from './navigation-checks.mjs'
 import {tokenFormChecks,tokenSecretChecks,tokenDashboardChecks} from './token-checks.mjs'
 import {materialChecks,toolbarChecks,buttonSpacingChecks,pickerChecks} from './material-checks.mjs'
-let next=1,requestCount=0;const rows=[{id:'image',parent_id:'root',name:'Photo.png',node_type:'media',binding_status:'available',binding:{mime_type:'image/png',file_size:12,last_known_path:'Photo.png'}},{id:'folder',parent_id:'root',name:'Campaigns',node_type:'folder'}]
+let next=1,requestCount=0;const nodeOffsets=[];const rows=[{id:'image',parent_id:'root',name:'Photo.png',node_type:'media',binding_status:'available',binding:{mime_type:'image/png',file_size:12,last_known_path:'Photo.png'}},{id:'folder',parent_id:'root',name:'Campaigns',node_type:'folder'}]
 const appVersion=JSON.parse(await readFile('package.json','utf8')).version
-let fixturePolicy=true,fixtureLifetime=3600
+let fixturePolicy=true,fixtureLifetime=3600,uploadMode='normal'
+const uploads=new Map()
 const buckets=[{id:'root',name:'Library',is_default:true}],tokens=[]
 const server=createServer(async(req,res)=>{
  const url=new URL(req.url,'http://localhost');const send=(data,status=200)=>{res.writeHead(status,{'Content-Type':'application/json'});res.end(JSON.stringify(data))}
@@ -22,11 +26,34 @@ const server=createServer(async(req,res)=>{
  }
  if(!url.pathname.includes('/api/v1/')){res.writeHead(404);res.end();return}
  requestCount++
+ if(url.pathname.endsWith('/preview')){if(url.pathname.includes('/upload-')&&uploadMode!=='previewFail'){res.writeHead(200,{'Content-Type':'image/png'});res.end(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64'));return}res.writeHead(404);res.end();return}
  if(req.headers.requesttoken!=='csrf-fixture'){send({error:'Missing CSRF'},403);return}
- let raw='';for await(const chunk of req)raw+=chunk;const body=raw?JSON.parse(raw):{}
+ const chunks=[];for await(const chunk of req)chunks.push(chunk);const raw=Buffer.concat(chunks)
  const path=url.pathname.split('/api/v1')[1]
+ if(path==='/uploads/policy'){send({max_bytes:1048576,mime_types:['image/png'],storage_pattern:'Media Storage/YYYY-MM-DD/'});return}
+ if(path.startsWith('/uploads/')){send(uploads.get(path.split('/')[2])??{state:'not_received'});return}
+ if(path==='/uploads'){
+  const form=await new Response(raw,{headers:{'Content-Type':req.headers['content-type']}}).formData(),id=form.get('request_id')
+  if(uploadMode==='proxy'){res.writeHead(413,{'Content-Type':'text/plain'});res.end('Request too large');return}
+  if(uploadMode==='fail'){send({error:'Fixture storage temporarily unavailable.'},503);return}
+  let record=uploads.get(id)
+  if(!record){const n={id:'upload-'+next++,name:form.get('name'),parent_id:form.get('parent_id'),node_type:'media',binding_status:'available',binding:{mime_type:'image/png',nextcloud_file_id:900+next,file_size:form.get('file').size,last_known_path:'Media Storage/2026-10-10/fixture.png'}};rows.push(n);record={state:'complete',node:n};uploads.set(id,record)}
+  if(uploadMode==='delay')await new Promise(r=>setTimeout(r,1500))
+  if(uploadMode==='lost'){send({error:'Fixture response lost after commit.'},500);return}
+  send(record);return
+ }
+ const body=raw.length?JSON.parse(raw.toString()):{}
  if(path==='/buckets'){if(req.method==='POST'){if(buckets.some(b=>b.name===body.name)){send({error:'Bucket name already exists.'},409);return}const b={id:'b'+next++,name:body.name,is_default:false};buckets.push(b);send(b,201)}else send({buckets,has_more:false});return}
- if(path==='/nodes'){const parent=url.searchParams.get('parent_id')??'root',query=url.searchParams.get('search')??'';send({root_id:'root',nodes:rows.filter(r=>r.parent_id===parent&&r.name.includes(query)),parent_id:parent});return}
+ if(path.startsWith('/buckets/')){
+  const id=path.split('/')[2],index=buckets.findIndex(b=>b.id===id)
+  if(index<0){send({error:'Bucket not found'},404);return}
+  if(req.method==='PATCH'){if(buckets.some(b=>b.id!==id&&b.name===body.name)){send({error:'Bucket name already exists'},409);return}buckets[index].name=body.name;send(buckets[index]);return}
+  if(req.method==='DELETE'&&buckets[index].is_default){send({error:'Default bucket cannot be removed'},403);return}
+  const ids=new Set([id]);let previous=0;while(previous!==ids.size){previous=ids.size;for(const row of rows)if(ids.has(row.parent_id))ids.add(row.id)}
+  for(let i=rows.length-1;i>=0;i--)if(ids.has(rows[i].id))rows.splice(i,1)
+  if(req.method==='DELETE')buckets.splice(index,1);send(null,204);return
+ }
+ if(path==='/nodes'){const parent=url.searchParams.get('parent_id')??'root',query=url.searchParams.get('search')??'';const offset=Number(url.searchParams.get('offset')??0),limit=Number(url.searchParams.get('limit')??100);nodeOffsets.push(offset);send({root_id:'root',nodes:rows.filter(r=>r.parent_id===parent&&r.name.includes(query)).slice(offset,offset+limit),parent_id:parent});return}
  if(path==='/folders'||path==='/bindings'){const n={id:'n'+next++,name:body.name,parent_id:body.parent_id,node_type:path==='/folders'?'folder':'media',...(path==='/bindings'?{binding_status:'available',binding:{mime_type:'image/png',nextcloud_file_id:body.file_id,last_known_path:'Chosen.png',file_size:12}}:{})};rows.push(n);send(n,201);return}
  if(path==='/tokens'){if(req.method==='POST'){const token={id:'t'+next++,name:body.name,scopes:body.scopes,expires_at:body.expires_at,status:'active',created_at:Math.floor(Date.now()/1000),folder_id:body.folder_id,last_used_at:null};tokens.push(token);send({token,secret:'fixture-only-secret'},201)}else send({tokens:tokens.slice(Number(url.searchParams.get('offset')??0),Number(url.searchParams.get('offset')??0)+Number(url.searchParams.get('limit')??100)),...(fixturePolicy?{policy:{server_time:Math.floor(Date.now()/1000),max_lifetime_seconds:fixtureLifetime}}:{})});return}
  if(path.startsWith('/tokens/')){const t=tokens.find(t=>t.id===path.split('/')[2]);if(req.method==='DELETE'){t.status='revoked';send(null,204)}else send({token:t,secret:'fixture-rotation-secret'},201);return}
@@ -35,6 +62,7 @@ const server=createServer(async(req,res)=>{
  if(path.endsWith('/copy')){const n={...structuredClone(node),id:'n'+next++,name:body.name??node.name,parent_id:body.parent_id};rows.push(n);send(n,201);return}
  if(req.method==='PATCH'){Object.assign(node,body);send(node);return}
  if(req.method==='DELETE'){rows.splice(rows.indexOf(node),1);send(null,204);return}
+ if(uploadMode==='locationFail'&&id.startsWith('upload-')){send({error:'Fixture location unavailable.'},503);return}
  send({...node,virtual_path:'/'+node.name})
 })
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const base='http://127.0.0.1:'+server.address().port
@@ -73,7 +101,7 @@ try{
  check('Bucket creation uses HTTP and selects empty namespace',rows.every(n=>n.parent_id!=='b1'))
  await click('#fab');await click('#fab-menu button:last-child');await wait("document.querySelector('#task').open");await input('New folder');await click('#task md-filled-button');await wait("document.querySelector('#objects').textContent.includes('New folder')")
  check('New folder persisted through API',rows.some(n=>n.name==='New folder'&&n.parent_id==='b1'))
- await click('#fab');await click('#fab-menu button:first-child');await wait("document.querySelector('.file-picker button')!==null");await pickerChecks({send,evaluate,check,pause,click,wait},'Chosen.png');await click('#task md-filled-button');await wait("document.querySelector('#objects').textContent.includes('Chosen.png')")
+ await click('#fab');await click('#fab-menu button[data-tip="Reference an existing Nextcloud file"]');await wait("document.querySelector('.file-picker button')!==null");await pickerChecks({send,evaluate,check,pause,click,wait},'Chosen.png');await click('#task md-filled-button');await wait("document.querySelector('#objects').textContent.includes('Chosen.png')")
  check('DAV picker binds selected file ID',rows.some(n=>n.binding?.nextcloud_file_id===42))
  await evaluate("[...document.querySelectorAll('#objects input')].find(x=>x.getAttribute('aria-label')==='Select Chosen.png').click()");await click('#action-rename');await input('Alias.png');await click('#task md-filled-button');await wait("document.querySelector('#objects').textContent.includes('Alias.png')")
  check('Rename updates virtual name',rows.some(n=>n.name==='Alias.png'&&n.binding.nextcloud_file_id===42))
@@ -113,8 +141,23 @@ try{
  check('Missing authoritative policy disables saving with recovery guidance',await evaluate("document.querySelector('#task md-filled-button').disabled&&document.querySelector('#task .error').textContent.includes('policy is unavailable')"))
  await click('#task .dialog-actions md-text-button');await wait("!document.querySelector('#task').open");fixturePolicy=true
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:false})
- await click('#open-drawer');await evaluate("[...document.querySelectorAll('#drawer .destination')].find(x=>x.textContent.endsWith('Objects')).click()");await wait("document.querySelector('#objects input')!==null");await click('#objects input');await pause(200)
+ await click('#open-drawer');await evaluate("[...document.querySelectorAll('#drawer .destination')].find(x=>x.textContent.endsWith('Objects')).click()");await wait("document.querySelector('#objects input')!==null");
+ await bucketChecks({send,evaluate,check,wait,click,pause,name:'Brand'})
+ await uploadChecks({send,evaluate,check,wait,click,pause,setMode:mode=>{uploadMode=mode}})
+ for(let i=0;i<205;i++)rows.push({id:'pagination-'+i,parent_id:'root',name:'Paged '+String(i).padStart(3,'0'),node_type:'folder'})
+ await navigationChecks({send,evaluate,check,wait,click,pause})
+ await wait("document.querySelectorAll('#objects li').length===205")
+ check('All paginated API rows load with an honest count',nodeOffsets.includes(100)&&nodeOffsets.includes(200)&&await evaluate("document.querySelector('#count').textContent==='205 in this view'"))
+ await evaluate("document.querySelector('#main-scroll').scrollTop=320");await pause(80)
+ const scrollHash=await evaluate('location.hash')
+ await evaluate("[...document.querySelectorAll('#drawer .destination')].find(e=>e.textContent.endsWith('API tokens')).click()");await wait("document.querySelector('#tokens')?.getAttribute('aria-busy')==='false'")
+ await evaluate('history.back()');await wait(`location.hash===${JSON.stringify(scrollHash)}&&document.querySelectorAll('#objects li').length===205`);await pause(80)
+ check('Back restores list scroll after paginated loading',await evaluate("Math.abs(document.querySelector('#main-scroll').scrollTop-320)<2"))
+ await send('Page.reload');await wait("document.querySelectorAll('#objects li').length===205&&document.querySelector('#fab').getAttribute('aria-disabled')==='false'");await pause(80)
+ check('Reload restores saved list scroll',await evaluate("Math.abs(document.querySelector('#main-scroll').scrollTop-320)<2"))
+
+ await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:false});if(await evaluate("!!document.querySelector('#objects input')"))await click('#objects input');await pause(200)
  const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-production-fixture-mobile.png',Buffer.from(shot.data,'base64'))
  check('No runtime exceptions',errors.length===0)
  console.log(`${checks.length} built-frontend HTTP fixture checks passed (${requestCount} CSRF-backed requests). This is not live Nextcloud evidence.`)
-}catch(e){console.error(e.message);console.error('Runtime errors:',JSON.stringify(errors));process.exitCode=1}finally{ws.close();server.closeAllConnections();server.close()}
+}catch(e){console.error(e.stack);console.error(await evaluate("JSON.stringify({task:document.querySelector('#task')?.open,fabHidden:document.querySelector('#fab-area')?.hidden,menuHidden:document.querySelector('#fab-menu')?.hidden,page:location.hash,objects:document.querySelector('#objects')?.textContent,buttons:[...document.querySelectorAll('#objects md-icon-button')].map(e=>({label:e.getAttribute('aria-label'),disabled:e.disabled,rect:e.getBoundingClientRect().toJSON()})),dialog:document.querySelector('#task')?.textContent.slice(0,100)})"));console.error('Runtime errors:',JSON.stringify(errors));process.exitCode=1}finally{ws.close();server.closeAllConnections();server.close()}

@@ -59,6 +59,19 @@ foreach ($platform->getAlterSchemaSQL($diff) as $sql) $pdo->exec($sql);
 if ((int)$pdo->query('SELECT count(*) FROM test_ms_nodes')->fetchColumn() !== 5 || (int)$pdo->query('SELECT count(*) FROM test_ms_tokens')->fetchColumn() !== 1) throw new RuntimeException('Bucket upgrade changed populated data');
 $bucketUpgrade->changeSchema($output, fn() => $wrapper, []);
 if (count($schema->getTables()) !== 4) throw new RuntimeException('Bucket migration re-entry failed');
+// Add the upload journal without changing existing references or token records.
+$before = clone $schema;
+$uploadUpgrade = new OCA\MediaStorage\Migration\Version000400Date20261010000000();
+$uploadUpgrade->changeSchema($output, fn() => $wrapper, []);
+$platform = new SqlitePlatform();
+$diff = (new Doctrine\DBAL\Schema\Comparator($platform))->compareSchemas($before, $schema);
+foreach ($platform->getAlterSchemaSQL($diff) as $sql) $pdo->exec($sql);
+$uploadUpgrade->changeSchema($output, fn() => $wrapper, []);
+if (count($schema->getTables()) !== 5 || (int)$pdo->query('SELECT count(*) FROM test_ms_nodes')->fetchColumn() !== 5 || (int)$pdo->query('SELECT count(*) FROM test_ms_tokens')->fetchColumn() !== 1) throw new RuntimeException('Upload upgrade changed populated data');
+$uploadInsert = $pdo->prepare('INSERT INTO test_ms_uploads (owner_id,id,fingerprint,physical_path,node_id,state,created_at) VALUES (?,?,?,?,?,?,?)');
+foreach (['alice','bob'] as $owner) $uploadInsert->execute([$owner,str_repeat('d',32),str_repeat('e',64),'Media Storage/2026-10-10/fixture.png','','pending',time()]);
+try { $uploadInsert->execute(['alice',str_repeat('d',32),str_repeat('e',64),'x','','pending',time()]); throw new RuntimeException('Duplicate upload ID accepted for owner'); }
+catch (PDOException $e) { if ($e->getCode() !== '23000') throw $e; }
 // SQL compilation is distinct from provider execution/support.
 foreach ([new Doctrine\DBAL\Platforms\MySQL80Platform(), new Doctrine\DBAL\Platforms\PostgreSQLPlatform()] as $platform) {
     if (!$schema->toSql($platform)) throw new RuntimeException('Empty schema SQL');
@@ -70,4 +83,4 @@ $metadata->getElementsByTagName('author')->item(0)->textContent = 'Test fixture'
 $metadata->getElementsByTagName('licence')->item(0)->textContent = 'AGPL-3.0-or-later';
 $source = getenv('NEXTCLOUD_SOURCE') ?: '/snap/nextcloud/current/htdocs';
 if (!$metadata->schemaValidate($source . '/resources/app-info.xsd')) throw new RuntimeException('App metadata template invalid');
-echo "PASS: migration schema creation/re-entry, SQLite installation and populated 0.1-to-0.2-to-0.3 schema upgrades, root isolation, sibling constraints, case-sensitive keys and rollback; MySQL/PostgreSQL SQL generation only; app metadata template schema valid.\n";
+echo "PASS: migration schema creation/re-entry, SQLite installation and populated 0.1-to-0.2-to-0.3-to-0.4 schema upgrades and owner-scoped upload journal, root isolation, sibling constraints, case-sensitive keys and rollback; MySQL/PostgreSQL SQL generation only; app metadata template schema valid.\n";

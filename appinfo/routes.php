@@ -2,8 +2,16 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 declare(strict_types=1);
 return ['routes' => [
+    ['name' => 'upload#policy', 'url' => '/api/v1/uploads/policy', 'verb' => 'GET'],
+    ['name' => 'upload#status', 'url' => '/api/v1/uploads/{id}', 'verb' => 'GET'],
+    ['name' => 'upload#create', 'url' => '/api/v1/uploads', 'verb' => 'POST'],
+    ['name' => 'preview#image', 'url' => '/api/v1/nodes/{id}/preview', 'verb' => 'GET'],
+    ['name' => 'preview#content', 'url' => '/api/v1/nodes/{id}/content', 'verb' => 'GET'],
     ['name' => 'page#index', 'url' => '/', 'verb' => 'GET'],
     ['name' => 'bucket#index', 'url' => '/api/v1/buckets', 'verb' => 'GET'],
+    ['name' => 'bucket#rename', 'url' => '/api/v1/buckets/{id}', 'verb' => 'PATCH'],
+    ['name' => 'bucket#clear', 'url' => '/api/v1/buckets/{id}/clear', 'verb' => 'POST'],
+    ['name' => 'bucket#destroy', 'url' => '/api/v1/buckets/{id}', 'verb' => 'DELETE'],
     ['name' => 'bucket#create', 'url' => '/api/v1/buckets', 'verb' => 'POST'],
     ['name' => 'node#copy', 'url' => '/api/v1/nodes/{id}/copy', 'verb' => 'POST'],
     ['name' => 'node#index', 'url' => '/api/v1/nodes', 'verb' => 'GET'],

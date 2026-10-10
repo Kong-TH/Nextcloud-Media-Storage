@@ -77,3 +77,37 @@ Details exposes Copy virtual path for media references using the existing server
 ### Token-list lifetime policy (0.3.5)
 
 `GET /api/v1/tokens?limit=100&offset=0` retains `tokens` and adds `policy: {server_time: <Unix seconds>, max_lifetime_seconds: <integer>}`. The lifetime is the existing `max_token_lifetime` configuration clamped to 60–31536000 seconds. Session authentication, CSRF middleware and no-store headers remain. The UI refreshes policy before creation; callers must still handle server rejection if policy changes. This is additive metadata, with no schema or bearer API change.
+
+
+### Session bucket removal (0.3.6)
+
+`DELETE /api/v1/buckets/{id}` removes an owned additional virtual bucket and its nested virtual nodes/bindings; returns 204. Requires session authentication and CSRF. Default Library/root returns 403; missing/cross-owner/non-bucket IDs return 404; a subtree over 1000 nodes returns 409 without partial removal. Original Nextcloud files and references elsewhere are preserved. Token boundary IDs are retained and do not widen access. Owner-root locking serializes with create/bind/move/copy/token issuance. Ordinary node routes still reject root/bucket deletion. No bearer bucket-management endpoint or schema change.
+
+
+### Session bucket management (0.3.7)
+
+`PATCH /api/v1/buckets/{id}` with `{name}` returns `{id,name,is_default}`; applies to additional buckets and the default root. Names must satisfy NodeRules and be unique for the owner including the default display name. Library is reserved for the default. Invalid name: 400; duplicate: 409; missing/cross-owner/non-bucket: 404.
+
+`POST /api/v1/buckets/{id}/clear` returns 204 and removes virtual descendants and bindings while preserving bucket/root identity, name, physical files and other buckets. The traversal limit includes the retained root, as for deletion. Session/CSRF and owner-root locking apply to both commands. Default DELETE remains 403 even after renaming; no bearer management routes.
+
+### UI-03 location restoration (0.3.9)
+
+No endpoint changes. The frontend uses existing session GET buckets, GET node (parent_id/name/type) and paginated GET nodes with explicit parent_id/search/limit/offset to restore #ms: locations. Folder ancestry and optional detail parent must match the selected bucket/current folder. The fragment is UI metadata, not a media-delivery URL or authorization token. Server owner/session/CSRF enforcement remains authoritative.
+
+## UI-09 implemented session contract — 0.4.0 (verified in installed 0.4.1)
+
+| Method | Relative route | Contract |
+| --- | --- | --- |
+| GET | /api/v1/uploads/policy | Session and requesttoken; max_bytes, mime_types, storage_pattern, date_basis |
+| POST | /api/v1/uploads | Session/CSRF multipart fields file, request_id (32 lowercase hex), name (virtual alias), parent_id (owned virtual folder) |
+| GET | /api/v1/uploads/{id} | Session and requesttoken; owner-scoped reconciliation status |
+| GET | /api/v1/nodes/{id}/preview?size=small or size=large | Authenticated safe GET, no CSRF header needed for img; fixed 96×96 or 1280×960 preview presets |
+| GET | /api/v1/nodes/{id}/content | Authenticated safe GET; revalidate binding then 303 to current same-installation DAV file URL |
+
+Upload returns HTTP 200 `{state:"complete",node:{...}}` for both initial completion and an identical retry. The server determines MIME and size from the uploaded temporary file, not multipart type/name/size. A request ID reused for a different parent/alias/content is 409; retry after the committed reference was removed is 410. Invalid IDs/names/empty/partial uploads are 400, inaccessible destinations 403/404, oversized files 413, unsupported content 415, locks 423 and insufficient quota 507. An unexpected failure is logged server-side and returns recovery guidance without private exception details. A failed response may follow a completed write; reconcile before claiming cancellation. Status is not_received, pending, complete (with node), or removed. IDs do not grant access independently of the session.
+
+Physical storage is `Media Storage/YYYY-MM-DD/<server-random-id>.<mime-extension>` inside the account's home. Date uses core/timezone or UTC fallback, captured once for retry. Default max_upload_bytes is 104857600, capped at 1 GiB and clamped to worker PHP upload_max_filesize/post_max_size (64 KiB multipart allowance). Actual policy is authoritative. Partial/orphan originals are retained for manual recovery. No upload DELETE/physical rename/move API exists. Preview failures return explicit unavailable errors; previews use private no-store/nosniff/same-origin resource headers. Public/signed and external-token media delivery remain deferred; no external upload route is enabled by this change.
+
+## Upload success presentation — 0.4.1
+
+No schema or response contract changes. After a complete upload or reconciliation result, the frontend reads GET /api/v1/nodes/{id} for binding.last_known_path. It reports successful storage independently of this optional lookup. When available, Open folder in Nextcloud navigates to the standard Files route with the containing dir and view=files, encoded by URLSearchParams. No fileid/openfile or binary preview parameter is supplied. Paths remain session/owner-authorized; no public access or token is added.

@@ -3,6 +3,9 @@
 import {readFile,writeFile} from 'node:fs/promises'
 import {randomBytes} from 'node:crypto'
 import assert from 'node:assert/strict'
+import {bucketChecks} from './bucket-checks.mjs'
+import {navigationChecks} from './navigation-checks.mjs'
+import {uploadLiveChecks} from './upload-live-checks.mjs'
 import {tokenFormChecks,tokenSecretChecks,tokenDashboardChecks} from './token-checks.mjs'
 import {materialChecks,toolbarChecks,buttonSpacingChecks,pickerChecks} from './material-checks.mjs'
 if(process.env.MEDIASTORAGE_TEST_DISPOSABLE!=='yes')throw new Error('Set MEDIASTORAGE_TEST_DISPOSABLE=yes for the authorized local test instance.')
@@ -45,7 +48,7 @@ async function themeStates(theme){
 try{
  if(candidate)await send('Fetch.enable',{patterns:[{urlPattern:'*mediastorage-main.js*'},{urlPattern:'*mediastorage.css*'},{urlPattern:'*material-symbols-outlined.ttf*'}]})
  await provision('POST',{userid:username,password});created=true
- const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jf1cAAAAASUVORK5CYII=','base64')
+ const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64')
  const dav=base+'/remote.php/dav/files/'+encodeURIComponent(username)+'/UI-fixture.png',davHeaders={Authorization:basic(username,password),'Content-Type':'image/png'}
  assert.equal((await fetch(dav,{method:'PUT',headers:davHeaders,body:png})).status,201,'Create physical UI fixture')
  for(const folder of ['UI-picker','UI-picker/Deep folder with a very long name for narrow screens'])assert.equal((await fetch(base+'/remote.php/dav/files/'+encodeURIComponent(username)+'/'+folder,{method:'MKCOL',headers:{Authorization:basic(username,password)}})).status,201,'Create picker navigation fixture')
@@ -83,7 +86,7 @@ await evaluate("document.querySelector('#media-design').classList.remove('dark')
  await click('#fab');await click('#fab-menu button:last-child');await draft('Campaigns');await save();check('Folder creation persisted in real UI',await evaluate("document.querySelector('#objects').textContent.includes('Campaigns')"))
  await materialChecks({send,evaluate,check,pause})
  if(!candidate){const url=await evaluate("performance.getEntriesByType('resource').find(e=>e.name.includes('material-symbols-outlined.ttf')).name"),response=await fetch(url);check('Installed icon font matches official bundled subset',response.ok&&Buffer.from(await response.arrayBuffer()).equals(await readFile('img/material-symbols-outlined.ttf')))}
- await click('#fab');await click('#fab-menu button:first-child');await wait("[...document.querySelectorAll('.file-picker button')].some(b=>b.textContent.includes('UI-fixture.png'))")
+ await click('#fab');await click('#fab-menu button[data-tip="Reference an existing Nextcloud file"]');await wait("[...document.querySelectorAll('.file-picker button')].some(b=>b.textContent.includes('UI-fixture.png'))")
  await pickerChecks({send,evaluate,check,pause,click,wait},'UI-fixture.png')
  for(const [width,height] of [[1914,914],[390,844],[1024,360]]){
   await send('Emulation.setDeviceMetricsOverride',{width,height,deviceScaleFactor:1,mobile:false});await pause(100);await dialogGeometry('file picker '+width+'x'+height)
@@ -149,6 +152,9 @@ await evaluate("document.querySelector('#media-design').classList.remove('dark')
  await click('.token-row md-text-button:last-child');await save();check('Token revoke updates real status',await evaluate("document.querySelector('.token-list').textContent.includes('revoked')"))
  await tokenDashboardChecks({send,evaluate,check,pause})
  await click('#drawer nav button:first-child');await wait("document.querySelector('#objects')!==null")
+ await bucketChecks({send,evaluate,check,wait,click,pause,name:'UI brand'})
+ await uploadLiveChecks({send,evaluate,check,wait,click,pause,png})
+ await navigationChecks({send,evaluate,check,wait,click,pause})
  const original=await fetch(dav,{headers:davHeaders});check('Physical file bytes preserved after rename/copy/remove',original.ok&&Buffer.from(await original.arrayBuffer()).equals(png))
  await evaluate('document.activeElement.blur()');const desktop=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-live-desktop.png',Buffer.from(desktop.data,'base64'))
  check('No runtime exceptions in actual host',errors.length===0)

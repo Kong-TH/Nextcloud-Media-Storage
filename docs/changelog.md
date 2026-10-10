@@ -1,6 +1,42 @@
 # Changelog
 
-## 0.3.5 — token dashboard (prepared, not deployed)
+## 0.4.1 — upload completion and location feedback
+
+- Fix first-upload HTTP 500 caused by closing a stream already consumed by Nextcloud; preserve idempotent retry and original files.
+- Show persistent upload success with the current original path and Open folder in Nextcloud action, including reconciled completion.
+- Keep success when optional location lookup fails; provide a dismiss action and compact/RTL containment.
+- Bump asset version for cache refresh; no schema or API change. Installed acceptance: 26 upload/preview HTTP checks and 257 cache-enabled actual-Nextcloud browser checks passed without asset interception.
+
+## 0.3.9 — UI-03 browser navigation (prepared)
+
+- Plugin URL/history restores buckets, nested folders, submitted searches, sorting, details and API tokens page on Back/Forward/reload.
+- Restore breadcrumbs from authenticated current parent relationships; recover missing/cross-bucket destinations with feedback.
+- Keep list scroll in namespaced history state; cancel stale requests and defer navigation until pending saves complete. No persisted credentials, schema or endpoint changes.
+- Plugin-scoped Escape handling prevents Nextcloud shell shortcuts from suppressing dialog cancellation.
+- Installed/warm-cache acceptance awaits privileged deployment.
+
+## 0.3.8 — neutral bucket editor actions (prepared)
+
+- Clear contents and Delete bucket use normal text/icon colors across enabled interaction states. Default deletion remains disabled; confirmations are unchanged.
+- Bump asset version for cache refresh. No schema or API change.
+
+## 0.3.7 — virtual bucket management (prepared, not deployed)
+
+- Replace trailing X with a Material edit icon on every bucket, including Library; reveal on hover/focus.
+- One editor for rename, Clear contents and Delete bucket, with explicit destructive confirmations and draft-preserving cancellation.
+- Library can be renamed and cleared; Delete is disabled and backend-protected.
+- Atomic owner-scoped metadata operations preserve identity on rename/clear, original files, other buckets and token boundaries. No migration.
+- Supersedes undeployed 0.3.6 removal-only preparation. Installed acceptance awaits privileged deployment.
+
+## 0.3.6 — virtual bucket removal (prepared, not deployed)
+
+- Trailing Material X for additional buckets, revealed on row hover/focus; keyboard/touch access and RTL preserved.
+- Named confirmation, protected Library and owner/CSRF-checked atomic subtree metadata removal.
+- Preserve original physical files, links elsewhere and restricted-token boundaries; recover navigation/focus and clear stale clipboard sources.
+- No schema migration. Installed browser/HTTP/cache acceptance remains pending deployment.
+
+
+## 0.3.5 — token dashboard (installed verification complete)
 
 - Four responsive token status summaries, name/status filters and expiry/name sorting; permissions, boundary and last-use metadata in the list.
 - Additive authenticated lifetime-policy metadata shared with issuance; bounded expiry calendar and explicit local-date help/typed-date validation.
@@ -93,3 +129,10 @@ Removed both footer slogan lines. The drawer now shows only the installed plugin
 Remove legacy Add bucket padding/gap overrides so Material labeled-button spacing is restored. Combine picker parent/root navigation and current folder name into one row using official icon buttons; preserve chosen reference/name and return focus after browsing. Extend the local official font subset with Back/Home and hash its asset URL by content. No API/schema changes. Build and verification results are recorded in the latest explorer/handoff sections; installed deployment remains pending.
 
 0.3.4 preparation verified (2026-10-10): production build and frontend rule checks pass. 107 built-frontend fixture checks pass with 20 CSRF-backed API requests; 170 actual-Nextcloud candidate browser checks pass using local JS/CSS/font interception and disposable DAV folders. The original installed spacing failure was reproduced (53px Add bucket width, zero padding) before correction. Rendered Add bucket and labeled toolbar spacing, one-row picker navigation, root/pending disabled state, parent/Home keyboard behavior, focus return, long names, selection/name preservation and content-hashed font URL pass. Candidate desktop, dark compact picker and nested compact screenshots were visually inspected. Installed baseline is still 0.3.3; 0.3.4 deployment and installed warm-cache/font-byte verification remain pending. No API/schema changes.
+
+## 0.4.0 — prepared, installed acceptance pending
+
+- Add session uploads into each account's daily Media Storage folders with content/size/permission/quota checks and persistent owner-scoped retry journal migration.
+- Add official Material upload controls, measured progress, Stop reconciliation and same-file retry without duplicating committed originals/references.
+- Add authenticated Nextcloud thumbnails/details and session video content delegation to DAV, retaining virtual-only management semantics.
+- Source validation: 45 new backend checks, existing suites, SQLite populated upgrade, build and 213 fixture browser checks. Installed upload/preview and warm-cache acceptance remain pending. No public/signed or external-token binary delivery.

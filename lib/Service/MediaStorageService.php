@@ -9,7 +9,7 @@ use OCP\Files\NotPermittedException;
 use OCA\MediaStorage\Exception\MediaException;
 final class MediaStorageService {
     public function __construct(private IRootFolder $rootFolder) {}
-    public function inspect(string $owner, int $fileId, ?array $expected = null): array {
+    public function file(string $owner, int $fileId, ?array $expected = null): File {
         if ($fileId < 1) { throw new MediaException('Invalid file ID.'); }
         try {
             $home = $this->rootFolder->getUserFolder($owner);
@@ -22,11 +22,17 @@ final class MediaStorageService {
                 throw new MediaException('File storage context changed. Rebind explicitly.', 409);
             }
             $mime = $file->getMimeType(); NodeRules::mediaType($mime);
-            return ['nextcloud_file_id' => $fileId, 'storage_reference' => $storage,
-                'last_known_path' => $home->getRelativePath($file->getPath()), 'mime_type' => $mime,
-                'file_size' => (int)$file->getSize(), 'updated_at' => time()];
+            return $file;
         } catch (NotFoundException|NotPermittedException $e) {
             throw new MediaException('File is not accessible. Rebind explicitly.', 404);
         }
     }
+    public function inspect(string $owner, int $fileId, ?array $expected = null): array {
+        $file = $this->file($owner, $fileId, $expected);
+        $home = $this->rootFolder->getUserFolder($owner);
+        return ['nextcloud_file_id' => $fileId, 'storage_reference' => hash('sha256', $file->getStorage()->getId()),
+            'last_known_path' => $home->getRelativePath($file->getPath()), 'mime_type' => $file->getMimeType(),
+            'file_size' => (int)$file->getSize(), 'updated_at' => time()];
+    }
+
 }

@@ -166,4 +166,11 @@ foreach (['create', 'destroy', 'rotate'] as $method) {
 check((new ReflectionProperty(OCP\AppFramework\Http\Response::class, 'headers'))->getValue($controller->index())['Cache-Control'] === 'no-store', 'Token metadata uses no-store');
 check($controller->index()->getData()['policy']['max_lifetime_seconds'] === 31536000, 'Session token listing includes authoritative policy');
 check(abs($controller->index()->getData()['policy']['server_time'] - time()) <= 1, 'Policy exposes current server time');
+$deletedBoundary = $vfs->create('alice', 'Deleted boundary');
+$bound = $tokens->issue('alice', 'Deleted boundary reader', ['media:read'], time() + 3600, $deletedBoundary['id']);
+$boundHeader = 'Bearer ' . $bound['secret'];
+$vfs->destroy('alice', $deletedBoundary['id']);
+check($tokens->authenticate($boundHeader)['folder_id'] === $deletedBoundary['id'], 'Deleted token boundary is retained, never reset to owner-wide');
+denied(fn() => $api->access($boundHeader, 'media:read', fn($token) => $api->listing($token, null, '', 100, 0)), 404, 'Deleted boundary cannot be listed');
+denied(fn() => $api->access($boundHeader, 'media:read', fn($token) => $api->show($token, $outside['id'])), 403, 'Deleted boundary cannot authorize surviving siblings');
 echo "PASS: $passed token/scope/lifecycle checks using strict public-interface doubles.\n";

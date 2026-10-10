@@ -1,6 +1,6 @@
 # Documentation Index
 
-Updated: 2026-10-09
+Updated: 2026-10-10
 
 This documentation uses the organizational structure of `tiktok-live-sandbox-game/docs`, adapted for a native Nextcloud application. Game-specific GDD, audio, and renderer directories are intentionally omitted.
 
@@ -30,6 +30,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Reference actions, creation FAB and selection toolbar](design/reference-actions.md)
 - [Interactive UI design study](design/prototype/index.html)
 - [UI study validation](design/validation.md)
+- [Upload and preview contract](design/upload-preview.md)
 - [Production explorer implementation](software/08-production-explorer.md)
 - [Architecture](software/00-architecture.md)
 - [System design](software/01-system-design.md)

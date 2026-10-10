@@ -58,3 +58,7 @@ The private admin credential file at /tmp/mediastorage-nextcloud-admin.json is m
 ## 0.3.1 frontend cache fix
 
 0.3.1 increments release metadata so Nextcloud generates new JS/CSS cache URLs. Same-version 0.3.0 replacement had left earlier user browsers on old UI even though installed bytes matched the build. Build/deploy with the same commands above; verify `mediastorage 0.3.1 enabled`, then reload the app normally. Restarting Nextcloud and deleting global caches are not required for this fix. Always increment app metadata and npm root version metadata when publishing changed frontend assets. No schema migration is added by 0.3.1.
+
+## 0.4.0 upload configuration
+
+Deploy the built 0.4.0 package and enable the app to run migration 000400 (ms_uploads). The Snap deploy script disables before replacing code, then app:enable invokes Nextcloud Installer migrations; it does not reset existing plugin metadata. Upload max_upload_bytes defaults to 104857600 (100 MiB), with a 1 GiB application cap and worker PHP upload/post limits applied. Query the authenticated uploads/policy endpoint for the effective limit; changing CLI PHP alone does not change the web worker. Account core/timezone determines dated upload folders, falling back to UTC. Uploads require an account-owned writable `Media Storage` folder and available quota. No physical-file cleanup job is installed.

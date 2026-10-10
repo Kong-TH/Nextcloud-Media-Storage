@@ -144,3 +144,58 @@ The official font subset includes arrow_back and home; build emits a content-has
 Before changes, installed 0.3.4 passed 172 actual-host browser checks without candidate interception; asset URLs were recorded for the next warm-cache upgrade. Source 0.3.5 build and frontend model tests pass; token service/controller suite passes 73 checks, explorer passes 69 + 23 checks, and schema checks pass (SQLite execution; MySQL/PostgreSQL SQL generation only). The built-frontend HTTP fixture passes 132 browser checks with 24 CSRF-backed requests, including four summary counts/filtering, revoked/expired precedence, search/reset/sort, configured one-hour expiry, typed over-limit rejection preserving drafts, absent-policy fail-closed behavior, copy success/denial/manual selection, secret cleanup and 320/390/840/1440/1914px geometry. Fixture viewport setup now gives html/body explicit height so screenshots reflect the intended viewport rather than an initial browser-window height.
 
 Desktop light and compact dark dashboard fixture screenshots were visually inspected (`/tmp/mediastorage-tokens-1440-light.png`, `/tmp/mediastorage-tokens-390-dark.png`); they contain only fixture token metadata and no secrets. Secret dialogs are excluded from screenshots. Installed 0.3.5/API-policy and warm-cache acceptance, updated live HTTP checks, screen-reader, real touch and full zoom/contrast validation remain pending. Candidate asset-only interception cannot validate new PHP policy metadata, so no 0.3.5 candidate result is claimed. No schema change.
+
+
+## 0.3.6 bucket removal preparation — 2026-10-10
+
+Installed 0.3.5 passed 192 actual-Nextcloud browser checks without interception; its asset URLs were recorded for the next upgrade. Source 0.3.6 passes production build and frontend model tests, 69 baseline + 38 bucket/copy checks, 76 token/scope checks, and schema checks (SQLite execution, MySQL/PostgreSQL SQL generation only). The built-frontend HTTP fixture passes 151 browser checks with 36 CSRF-backed requests. New checks exercise hidden-at-rest/reveal-on-hover, sibling 48px actions, default Library protection, keyboard Enter/Tab/Escape, compact focus/touch discovery, RTL, unchanged label typography, cancellation/focus restore, retry after simulated connection failure, inactive/current removal and fallback to Library. Desktop/compact removal screenshots were visually inspected; original-file preservation, nested metadata deletion, exact traversal boundary, rollback and token-boundary retention are covered by service tests.
+
+Updated live browser and Phase 3 HTTP suites prepare installed endpoint/CSRF/owner/physical-byte/token-boundary/concurrency checks. They have not run against 0.3.6: the new PHP route must be deployed first. Asset-only candidate interception cannot prove this endpoint. No 0.3.6 installed/candidate result is claimed. Screen-reader, real touchscreen and complete zoom/contrast validation remain pending. No commit/push requested for this revision.
+
+## 0.3.7 bucket management preparation — 2026-10-10
+
+Supersedes the undeployed 0.3.6 removal-only UI. Production build and two frontend model suites pass; PHP strict-interface doubles pass 69 baseline + 62 bucket/copy checks and 76 token/scope/lifecycle checks. Schema tests execute SQLite upgrades and validate MySQL/PostgreSQL SQL generation only. Python HTTP harness compiles; this is not an HTTP execution result.
+
+The production-frontend HTTP fixture passes **163 browser checks with 47 CSRF-backed requests**. Coverage includes hover/focus edit disclosure on every bucket including Library, independent navigation/action targets, invalid and successful current/default rename with stable identity, disabled default deletion, default/current clear, repopulation after clear, draft-preserving confirmation Cancel/Escape, retry after simulated failure, deletion fallback, keyboard/focus, typography, 48px targets and desktop/390px/320px RTL dialog containment. Desktop and 390px editor screenshots were visually inspected; screenshots contain fixture data only. Backend doubles additionally verify exact name uniqueness, rollback, owner/type/default protection, traversal bounds, retained root keys, subtree/binding cleanup and original-file preservation.
+
+Installed baseline remains 0.3.5: 192 actual-host browser checks passed without interception. New backend routes require privileged deployment before installed 0.3.7 browser/cache and Phase 3 HTTP acceptance. Prepared HTTP checks include rename/clear ownership and CSRF, duplicate/invalid names, stable default identity, retained empty roots, other links and exact original bytes, plus removal concurrency/token boundaries. These updated installed suites have **not run**. Screen-reader, real touchscreen, complete zoom/contrast and other database execution remain pending. No new commit or push requested.
+
+0.3.8 color-only follow-up: production build and all 163 built-frontend HTTP-fixture browser checks (47 CSRF-backed requests) pass. The updated compact editor screenshot was visually checked: Clear contents/Delete bucket use neutral text and icon colors. Existing disabled/default protection and confirmation behavior passed the same suite. Installed 0.3.8 verification remains pending deployment.
+
+## UI-03 actual-host candidate evidence — 2026-10-10
+
+Production build and three frontend model suites pass. The actual Nextcloud host passed **243 browser checks with candidate JS/CSS/font assets and real session/CSRF-backed APIs**, cache disabled, using a disposable account that was removed. Server-supplied version observed during this run was 0.3.8; candidate frontend is 0.3.9. No installed 0.3.9 result is claimed.
+
+Coverage includes current/default bucket rename/clear/delete protection, modal cancellation/focus, URL Back/Forward, reload, nested Unicode breadcrumbs/search, sort, folder details, tokens page, unsaved dialog dismissal, missing/cross-bucket/deleted destinations, delayed requests, simulated 401/503 response handling and retry, pending-mutation navigation, unchanged host URL and original physical bytes. An initial harness failure selected the Nextcloud shell h1; assertions now scope to #main. Actual-host Escape evidence identified host default prevention after capture; plugin dialog Escape handling fixes this without changing shell listeners. Physical touchscreen, screen-reader and full zoom/contrast validation remain pending.
+
+For installed acceptance after root deployment, run the actual-host suite without candidate interception and with cache enabled, comparing the recorded prior asset URLs. The updated Phase 3 Python HTTP suite still requires its separate execution; browser checks do not imply its concurrency/HTTP assertions passed.
+
+Final built-frontend HTTP fixture: **190 checks passed with 154 CSRF-backed requests**, including compact Back/reload/focus, 205-row pagination over offsets 0/100/200, accurate counts, and scroll restoration on Back/reload. Fault injection deliberately simulates delayed fetches, 503 and expired-session 401 responses; these are UI recovery checks, not proof of a real session timeout.
+
+Final UI-03 acceptance preparation: **245 actual-Nextcloud candidate browser checks passed**, cache disabled, including the final compact reload/Back/focus additions. Dedicated fixture account cleanup completed. Production build, three frontend model suites and **190 HTTP-fixture browser checks** pass. Final source/build is 0.3.9; installed/warm-cache acceptance awaits privileged deployment. No new commit or push.
+
+## UI-09 upload and preview acceptance (0.4.0)
+
+Local service/controller checks use strict installed public-interface doubles, not a live filesystem/database:
+
+```bash
+sh scripts/php-snap.sh tests/uploads.php
+sh scripts/php-snap.sh tests/schema.php
+npm test
+npm run build
+node tests/frontend/browser.mjs
+```
+
+Prepared source passes 45 new upload/preview/isolation checks and 213 fixture browser checks; schema tests execute populated SQLite upgrades through 0.4, with MySQL/PostgreSQL SQL generation only. Fixture multipart responses do not prove live PHP uploads or Nextcloud preview availability. Screenshots in /tmp contain fixture data only.
+
+After privileged deployment of the new backend/schema, execute the dedicated-account HTTP suite and actual installed browser suite:
+
+```bash
+MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/upload_http.py
+MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py
+MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_CACHE_ENABLED=yes node tests/frontend/live.mjs
+```
+
+These new installed upload/preview suites have not run yet. `upload_http.py` verifies real multipart/CSRF/MIME/owner boundaries, byte preservation, daily paths, same-ID retries, preview and content bridge, and original moves through Nextcloud. It removes only its own disposable accounts (including their test files). Never run with real user identifiers. `upload-live-checks.mjs` requires installed 0.4.0 PHP even when using candidate frontend interception. Real video codecs/Range playback, screen-reader and physical touch remain additional acceptance work.
+
+0.4.1 upload regression: tests/uploads.php now models Nextcloud consuming/closing the newFile input stream, as well as storage leaving it open. Fixture upload checks cover direct/reconciled success notices, responsive containment, Files directory links, dismissal/focus and optional-location failures. tests/upload_http.py deliberately requires the first upload request to succeed; do not accept a successful Retry as a passing initial-upload result. Installed tests require the corrected PHP deployment.

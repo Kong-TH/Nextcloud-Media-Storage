@@ -2,16 +2,22 @@
 <script setup>
 import {ref,computed,onMounted,onBeforeUnmount,nextTick,watch} from 'vue'
 import Icon from './components/MaterialIcon.vue'
+import UploadPanel from './components/UploadPanel.vue'
+import UploadNotice from './components/UploadNotice.vue'
+import MediaPreview from './components/MediaPreview.vue'
 import {api,allNodes,allBuckets,davFiles} from './api.js'
 import {validName,mediaType,typeLabel} from './rules.js'
 import DesignOverlays from './overlays.js'
 import {tokenGroups,tokenState,matchesToken,expiryBounds,localMinute} from './token-model.js'
+import {readLocation,locationHash,folderPath,InvalidLocation} from './navigation.js'
 defineProps({version:{type:String,required:true}})
-const root=ref(),main=ref(),toolbar=ref(),taskDialog=ref()
+const root=ref(),main=ref(),toolbar=ref(),taskDialog=ref(),uploadPanel=ref()
+const uploadedNode=ref(null)
 const buckets=ref([]),bucket=ref(null),path=ref([]),nodes=ref([]),query=ref(''),submitted=ref(''),sort=ref('name'),bucketFilter=ref('')
 const selection=ref([]),clipboard=ref([]),loading=ref(false),busy=ref(false),error=ref(''),status=ref(''),details=ref(null),page=ref('objects'),drawer=ref(false)
 const task=ref(null),draft=ref(''),taskError=ref(''),destinations=ref([]),destination=ref(''),files=ref([]),filePath=ref(''),fileLoading=ref(false),chosen=ref(null),fileError=ref('')
 const tokens=ref([]),secret=ref(''),tokenScopes=ref(['media:read']),tokenExpiry=ref(''),tokenFolder=ref('')
+const managedBucket=ref(null),bucketFocusId=ref(null)
 const tokenFilter=ref('all'),tokenSearch=ref(''),tokenSort=ref('expiry'),tokenClock=ref(Date.now()/1000)
 const tokenBounds=ref(null),expiryError=ref(''),copyFeedback=ref(''),copying=ref(false)
 let tokenClockTimer,tokenClockOffset=0
@@ -31,6 +37,7 @@ async function copyTokenSecret(){
 const pathStatus=ref(''),manualPath=ref('')
 const overflow=ref([]),iconsOnly=ref(false),fabLabel=ref('Add'),fabStyle=ref({}),tokenLoading=ref(false)
 let overlays,observer,listAbort,detailSerial=0,fileAbort,trigger,packing=false,live=true
+let routeAbort,tokenAbort,routeSerial=0,restoring=false,routeReady=false,pendingNavigation=false,displayedHash='',requestedHash='',navigationTimer
 const abortEvents=new AbortController()
 const actions=[{id:'move',label:'Move',icon:'drive_file_move',tip:'Change virtual folder only'},{id:'copy',label:'Copy',icon:'content_copy',tip:'Copy links, not file contents'},{id:'paste',label:'Paste',icon:'content_paste',tip:'Create links in this folder'},{id:'rename',label:'Rename',icon:'edit',tip:'Change the plugin name only'},{id:'remove',label:'Remove links',icon:'delete',tip:'Keep all original Nextcloud files'}]
 const parent=computed(()=>path.value.at(-1)?.id??bucket.value?.id)
@@ -58,17 +65,79 @@ async function load(){
    if(controller.signal.aborted||!live)return
    const byId=new Map(rows.map(n=>[n.id,n]));nodes.value=nodes.value.map(n=>byId.get(n.id)??n)
   }
- }catch(e){if(e.name!=='AbortError')error.value=e.message}
+ }catch(e){if(!controller.signal.aborted&&live)error.value=e.message}
  finally{if(listAbort===controller)loading.value=false}
 }
-async function initialize(){loading.value=true;error.value='';try{buckets.value=await allBuckets();if(!bucket.value)bucket.value=buckets.value[0];await load()}catch(e){error.value=e.message;loading.value=false}}
-function switchBucket(b){if(busy.value)return;bucket.value=b;path.value=[];selection.value=[];query.value=submitted.value='';details.value=null;page.value='objects';closeDrawer();load()}
-function navigate(index){if(busy.value)return;path.value=path.value.slice(0,index+1);selection.value=[];query.value=submitted.value='';details.value=null;load()}
-function search(){if(busy.value)return;submitted.value=query.value;selection.value=[];load()}
+function currentLocation(){return {page:page.value,bucket:bucket.value?.id??'',folder:path.value.at(-1)?.id??'',search:submitted.value,sort:sort.value,detail:details.value?.id??''}}
+function rememberScroll(){
+ if(!routeReady||restoring||pendingNavigation||displayedHash!==location.hash)return
+ history.replaceState({...history.state,mediastorage:{scrollTop:document.getElementById('main-scroll')?.scrollTop??0}},'')
+}
+function writeLocation(mode='push'){
+ const hash=locationHash(currentLocation())
+ if(mode==='push'&&hash===location.hash)return
+ if(mode==='push')rememberScroll()
+ const state={...history.state,mediastorage:{scrollTop:mode==='replace'?history.state?.mediastorage?.scrollTop??0:0}}
+ history[mode==='replace'?'replaceState':'pushState'](state,'',location.pathname+location.search+hash)
+ displayedHash=hash
+ if(mode==='push')nextTick(()=>{document.getElementById('main-scroll').scrollTop=0})
+}
+function commitNavigation(mode='push'){
+ if(!routeReady||pendingNavigation)return
+ routeAbort?.abort();++routeSerial;restoring=false
+ writeLocation(mode)
+}
+async function restoreLocation(refresh=true){
+ if(busy.value){pendingNavigation=true;return}
+ routeAbort?.abort();listAbort?.abort();tokenAbort?.abort();++detailSerial
+ const controller=new AbortController(),serial=++routeSerial;routeAbort=controller;restoring=true;requestedHash=location.hash
+ const route=readLocation(location.hash),scrollTop=Math.max(0,Number(history.state?.mediastorage?.scrollTop)||0)
+ loading.value=true;tokenLoading.value=false;error.value='';status.value='';selection.value=[];details.value=null;nodes.value=[]
+ overlays?.closeMenu();overlays?.hideTip(true);closeDrawer()
+ if(taskDialog.value?.open){secret.value='';taskDialog.value.close();task.value=null}
+ try{
+  if(refresh){const rows=await allBuckets(controller.signal);if(controller.signal.aborted||serial!==routeSerial||!live)return;buckets.value=rows}
+  if(controller.signal.aborted||!live)return
+  const target=buckets.value.find(b=>b.id===route.bucket)??buckets.value.find(b=>b.is_default)
+  if(!target)throw new Error('No accessible default bucket. Reload and try again.')
+  let restoredPath=[],notice=''
+  if(route.bucket&&target.id!==route.bucket){notice='This bucket is unavailable. Showing the default bucket.';route.folder=route.detail=route.search=''}
+  try{restoredPath=await folderPath(target.id,route.folder,id=>api('/nodes/'+id,'GET',undefined,controller.signal))}
+  catch(e){if(e instanceof InvalidLocation||e.status===404||e.status===403){notice='This folder is unavailable in this bucket. Showing its root.';route.folder=route.detail=route.search=''}else throw e}
+  if(controller.signal.aborted||!live)return
+  bucket.value=target;path.value=restoredPath;query.value=submitted.value=route.search;sort.value=route.sort;page.value=route.page
+  if(route.page==='tokens'){loading.value=false;await loadTokens()}
+  else {
+   await load()
+   if(controller.signal.aborted||serial!==routeSerial||!live)return
+   if(route.detail){
+    try{const node=await api('/nodes/'+route.detail,'GET',undefined,controller.signal);if(controller.signal.aborted||serial!==routeSerial||!live)return;if(node.parent_id!==parent.value)throw new InvalidLocation('Details are outside the current folder.');details.value=node}
+    catch(e){if(e instanceof InvalidLocation||e.status===404||e.status===403){notice='These object details are no longer available in this folder.'}else throw e}
+   }
+  }
+  if(controller.signal.aborted||serial!==routeSerial||!live)return
+  status.value=notice;writeLocation('replace');await nextTick()
+  document.getElementById('main-scroll').scrollTop=scrollTop
+  if(details.value)document.getElementById('close-detail')?.focus({preventScroll:true});else main.value?.focus({preventScroll:true})
+ }catch(e){if(!controller.signal.aborted&&live)error.value=e.message}
+ finally{if(serial===routeSerial){restoring=false;loading.value=false;layout()}}
+}
+function historyNavigation(){
+ clearTimeout(navigationTimer)
+ navigationTimer=setTimeout(()=>{if(!live)return;if(busy.value){pendingNavigation=true;return}if(restoring&&requestedHash===location.hash)return;restoreLocation()},0)
+}
+async function initialize(){
+ routeAbort?.abort();const controller=new AbortController();routeAbort=controller;loading.value=true;error.value=''
+ try{const rows=await allBuckets(controller.signal);if(controller.signal.aborted||!live)return;buckets.value=rows;routeReady=true;await restoreLocation(false)}
+ catch(e){if(!controller.signal.aborted&&live){error.value=e.message;loading.value=false}}
+}
+function switchBucket(b){if(busy.value)return;bucket.value=b;path.value=[];selection.value=[];query.value=submitted.value='';details.value=null;++detailSerial;page.value='objects';closeDrawer();tokenAbort?.abort();commitNavigation();load()}
+function navigate(index){if(busy.value)return;path.value=path.value.slice(0,index+1);selection.value=[];query.value=submitted.value='';details.value=null;++detailSerial;commitNavigation();load()}
+function search(){if(busy.value)return;submitted.value=query.value;selection.value=[];details.value=null;++detailSerial;commitNavigation();load()}
 function toggle(n){if(busy.value)return;selection.value=selection.value.includes(n.id)?selection.value.filter(id=>id!==n.id):[...selection.value,n.id]}
-async function openNode(n,event){if(busy.value)return;if(n.node_type==='folder'){path.value.push({id:n.id,name:n.name});selection.value=[];query.value=submitted.value='';load()}else await inspect(n,event?.currentTarget)}
-async function inspect(n,owner){if(busy.value)return;pathStatus.value=manualPath.value='';trigger=owner;const serial=++detailSerial;details.value={...n,loading:true};try{const data=await api('/nodes/'+n.id);if(serial===detailSerial&&details.value)details.value=data}catch(e){if(serial===detailSerial&&details.value)details.value={...n,error:e.message}}await nextTick();document.getElementById('close-detail')?.focus()}
-function closeDetails(){details.value=null;pathStatus.value=manualPath.value='';++detailSerial;nextTick(()=>trigger?.isConnected&&trigger.focus())}
+async function openNode(n,event){if(busy.value)return;if(n.node_type==='folder'){path.value.push({id:n.id,name:n.name});selection.value=[];query.value=submitted.value='';details.value=null;++detailSerial;commitNavigation();load()}else await inspect(n,event?.currentTarget)}
+async function inspect(n,owner){if(busy.value)return;pathStatus.value=manualPath.value='';trigger=owner;const serial=++detailSerial;details.value={...n,loading:true};commitNavigation();try{const data=await api('/nodes/'+n.id);if(serial===detailSerial&&details.value)details.value=data}catch(e){if(serial===detailSerial&&details.value)details.value={...n,error:e.message}}await nextTick();if(serial===detailSerial&&details.value)document.getElementById('close-detail')?.focus()}
+function closeDetails(){details.value=null;pathStatus.value=manualPath.value='';++detailSerial;commitNavigation();nextTick(()=>{if(trigger?.isConnected)trigger.focus();else main.value?.focus({preventScroll:true})})}
 async function copyVirtualPath(){
  const file=details.value
  if(file?.loading||file?.error||file?.node_type!=='media'||!file.virtual_path)return
@@ -83,7 +152,7 @@ function fabTask(kind){startTask(kind,document.getElementById('fab'))}
 function closeDrawer(){drawer.value=false;nextTick(()=>{if(document.getElementById('drawer')?.contains(document.activeElement))document.getElementById('open-drawer')?.focus()})}
 function openDrawer(){drawer.value=true;nextTick(()=>document.getElementById('drawer').querySelector('button,md-icon-button,md-text-button')?.focus())}
 function keydown(e){
- if(drawer.value){if(e.key==='Escape'){e.preventDefault();closeDrawer()}if(e.key==='Tab'){const tabs=[...document.getElementById('drawer').querySelectorAll('button,md-icon-button,md-text-button,input')].filter(el=>!el.disabled&&el.getClientRects().length);if(e.shiftKey&&document.activeElement===tabs[0]){e.preventDefault();tabs.at(-1)?.focus()}else if(!e.shiftKey&&document.activeElement===tabs.at(-1)){e.preventDefault();tabs[0]?.focus()}}}
+ if(drawer.value&&!task.value){if(e.key==='Escape'){e.preventDefault();closeDrawer()}if(e.key==='Tab'){const tabs=[...document.getElementById('drawer').querySelectorAll('button,md-icon-button,md-text-button,input')].filter(el=>!el.disabled&&el.getClientRects().length);if(e.shiftKey&&document.activeElement===tabs[0]){e.preventDefault();tabs.at(-1)?.focus()}else if(!e.shiftKey&&document.activeElement===tabs.at(-1)){e.preventDefault();tabs[0]?.focus()}}}
  if(e.key==='Escape'&&details.value&&!task.value){e.preventDefault();closeDetails()}
 }
 function toolbarKey(e){
@@ -157,9 +226,10 @@ async function folderChoices(){
 async function startTask(kind,owner=document.activeElement){
  if(busy.value||loading.value)return
  trigger=owner;overlays?.closeMenu();overlays?.hideTip(true);draft.value='';taskError.value='';chosen.value=null;secret.value='';copyFeedback.value='';expiryError.value='';tokenBounds.value=null;fileError.value='';task.value=kind
+ if(kind==='manageBucket')draft.value=managedBucket.value.name
  if(kind==='rename')draft.value=selectedNodes.value[0]?.name??''
  if(kind==='paste')draft.value=clipboard.value.length===1?clipboard.value[0].name:''
- if(kind==='folder'||kind==='bind'||kind==='bucket'){selection.value=[];clipboard.value=[]}
+ if(kind==='folder'||kind==='bind'||kind==='bucket'||kind==='upload'){selection.value=[];clipboard.value=[]}
  destination.value=parent.value;await nextTick();taskDialog.value.showModal()
  if(kind==='bind'||kind==='rebind')browseFiles()
  if(kind==='move'){busy.value=true;try{await folderChoices()}catch(e){taskError.value=e.message}finally{busy.value=false}}
@@ -170,9 +240,16 @@ async function startTask(kind,owner=document.activeElement){
   finally{busy.value=false}
  }
 }
-function closeTask(){if(busy.value)return;taskDialog.value.close()}
-function taskClosed(){fileAbort?.abort();task.value=null;secret.value='';copyFeedback.value='';nextTick(()=>{if(trigger?.isConnected&&trigger.getClientRects().length)trigger.focus();else document.getElementById('fab')?.focus()})}
+async function editBucket(b,event){if(busy.value||loading.value)return;managedBucket.value=b;await startTask('manageBucket',event.currentTarget)}
+function confirmBucket(kind){if(busy.value||(kind==='removeBucket'&&managedBucket.value.is_default))return;taskError.value='';task.value=kind;nextTick(()=>taskDialog.value.querySelector('.dialog-actions md-text-button')?.focus())}
+function bucketCancel(event){if(task.value==='upload'&&busy.value){event?.preventDefault();uploadPanel.value?.stop();return}if(busy.value){event?.preventDefault();return}if(['removeBucket','clearBucket'].includes(task.value)){event?.preventDefault();task.value='manageBucket';taskError.value='';nextTick(()=>document.getElementById('bucket-edit-name')?.focus());return}if(!event)taskDialog.value.close()}
+function closeTask(){bucketCancel()}
+function taskEscape(event){event.preventDefault();event.stopPropagation();bucketCancel()}
+function taskClosed(){fileAbort?.abort();task.value=null;secret.value='';copyFeedback.value='';nextTick(()=>{if(trigger?.isConnected&&trigger.getClientRects().length)trigger.focus();else if(bucketFocusId.value){const target=document.getElementById('bucket-'+bucketFocusId.value);if(target?.getClientRects().length)target.focus();else if(drawer.value)document.querySelector('#drawer .filter input')?.focus();else document.getElementById('open-drawer')?.focus();bucketFocusId.value=null}else document.getElementById('fab')?.focus()})}
+async function uploadDone(node){busy.value=false;selection.value=[];uploadedNode.value=node;taskDialog.value.close();await load()}
+function dismissUploadNotice(){uploadedNode.value=null;nextTick(()=>main.value?.focus({preventScroll:true}))}
 async function submit(){
+ if(task.value==='upload')return
  if(busy.value)return;const kind=task.value;taskError.value=''
  if(kind==='token'){
   expiryError.value=''
@@ -182,11 +259,26 @@ async function submit(){
   if(!draft.value.trim()||draft.value.trim()!==draft.value||new TextEncoder().encode(draft.value).length>100||/[\x00-\x1f\x7f]/.test(draft.value)){taskError.value='Use a token name of 1–100 UTF-8 bytes without outer spaces or control characters.';return}
   if(!tokenScopes.value.length){taskError.value='Choose at least one permission.';return}
  }
- if(['folder','bucket','rename','bind'].includes(kind)&&!validName(draft.value)){taskError.value='Use a name up to 255 UTF-8 bytes, without slashes, control characters or outer spaces.';return}
+ if(['folder','bucket','rename','bind','manageBucket'].includes(kind)&&!validName(draft.value)){taskError.value='Use a name up to 255 UTF-8 bytes, without slashes, control characters or outer spaces.';return}
  if((kind==='bind'||kind==='rebind')&&!chosen.value){taskError.value='Choose an existing supported image or video.';return}
  busy.value=true;let completed=0
  try{
   if(kind==='bucket'){const b=await api('/buckets','POST',{name:draft.value});buckets.value.push(b);bucket.value=b;path.value=[];submitted.value=query.value='';closeDrawer()}
+  if(kind==='manageBucket'){
+   const updated=await api('/buckets/'+managedBucket.value.id,'PATCH',{name:draft.value})
+   buckets.value=buckets.value.map(b=>b.id===updated.id?updated:b);if(bucket.value?.id===updated.id)bucket.value=updated
+   if(!updated.name.toLocaleLowerCase().includes(bucketFilter.value.toLocaleLowerCase()))bucketFilter.value=''
+   status.value='Bucket name saved.';busy.value=false;taskDialog.value.close();return
+  }
+  if(kind==='removeBucket'||kind==='clearBucket'){
+   const target=managedBucket.value,clearing=kind==='clearBucket'
+   await api('/buckets/'+target.id+(clearing?'/clear':''),clearing?'POST':'DELETE')
+   if(!clearing)buckets.value=buckets.value.filter(b=>b.id!==target.id)
+   clipboard.value=[]
+   if(bucket.value?.id===target.id){if(!clearing)bucket.value=buckets.value.find(b=>b.is_default);path.value=[];selection.value=[];details.value=null;++detailSerial;query.value=submitted.value=bucketFilter.value='';page.value='objects';closeDrawer()}
+   bucketFocusId.value=bucket.value?.id;status.value=clearing?'Bucket contents cleared. Original Nextcloud files are unchanged.':'Bucket removed. Original Nextcloud files are unchanged.'
+   if(page.value==='objects')await load();commitNavigation('replace');busy.value=false;taskDialog.value.close();return
+  }
   if(kind==='folder')await api('/folders','POST',{name:draft.value,parent_id:parent.value})
   if(kind==='bind')await api('/bindings','POST',{name:draft.value,file_id:chosen.value.id,parent_id:parent.value})
   if(kind==='rebind'){await api('/bindings/'+details.value.id,'PATCH',{file_id:chosen.value.id});details.value=await api('/nodes/'+details.value.id)}
@@ -194,7 +286,7 @@ async function submit(){
   if(kind==='move'||kind==='remove')for(const id of [...selection.value]){await api('/nodes/'+id,kind==='move'?'PATCH':'DELETE',kind==='move'?{parent_id:destination.value}:undefined);completed++;selection.value=selection.value.filter(x=>x!==id)}
   if(kind==='paste')for(const node of clipboard.value){await api('/nodes/'+node.id+'/copy','POST',{parent_id:parent.value,...(clipboard.value.length===1?{name:draft.value}:{} )});completed++}
   if(kind==='token'){const data=await api('/tokens','POST',{name:draft.value,scopes:tokenScopes.value,expires_at:Math.floor(new Date(tokenExpiry.value).getTime()/1000),folder_id:tokenFolder.value||null});secret.value=data.secret;task.value='secret';await loadTokens();return}
-  selection.value=[];status.value='Saved. Original Nextcloud files are unchanged.';taskDialog.value.close();await load()
+  selection.value=[];status.value='Saved. Original Nextcloud files are unchanged.';commitNavigation();taskDialog.value.close();await load()
  }catch(e){taskError.value=(completed?completed+' item(s) saved before this error. ':'')+e.message;if(completed)await load()}
  finally{busy.value=false}
 }
@@ -204,24 +296,32 @@ async function action(id,event){
  if(id==='copy'){clipboard.value=selectedNodes.value.map(n=>({id:n.id,name:n.name}));status.value=clipboard.value.length+' reference(s) copied. Open a destination folder to paste.';return}
  await startTask(id,event?.currentTarget)
 }
-async function loadTokens(){tokenLoading.value=true;error.value='';try{const rows=[];let offset=0;while(true){const data=await api('/tokens?limit=100&offset='+offset);rows.push(...data.tokens);if(data.policy){tokenClockOffset=data.policy.server_time-Date.now()/1000;tokenClock.value=data.policy.server_time}if(data.tokens.length<100)break;offset+=100}tokens.value=rows}catch(e){error.value=e.message}finally{tokenLoading.value=false}}
-function showPage(value){if(busy.value)return;if(value==='tokens'){listAbort?.abort();loading.value=false}error.value='';page.value=value;details.value=null;closeDrawer();if(value==='tokens')loadTokens()}
+async function loadTokens(){
+ tokenAbort?.abort();const controller=new AbortController();tokenAbort=controller;tokenLoading.value=true;error.value=''
+ try{const rows=[];let offset=0;while(true){const data=await api('/tokens?limit=100&offset='+offset,'GET',undefined,controller.signal);if(controller.signal.aborted||!live)return;rows.push(...data.tokens);if(data.policy){tokenClockOffset=data.policy.server_time-Date.now()/1000;tokenClock.value=data.policy.server_time}if(data.tokens.length<100)break;offset+=100}tokens.value=rows}
+ catch(e){if(!controller.signal.aborted&&live)error.value=e.message}
+ finally{if(tokenAbort===controller)tokenLoading.value=false}
+}
+function showPage(value){if(busy.value)return;listAbort?.abort();tokenAbort?.abort();loading.value=false;error.value='';page.value=value;details.value=null;++detailSerial;closeDrawer();commitNavigation();if(value==='tokens')loadTokens();else load()}
 async function tokenAction(t,kind,event){
  if(busy.value)return
  if(kind==='rotate'){await startTask('rotate',event.currentTarget);task.value='rotate';destination.value=t.id;return}
  await startTask('revoke',event.currentTarget);destination.value=t.id
 }
 async function tokenConfirm(){busy.value=true;taskError.value='';try{const data=await api('/tokens/'+destination.value+(task.value==='rotate'?'/rotate':''),task.value==='rotate'?'POST':'DELETE');if(data?.secret){secret.value=data.secret;task.value='secret'}else taskDialog.value.close();await loadTokens()}catch(e){taskError.value=e.message}finally{busy.value=false}}
-const titles={folder:'New folder',bind:'Add from Nextcloud',rebind:'Rebind reference',bucket:'New bucket',rename:'Rename reference',move:'Move references',remove:'Remove links',paste:'Paste references',token:'Create API token',secret:'Save your API token',rotate:'Rotate API token',revoke:'Revoke API token'}
+const titles={upload:'Upload media',manageBucket:'Edit bucket',clearBucket:'Clear bucket contents',removeBucket:'Remove bucket',folder:'New folder',bind:'Add from Nextcloud',rebind:'Rebind reference',bucket:'New bucket',rename:'Rename reference',move:'Move references',remove:'Remove links',paste:'Paste references',token:'Create API token',secret:'Save your API token',rotate:'Rotate API token',revoke:'Revoke API token'}
+watch(busy,value=>{if(!value&&pendingNavigation){pendingNavigation=false;restoreLocation()}})
+watch(sort,()=>{if(!restoring)commitNavigation()})
 watch(tokenFolder,()=>{if(tokenFolder.value)tokenScopes.value=tokenScopes.value.filter(s=>s!=='token:manage')})
 watch([showContext,showFab,details,page,drawer,selection,clipboard],()=>nextTick(layout),{deep:false})
 onMounted(async()=>{
  tokenClockTimer=setInterval(()=>{tokenClock.value=Date.now()/1000+tokenClockOffset},30000)
  overlays=new DesignOverlays(root.value);observer=new ResizeObserver(()=>layout());observer.observe(root.value);observer.observe(main.value);observer.observe(document.getElementById('library-footer'));observer.observe(document.getElementById('fab'))
  addEventListener('resize',layout,{signal:abortEvents.signal});document.addEventListener('keydown',keydown,{signal:abortEvents.signal});document.fonts?.ready.then(layout)
+ addEventListener('popstate',historyNavigation,{signal:abortEvents.signal});addEventListener('hashchange',historyNavigation,{signal:abortEvents.signal});document.getElementById('main-scroll').addEventListener('scroll',rememberScroll,{passive:true,signal:abortEvents.signal})
  await initialize();layout()
 })
-onBeforeUnmount(()=>{clearInterval(tokenClockTimer);live=false;listAbort?.abort();fileAbort?.abort();observer?.disconnect();abortEvents.abort();overlays?.closeMenu();overlays?.hideTip()})
+onBeforeUnmount(()=>{clearInterval(tokenClockTimer);clearTimeout(navigationTimer);live=false;routeAbort?.abort();tokenAbort?.abort();listAbort?.abort();fileAbort?.abort();observer?.disconnect();abortEvents.abort();overlays?.closeMenu();overlays?.hideTip()})
 </script>
 <template>
 <div id="media-design" ref="root">
@@ -231,21 +331,22 @@ onBeforeUnmount(()=>{clearInterval(tokenClockTimer);live=false;listAbort?.abort(
 <p class="section-label">WORKSPACE</p><nav aria-label="Plugin pages"><button class="destination" :class="{active:page==='objects'}" :aria-current="page==='objects'?'page':undefined" @click="showPage('objects')"><md-ripple :disabled="busy || loading" /><Icon name="grid_view" />Objects</button><button class="destination" :class="{active:page==='tokens'}" :aria-current="page==='tokens'?'page':undefined" @click="showPage('tokens')"><md-ripple :disabled="busy || loading" /><Icon name="key" />API tokens</button></nav>
 <div class="bucket-title"><h2>Buckets</h2><md-text-button id="add-bucket" class="text" aria-label="Add bucket" data-tip="Create a virtual bucket" :disabled="busy || loading" @click="startTask('bucket',$event.currentTarget)" type="button"><Icon slot="icon" name="add" />Add</md-text-button></div>
 <label class="filter"><span class="sr-only">Filter buckets</span><input v-model="bucketFilter" type="search" placeholder="Filter buckets"></label>
-<nav aria-label="Buckets"><button v-for="b in filteredBuckets" :key="b.id" class="destination" :class="{active:b.id===bucket?.id}" :aria-current="b.id===bucket?.id?'page':undefined" :disabled="busy" @click="switchBucket(b)"><md-ripple :disabled="busy || loading" />{{b.name}}</button></nav><p v-if="!filteredBuckets.length && !loading">No matching buckets</p>
+<nav aria-label="Buckets"><div v-for="b in filteredBuckets" :key="b.id" class="bucket-entry" :class="{active:b.id===bucket?.id}"><button :id="'bucket-'+b.id" class="destination" :aria-current="b.id===bucket?.id?'page':undefined" :disabled="busy" @click="switchBucket(b)"><md-ripple :disabled="busy || loading" /><span class="bucket-name">{{b.name}}</span></button><md-icon-button :id="'edit-bucket-'+b.id" class="edit-bucket" :aria-label="'Edit bucket '+b.name" :data-tip="'Edit bucket '+b.name" :disabled="busy || loading" type="button" @click="editBucket(b,$event)"><Icon name="edit" /></md-icon-button></div></nav><p v-if="!filteredBuckets.length && !loading">No matching buckets</p>
 <div class="drawer-footer">v{{version}}</div></aside>
 <button id="scrim" class="scrim" aria-label="Close navigation" :hidden="!drawer" @click="closeDrawer"></button>
 <main id="main" ref="main" tabindex="-1" :inert="drawer || undefined" :class="{'has-toolbar':showContext,'has-fab':showFab}">
+<UploadNotice v-if="uploadedNode" :key="uploadedNode.id" :node="uploadedNode" @dismiss="dismissUploadNotice" />
 <header class="library-navbar"><md-icon-button id="open-drawer" class="icon" aria-label="Open navigation" :aria-expanded="drawer" aria-controls="drawer" @click="openDrawer" type="button"><Icon name="menu" /></md-icon-button><h1>{{page==='tokens'?'API tokens':bucket?.name??'Media Storage'}}</h1>
 <form id="search-form" v-show="page==='objects'" role="search" aria-label="Current folder" @submit.prevent="search"><label class="search"><Icon name="search" /><span class="sr-only">Search this folder by name</span><input v-model="query" type="search" placeholder="Search this folder by name"><md-icon-button class="icon" aria-label="Search" :disabled="busy" type="submit"><Icon name="arrow_forward" /></md-icon-button></label></form></header>
 <div id="main-scroll" class="main-scroll">
 <section v-show="page==='objects'" id="explorer">
 <nav v-if="path.length" id="path-row" class="path-row" aria-label="Folder path"><md-text-button class="text" @click="navigate(-1)" type="button">{{bucket?.name}}</md-text-button><template v-for="(p,i) in path" :key="p.id"><span aria-hidden="true">/</span><md-text-button class="text" :aria-current="i===path.length-1?'page':undefined" @click="navigate(i)" type="button">{{p.name}}</md-text-button></template></nav>
-<div class="collection-heading"><div class="collection-summary"><h2>Objects</h2><span id="count">{{nodes.length}} in this view</span><strong v-if="selection.length" id="selected-count">{{selection.length}} selected</strong><span v-if="clipboard.length" id="clipboard-count">{{clipboard.length}} copied</span></div><label class="sort"><span>Sort by</span><span class="select-control"><select v-model="sort"><option value="name">Name</option><option value="type">Type</option></select><Icon name="expand_more" /></span></label></div>
+<div class="collection-heading"><div class="collection-summary"><h2>Objects</h2><span id="count" role="status">{{nodes.length}} in this view</span><strong v-if="selection.length" id="selected-count">{{selection.length}} selected</strong><span v-if="clipboard.length" id="clipboard-count">{{clipboard.length}} copied</span></div><label class="sort"><span>Sort by</span><span class="select-control"><select v-model="sort"><option value="name">Name</option><option value="type">Type</option></select><Icon name="expand_more" /></span></label></div>
 <div v-if="loading && !nodes.length" class="loading" role="status"><md-circular-progress indeterminate aria-label="Loading objects" />Loading objects…</div>
 <div v-if="error" class="error" role="alert">{{error}} <md-text-button @click="initialize">Retry</md-text-button></div>
 <div class="column-head" aria-hidden="true"><span></span><span>Name</span><span>Type</span><span>Binding</span><span></span></div>
 <ul id="objects" class="objects" aria-label="Objects in current folder" :aria-busy="loading">
-<li v-for="n in sorted" :key="n.id" class="object"><label class="check"><input type="checkbox" :aria-label="'Select '+n.name" :checked="selection.includes(n.id)" :disabled="busy" @change="toggle(n)"></label><button :id="'open-node-'+n.id" class="object-name" :disabled="busy" @click="openNode(n,$event)"><span class="file-icon"><Icon :name="iconFor(n)" /></span><span class="name-copy">{{n.name}}<span class="mobile-meta">{{typeLabel(n)}}<template v-if="n.node_type==='media'"> · {{bindingLabel(n)}}</template></span></span></button><md-ripple class="row-ripple" :for="'open-node-'+n.id" :disabled="busy" /><span class="type">{{typeLabel(n)}}</span><span class="binding" :class="{broken:n.binding_status==='needs_rebind'}">{{bindingLabel(n)}}</span><md-icon-button class="icon" :aria-label="'Details for '+n.name" data-tip="Inspect this virtual reference" :disabled="busy" @click="inspect(n,$event.currentTarget)" type="button"><Icon name="info" /></md-icon-button></li>
+<li v-for="n in sorted" :key="n.id" class="object"><label class="check"><input type="checkbox" :aria-label="'Select '+n.name" :checked="selection.includes(n.id)" :disabled="busy" @change="toggle(n)"></label><button :id="'open-node-'+n.id" class="object-name" :disabled="busy" @click="openNode(n,$event)"><span class="file-icon"><MediaPreview v-if="n.node_type==='media'" :node="n" /><Icon v-else :name="iconFor(n)" /></span><span class="name-copy">{{n.name}}<span class="mobile-meta">{{typeLabel(n)}}<template v-if="n.node_type==='media'"> · {{bindingLabel(n)}}</template></span></span></button><md-ripple class="row-ripple" :for="'open-node-'+n.id" :disabled="busy" /><span class="type">{{typeLabel(n)}}</span><span class="binding" :class="{broken:n.binding_status==='needs_rebind'}">{{bindingLabel(n)}}</span><md-icon-button class="icon" :aria-label="'Details for '+n.name" data-tip="Inspect this virtual reference" :disabled="busy" @click="inspect(n,$event.currentTarget)" type="button"><Icon name="info" /></md-icon-button></li>
 </ul>
 <div v-if="!loading && !error && !nodes.length" class="empty"><Icon name="folder_open" /><h2>{{submitted?'No matching objects':'This folder is empty'}}</h2><p>{{submitted?'Try another name in this folder.':'Use Add to create a folder or link an existing Nextcloud file.'}}</p></div><p class="status" role="status">{{status}}</p>
 </section>
@@ -275,19 +376,21 @@ onBeforeUnmount(()=>{clearInterval(tokenClockTimer);live=false;listAbort?.abort(
 <div id="selection" class="selection" :hidden="!showContext"><div id="reference-toolbar" ref="toolbar" class="toolbar-actions" :class="{'icon-actions':iconsOnly}" role="toolbar" aria-label="Virtual reference actions" @keydown="toolbarKey"><component :is="iconsOnly?'md-icon-button':'md-text-button'" v-for="a in actions" :id="'action-'+a.id" :key="a.id" :data-tip="a.tip" :aria-label="a.label" :disabled="disabled(a.id)" :class="{danger:a.id==='remove'}" @click="action(a.id,$event)" class="toolbar-command" type="button"><Icon :slot="iconsOnly?undefined:'icon'" :name="a.icon" /><span v-if="!iconsOnly" class="action-label">{{a.label}}</span></component><md-icon-button id="more-actions" class="icon" aria-label="More reference actions" aria-haspopup="menu" aria-expanded="false" aria-controls="toolbar-menu" data-tip="More link actions" @click="openMenu('toolbar-menu',$event)" type="button"><Icon name="expand_more" /></md-icon-button></div><md-filled-tonal-icon-button id="cancel-selection" class="icon cancel-context" aria-label="Cancel reference actions" data-tip="Cancel selection and copied links" :disabled="busy" @click="cancelContext" type="button"><Icon name="close" /></md-filled-tonal-icon-button></div>
 <p v-show="!showContext" class="footnote">Removing links keeps the original files in Nextcloud.</p></footer>
 </main>
-<aside v-if="details" id="details" class="details" aria-labelledby="detail-name" :inert="drawer || undefined"><div class="detail-top"><span class="eyebrow">OBJECT DETAILS</span><md-icon-button id="close-detail" class="icon" aria-label="Close object details" @click="closeDetails" type="button"><Icon name="close" /></md-icon-button></div><div class="detail-symbol"><Icon :name="iconFor(details)" /></div><h2 id="detail-name">{{details.name}}</h2><p v-if="details.loading" role="status">Loading details…</p><p v-if="details.error" class="error" role="alert">{{details.error}}</p><dl v-else><dt>Type</dt><dd>{{typeLabel(details)}}</dd><dt>Binding</dt><dd>{{bindingLabel(details)}}</dd><dt>Bucket</dt><dd>{{bucket?.name}}</dd><dt>Virtual path</dt><dd>{{details.virtual_path}}</dd><template v-if="details.binding"><dt>Original file</dt><dd>{{details.binding.last_known_path}}</dd><dt>Size</dt><dd>{{details.binding.file_size}} bytes</dd></template></dl><div class="detail-actions"><md-text-button v-if="details.node_type==='media' && !details.loading && !details.error" :disabled="busy" @click="startTask('rebind',$event.currentTarget)">Rebind to another file</md-text-button><md-text-button v-if="details.node_type==='media' && !!details.virtual_path && !details.loading && !details.error" id="copy-virtual-path" :disabled="busy" @click="copyVirtualPath">Copy virtual path</md-text-button></div><p v-if="pathStatus" class="link-status" role="status">{{pathStatus}}</p><label v-if="manualPath" class="detail-link">Plugin virtual path<input id="manual-virtual-path" type="text" :value="manualPath" readonly @focus="$event.target.select()"></label></aside>
+<aside v-if="details" id="details" class="details" aria-labelledby="detail-name" :inert="drawer || undefined"><div class="detail-top"><span class="eyebrow">OBJECT DETAILS</span><md-icon-button id="close-detail" class="icon" aria-label="Close object details" @click="closeDetails" type="button"><Icon name="close" /></md-icon-button></div><div class="detail-symbol" :class="{'has-preview':details.node_type==='media'}"><MediaPreview v-if="details.node_type==='media' && !details.loading" :key="details.id" :node="details" large /><Icon v-else :name="iconFor(details)" /></div><h2 id="detail-name">{{details.name}}</h2><p v-if="details.loading" role="status">Loading details…</p><p v-if="details.error" class="error" role="alert">{{details.error}}</p><dl v-else><dt>Type</dt><dd>{{typeLabel(details)}}</dd><dt>Binding</dt><dd>{{bindingLabel(details)}}</dd><dt>Bucket</dt><dd>{{bucket?.name}}</dd><dt>Virtual path</dt><dd>{{details.virtual_path}}</dd><template v-if="details.binding"><dt>Original file</dt><dd>{{details.binding.last_known_path}}</dd><dt>Size</dt><dd>{{details.binding.file_size}} bytes</dd></template></dl><div class="detail-actions"><md-text-button v-if="details.node_type==='media' && !details.loading && !details.error" :disabled="busy" @click="startTask('rebind',$event.currentTarget)">Rebind to another file</md-text-button><md-text-button v-if="details.node_type==='media' && !!details.virtual_path && !details.loading && !details.error" id="copy-virtual-path" :disabled="busy" @click="copyVirtualPath">Copy virtual path</md-text-button></div><p v-if="pathStatus" class="link-status" role="status">{{pathStatus}}</p><label v-if="manualPath" class="detail-link">Plugin virtual path<input id="manual-virtual-path" type="text" :value="manualPath" readonly @focus="$event.target.select()"></label></aside>
 </div>
-<div id="fab-area" class="fab-area" :hidden="!showFab" :style="fabStyle"><md-fab id="fab" class="fab" aria-label="Add" aria-haspopup="menu" aria-expanded="false" aria-controls="fab-menu" data-tip="Add a link or virtual folder" :aria-disabled="loading || busy" :inert="loading || busy || undefined" @click="openMenu('fab-menu',$event)" :label="fabLabel" variant="secondary"><Icon slot="icon" name="add" /></md-fab></div>
-<div id="fab-menu" class="action-menu" role="menu" aria-label="Add to this folder" hidden><button role="menuitem" tabindex="-1" data-tip="Reference an existing Nextcloud file" @click="fabTask('bind')"><md-ripple :disabled="busy || loading" /><Icon name="add" />Add from Nextcloud</button><button role="menuitem" tabindex="-1" data-tip="Create a virtual folder" @click="fabTask('folder')"><md-ripple :disabled="busy || loading" /><Icon name="folder" />New folder</button></div>
+<div id="fab-area" class="fab-area" :hidden="!showFab" :style="fabStyle"><md-fab id="fab" class="fab" aria-label="Add" aria-haspopup="menu" aria-expanded="false" aria-controls="fab-menu" data-tip="Upload media, add a link or create a virtual folder" :aria-disabled="loading || busy" :inert="loading || busy || undefined" @click="openMenu('fab-menu',$event)" :label="fabLabel" variant="secondary"><Icon slot="icon" name="add" /></md-fab></div>
+<div id="fab-menu" class="action-menu" role="menu" aria-label="Add to this folder" hidden><button role="menuitem" tabindex="-1" data-tip="Upload an image or video from your device" @click="fabTask('upload')"><md-ripple :disabled="busy || loading" /><Icon name="add" />Upload media</button><button role="menuitem" tabindex="-1" data-tip="Reference an existing Nextcloud file" @click="fabTask('bind')"><md-ripple :disabled="busy || loading" /><Icon name="add" />Add from Nextcloud</button><button role="menuitem" tabindex="-1" data-tip="Create a virtual folder" @click="fabTask('folder')"><md-ripple :disabled="busy || loading" /><Icon name="folder" />New folder</button></div>
 <div id="toolbar-menu" class="action-menu" role="menu" aria-label="More virtual reference actions" hidden><button v-for="a in overflow" :key="a.id" role="menuitem" tabindex="-1" :aria-disabled="disabled(a.id)" :data-tip="a.tip" :class="{danger:a.id==='remove'}" @click="action(a.id,$event)"><md-ripple :disabled="disabled(a.id)" /><Icon :name="a.icon" />{{a.label}}</button></div>
-<dialog id="task" ref="taskDialog" :aria-label="titles[task]" @close="taskClosed" @cancel="busy?$event.preventDefault():undefined"><form @submit.prevent="task==='rotate'||task==='revoke'?tokenConfirm():submit()">
-<h2>{{titles[task]}}</h2><p v-if="task==='remove'">Remove {{selection.length}} selected reference(s), including virtual children? Original Nextcloud files and other links are kept.</p><p v-if="task==='move'">Choose a virtual destination. Original files stay in Nextcloud.</p><p v-if="task==='paste'">Create independent links to the same originals.</p><p v-if="task==='revoke'">This token will stop authorizing integrations immediately.</p><p v-if="task==='rotate'">A new secret will be issued. The old token remains active until you revoke it.</p>
+<dialog id="task" ref="taskDialog" :class="{'upload-task':task==='upload'}" :aria-label="titles[task]" @close="taskClosed" @cancel="bucketCancel($event)" @keydown.esc="taskEscape"><form @submit.prevent="task==='rotate'||task==='revoke'?tokenConfirm():submit()">
+<h2>{{titles[task]}}</h2>
+<UploadPanel v-if="task==='upload'" ref="uploadPanel" :parent="destination" @busy="busy=$event" @done="uploadDone" @close="closeTask" /><template v-if="task==='manageBucket'"><md-outlined-text-field id="bucket-edit-name" label="Bucket name" required :value="draft" :disabled="busy" supporting-text="Required. Up to 255 UTF-8 bytes." @input="draft=$event.target.value" /><div class="bucket-management"><h3>Manage contents</h3><p>These actions affect virtual folders and links only. Original Nextcloud files stay in place.</p><md-text-button id="bucket-clear" type="button" :disabled="busy" @click="confirmBucket('clearBucket')"><Icon slot="icon" name="folder_open" />Clear contents</md-text-button><md-text-button id="bucket-delete" type="button" :disabled="busy || managedBucket?.is_default" @click="confirmBucket('removeBucket')"><Icon slot="icon" name="delete" />Delete bucket</md-text-button><p v-if="managedBucket?.is_default" id="default-bucket-help">The default bucket can be renamed or cleared, but cannot be deleted.</p></div></template>
+<p v-if="task==='clearBucket'">Clear all virtual folders and links inside “{{managedBucket?.name}}”? The bucket is kept. Original Nextcloud files and links in other buckets are kept.</p><p v-if="task==='removeBucket'">Remove bucket “{{managedBucket?.name}}” and all virtual folders and links inside it? Original Nextcloud files and links in other buckets are kept.</p><p v-if="task==='remove'">Remove {{selection.length}} selected reference(s), including virtual children? Original Nextcloud files and other links are kept.</p><p v-if="task==='move'">Choose a virtual destination. Original files stay in Nextcloud.</p><p v-if="task==='paste'">Create independent links to the same originals.</p><p v-if="task==='revoke'">This token will stop authorizing integrations immediately.</p><p v-if="task==='rotate'">A new secret will be issued. The old token remains active until you revoke it.</p>
 <template v-if="task==='bind'||task==='rebind'"><p>Choose an existing image or video. This creates or updates a reference without moving the original.</p><nav class="picker-navigation" aria-label="Nextcloud folders"><md-icon-button id="picker-back" type="button" aria-label="Up one folder" data-tip="Up one folder" :disabled="!filePath || fileLoading || busy" @click="browseFiles(filePath.split('/').slice(0,-1).join('/'),true)"><Icon name="arrow_back" class="directional" /></md-icon-button><md-icon-button id="picker-home" type="button" aria-label="Go to root folder" data-tip="Go to root folder" :disabled="!filePath || fileLoading || busy" @click="browseFiles('',true)"><Icon name="home" /></md-icon-button><span id="picker-location" class="picker-location" tabindex="-1" role="status" :title="filePath?'/'+filePath:undefined" :aria-label="filePath?'Current Nextcloud folder: /'+filePath:'Nextcloud files (root)'">{{filePath.split('/').at(-1) || 'Nextcloud files'}}</span></nav><p v-if="fileLoading" role="status">Loading files…</p><p v-if="fileError" class="error" role="alert">{{fileError}} <md-text-button type="button" class="text" @click="browseFiles(filePath)">Retry</md-text-button></p><ul class="file-picker"><li v-for="f in files" :key="f.path"><button type="button" :disabled="busy || (!f.folder && (!mediaType(f.mime)||!f.id))" :class="{chosen:chosen?.id===f.id && !f.folder}" :aria-pressed="!f.folder?chosen?.id===f.id:undefined" @click="f.folder?browseFiles(f.path,true):(chosen=f,draft=f.name)"><md-ripple :disabled="busy || (!f.folder && (!mediaType(f.mime)||!f.id))" /><Icon :name="f.folder?'folder':'image'" />{{f.name}}</button></li></ul><p v-if="chosen">Selected: {{chosen.name}}</p></template>
 <label v-if="['folder','bucket','rename','bind','paste','token'].includes(task) && !(task==='paste'&&clipboard.length>1)" class="task-field">{{task==='token'?'Token name':'Name'}} (required)<input v-model="draft" required :disabled="busy" autocomplete="off" :maxlength="task==='token'?100:255"></label>
 <label v-if="task==='move'" class="task-field">Destination folder<select v-model="destination" :disabled="busy"><option v-for="d in destinations" :key="d.id" :value="d.id">{{d.label}}</option></select></label>
 <template v-if="task==='token'"><label class="task-field">Expires (required)<input id="token-expiry" v-model="tokenExpiry" type="datetime-local" required :disabled="busy || !tokenBounds" :min="tokenBounds?localMinute(tokenBounds.min):undefined" :max="tokenBounds?localMinute(tokenBounds.max):undefined" step="60" aria-describedby="token-expiry-help" :aria-invalid="!!expiryError" @input="expiryError=''"><span id="token-expiry-help" class="field-help" :class="{error:expiryError}" :role="expiryError?'alert':undefined">{{expiryError || expiryHelp}}</span></label><label class="task-field">Access boundary<select v-model="tokenFolder" :disabled="busy"><option value="">All my buckets and folders</option><option v-for="b in buckets" :key="b.id" :value="b.id">{{b.name}}</option><option v-if="path.length" :value="parent">Current folder only</option></select></label><fieldset class="scope-options"><legend>Permissions (choose at least one)</legend><label v-for="scope in ['media:read','media:manage','media:delete','token:manage']" :key="scope"><input v-model="tokenScopes" type="checkbox" :value="scope" :disabled="busy || (scope==='token:manage' && !!tokenFolder)">{{scope}}</label></fieldset></template>
 <template v-if="task==='secret'"><p>Copy this secret now. It will not be shown again after closing.</p><code class="secret" tabindex="0" aria-label="API token secret">{{secret}}</code><p v-if="copyFeedback" id="token-copy-feedback" class="field-help" role="status">{{copyFeedback}}</p></template>
-<p v-if="taskError" class="error" role="alert">{{taskError}}</p><div class="dialog-actions" :class="{'secret-actions':task==='secret'}"><md-text-button type="button" :disabled="busy" @click="closeTask">{{task==='secret'?'Done':'Cancel'}}</md-text-button><md-filled-button v-if="task==='secret'" id="copy-token-secret" type="button" :disabled="copying || busy" @click="copyTokenSecret"><Icon slot="icon" name="content_copy" />{{copying?'Copying…':'Copy token'}}</md-filled-button><md-filled-button v-if="task!=='secret'" type="button" :disabled="busy || (task==='token'&&!tokenBounds) || (task==='move'&&!destinations.length)" @click="task==='rotate'||task==='revoke'?tokenConfirm():submit()">{{busy?'Saving…':task==='remove'?'Remove links':task==='revoke'?'Revoke':task==='rotate'?'Rotate':'Save'}}</md-filled-button></div>
+<p v-if="taskError" class="error" role="alert">{{taskError}}</p><div v-if="task!=='upload'" class="dialog-actions" :class="{'secret-actions':task==='secret'}"><md-text-button type="button" :disabled="busy" @click="closeTask">{{task==='secret'?'Done':'Cancel'}}</md-text-button><md-filled-button v-if="task==='secret'" id="copy-token-secret" type="button" :disabled="copying || busy" @click="copyTokenSecret"><Icon slot="icon" name="content_copy" />{{copying?'Copying…':'Copy token'}}</md-filled-button><md-filled-button v-if="task!=='secret'" type="button" :disabled="busy || (task==='token'&&!tokenBounds) || (task==='move'&&!destinations.length)" @click="task==='rotate'||task==='revoke'?tokenConfirm():submit()">{{busy?'Saving…':task==='manageBucket'?'Save changes':task==='clearBucket'?'Clear contents':task==='removeBucket'?'Remove bucket':task==='remove'?'Remove links':task==='revoke'?'Revoke':task==='rotate'?'Rotate':'Save'}}</md-filled-button></div>
 </form></dialog><div id="action-tooltip" class="action-tooltip" role="tooltip" hidden></div>
 </div>
 </template>

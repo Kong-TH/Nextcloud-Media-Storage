@@ -19,4 +19,17 @@ final class BucketController extends Controller {
     public function index(int $offset = 0): JSONResponse { return $this->response(fn($owner) => $this->buckets->listing($owner, $offset)); }
     #[NoAdminRequired]
     public function create(string $name): JSONResponse { return $this->response(fn($owner) => $this->buckets->create($owner, $name), 201); }
+    #[NoAdminRequired]
+    public function rename(string $id, string $name): JSONResponse {
+        return $this->response(fn($owner) => $this->buckets->rename($owner, $id, $name));
+    }
+    #[NoAdminRequired]
+    public function clear(string $id): JSONResponse {
+        return $this->response(function ($owner) use ($id) { $this->buckets->clear($owner, $id); return null; }, 204);
+    }
+    #[NoAdminRequired]
+    public function destroy(string $id): JSONResponse {
+        return $this->response(function ($owner) use ($id) { $this->buckets->destroy($owner, $id); return null; }, 204);
+    }
+
 }

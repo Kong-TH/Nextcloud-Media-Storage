@@ -1,6 +1,6 @@
 # Product Backlog
 
-US-MS-01–03 are implemented and verified by unit/schema checks and 33 live HTTP checks on Nextcloud 34.0.4 / Snap MySQL. Extended acceptance gates remain pending. US-MS-04 passed local tests and the combined 70-check live suite after upgrade to 0.2.0. US-MS-05–09 remain Planned. Phase 3 preparation is next; bucket semantics must be resolved before bucket persistence.
+US-MS-01–03 are implemented and verified by unit/schema checks and 33 live HTTP checks on Nextcloud 34.0.4 / Snap MySQL. Extended acceptance gates remain pending. US-MS-04 passed local tests and the combined 70-check live suite after upgrade to 0.2.0. US-MS-05 and US-MS-09 are in progress: the virtual-bucket model is approved and the core Material explorer is implemented; upload/preview and acceptance gates remain open. US-MS-06–08 remain planned.
 
 | ID | Phase | Deliverable | Acceptance evidence |
 | --- | --- | --- | --- |
@@ -13,10 +13,12 @@ US-MS-01–03 are implemented and verified by unit/schema checks and 33 live HTT
 | US-MS-07 | 4 | Streaming and abuse controls | HEAD, validators, ranges, 206/416, 429 and cache isolation tests |
 | US-MS-08 | 5 | Release readiness | Actual Nextcloud/database matrix, packaging, policies and security review |
 
-| US-MS-09 | 3 | Bucket separation (semantics pending) | Approved model; populated upgrade; owner/bucket/token isolation; virtual removal preserves physical files |
+| US-MS-09 | 3 | Virtual bucket separation (approved) | Approved model; populated upgrade; owner/bucket/token isolation; virtual removal preserves physical files |
 
 See [agent handoff](../agent-handoff.md) and [Sprint 03](sprint-backlogs/sprint-03.md) for the latest UI decisions and next implementation slices.
 
 Later-phase work does not count as implemented merely because interfaces are designed.
 
 Lifecycle cleanup is implemented in deployed 0.2.0; live deletion/recreation isolation passed. Wider concurrent lifecycle races remain a release review item.
+
+UI-09 source update (0.4.0): session upload, persistent retry journal, daily per-account physical storage, progress/Stop reconciliation, thumbnails/details and session DAV content bridge are implemented. Source checks pass; deployed multipart/preview and warm-cache acceptance remain pending. Public/signed and external-token media delivery remain planned.

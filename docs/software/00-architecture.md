@@ -29,3 +29,32 @@ The Vue explorer imports supported Material Web buttons, icon buttons, FAB, icon
 ### Token dashboard and lifetime constraints (0.3.5)
 
 ApiTokenService exposes the same clamped lifetime policy used by issuance in the authenticated token-list response. The Vue dialog refreshes it on opening and fails closed if unavailable. The datetime-local control retains native date editing with explicit bounds and associated help/errors; supported search entry uses the official Material outlined text field. Counts and name/status/sort filtering are derived from all fetched token pages, with revoked precedence and a 14-day active subset. Counts update every 30 seconds using server-adjusted time. Summary surfaces use semantic buttons with official ripple; token actions and secret copying use Material buttons. One-time secrets and clipboard feedback stay in ephemeral Vue state and are cleared on close. No schema or authorization change.
+
+
+### Bucket removal (0.3.6)
+
+BucketController delegates session-only DELETE to BucketService. The existing owner-root write lock serializes removal with hierarchy and credential mutations. Collect up to 1000 subtree node IDs before deleting bindings/nodes and the ms_buckets record in the same database transaction. Default root and non-bucket IDs remain protected. Physical Filesystem APIs are never invoked. Restricted token metadata retains its original folder ID, so a deleted boundary fails closed and name reuse cannot grant access to a replacement bucket.
+
+The drawer composes a destination button and a sibling Material icon button in a rounded row. The trailing X reveals on hover/focus-within, preserving keyboard/touch access without permanent visual clutter. Native confirmation dialogs own keyboard handling even while the compact drawer is open. Successful removal clears stale clipboard data; current-bucket removal resets to Library, while inactive-bucket removal preserves the current view. Focus falls back to a surviving destination, drawer filter or compact navigation opener.
+
+### Bucket management (0.3.7; supersedes removal-only UI)
+
+BucketController also exposes session/CSRF-protected PATCH rename and POST clear. BucketService validates ownership/type and serializes rename/clear/delete with creation using the existing owner-root transaction lock. Rename updates additional bucket records and node names atomically; default rename changes only the root display name, preserving its identity/key. Clear collects the bounded subtree before removing descendants, keeping the bucket/root. Physical Filesystem APIs are not called.
+
+All drawer rows have a sibling Material edit icon revealed on hover/focus-within. One native modal hosts the editor and destructive confirmations; Cancel/Escape returns from confirmation to the editor with draft retained. The default Delete action is disabled and explained. Successful rename updates navigation/current heading, clear resets the current bucket to its root, and deletion falls back to the default; inactive actions preserve the current view. Focus returns to an enabled surviving control.
+
+### UI-03 browser navigation (0.3.9)
+
+The Vue explorer owns only the #ms: fragment. A small navigation module parses/serializes page, stable bucket/folder IDs, submitted query, sort and optional details; it reconstructs breadcrumbs from authenticated node parent relationships. URL-provided names are never trusted. The existing server pathname/query, loader and authorization stay unchanged. The selected bucket must come from the authenticated bucket listing; ancestor traversal must terminate at that exact root within 128 folders. Invalid/missing destinations recover visibly, while network/session errors remain retryable errors.
+
+Push navigation only for meaningful view changes; canonical recovery and bucket deletion use replaceState. A namespaced history.state member records list scroll, restored after loading. Popstate/hashchange are coalesced, stale route/list/detail/token requests are cancelled or ignored, and browser navigation during a mutation waits until completion. Closing a task via browser navigation clears one-time secrets. Selection and dialog/clipboard data are never serialized. No localStorage/sessionStorage or schema/API changes.
+
+## UI-09 upload and preview source — 0.4.0
+
+`UploadController` accepts session/CSRF-protected multipart files; `UploadService` validates real temporary-file size and content MIME before reserving an owner-scoped upload journal entry. `UploadStore` shares the connection and owner-root transaction lock with virtual hierarchy mutations. The reservation commits before physical writes; completion binds the original by file ID and commits the resulting node ID. Identical retries reuse the reservation/result. Filesystem writes cannot be rolled back with SQL: retained partial/orphan originals require explicit Nextcloud recovery, never automatic deletion. Storage folders must belong to the authenticated account and satisfy create permission and quota checks. See [upload contract](../design/upload-preview.md).
+
+`MediaStorageService::file` centralizes current readable file/storage/MIME validation. `PreviewController` uses Nextcloud IPreview for bounded thumbnails and detail images, and redirects session content requests to the currently authorized DAV path for native Range handling. Safe image/content GETs remain authenticated; they are not public or bearer delivery endpoints. Vue `UploadPanel` owns transfer/abort/status reconciliation; `MediaPreview` owns lazy preview/fallback state. No original-file rename/move/delete operation is introduced.
+
+## Upload stream ownership correction — 0.4.1
+
+Nextcloud Files may close a stream supplied to newFile. UploadService closes it only if still open, preventing a second fclose from aborting metadata completion after a successful original write. Reservation/owner locking and idempotent retry semantics are unchanged. The upload-success notice reads current owner-authorized node details and opens the original's containing folder through Nextcloud Files; it does not use the preview/content bridge.

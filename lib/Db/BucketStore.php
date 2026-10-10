@@ -22,4 +22,19 @@ class BucketStore {
         foreach ($row as $key => $value) { $q->setValue($key, $q->createNamedParameter($value)); }
         $q->executeStatement();
     }
+    public function rename(string $owner, string $id, string $name): void {
+        $q = $this->db->getQueryBuilder();
+        $q->update('ms_buckets')->set('name', $q->createNamedParameter($name))
+            ->set('name_key', $q->createNamedParameter(hash('sha256', $name)))
+            ->where($q->expr()->eq('owner_id', $q->createNamedParameter($owner)))
+            ->andWhere($q->expr()->eq('id', $q->createNamedParameter($id)));
+        $q->executeStatement();
+    }
+    public function remove(string $owner, string $id): void {
+        $q = $this->db->getQueryBuilder();
+        $q->delete('ms_buckets')->where($q->expr()->eq('owner_id', $q->createNamedParameter($owner)))
+            ->andWhere($q->expr()->eq('id', $q->createNamedParameter($id)));
+        $q->executeStatement();
+    }
+
 }

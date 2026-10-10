@@ -2,6 +2,22 @@
 import {generateUrl,generateRemoteUrl} from '@nextcloud/router'
 import {getRequestToken,getCurrentUser} from '@nextcloud/auth'
 export class ApiError extends Error { constructor(message,status){super(message);this.status=status} }
+export function mediaUrl(id,kind='preview',large=false){return generateUrl('/apps/mediastorage/api/v1/nodes/'+encodeURIComponent(id)+'/'+kind)+(large?'?size=large':'')}
+export function uploadFile(file,name,parent,id,onProgress,signal){
+ return new Promise((resolve,reject)=>{
+  const xhr=new XMLHttpRequest(),body=new FormData()
+  body.append('file',file);body.append('name',name);body.append('parent_id',parent);body.append('request_id',id)
+  const abort=()=>xhr.abort(),cleanup=()=>signal?.removeEventListener('abort',abort)
+  xhr.open('POST',generateUrl('/apps/mediastorage/api/v1/uploads'));xhr.withCredentials=true;xhr.setRequestHeader('requesttoken',getRequestToken()??'');xhr.setRequestHeader('Accept','application/json')
+  xhr.upload.onprogress=e=>onProgress(e.lengthComputable?Math.min(1,e.loaded/e.total):null)
+  xhr.upload.onload=()=>onProgress(1)
+  xhr.onload=()=>{cleanup();let data;try{data=JSON.parse(xhr.responseText)}catch{};if(xhr.status>=200&&xhr.status<300&&data?.state==='complete'&&data.node?.id)resolve(data);else reject(new ApiError(data?.error??(xhr.status===413?'File exceeds a server or proxy request limit. Close this task and choose a smaller file.':xhr.status===401?'Your session expired. Reload and sign in.':'Upload failed. Check its status and retry.'),xhr.status))}
+  xhr.onerror=()=>{cleanup();reject(new ApiError('Connection lost. Checking whether the upload completed…',0))}
+  xhr.onabort=()=>{cleanup();reject(new DOMException('Transmission stopped.','AbortError'))}
+  signal?.addEventListener('abort',abort,{once:true});if(signal?.aborted){cleanup();reject(new DOMException('Transmission stopped.','AbortError'));return}
+  xhr.send(body)
+ })
+}
 export async function api(path,method='GET',body,signal){
  const response=await fetch(generateUrl('/apps/mediastorage/api/v1'+path),{method,credentials:'same-origin',signal,headers:{Accept:'application/json',requesttoken:getRequestToken()??'',...(body?{'Content-Type':'application/json'}:{})},...(body?{body:JSON.stringify(body)}:{})})
  const data=response.status===204?null:await response.json().catch(()=>null)
@@ -13,7 +29,7 @@ export async function allNodes(parent,search='',signal){
  while(true){const page=await api('/nodes?'+new URLSearchParams({parent_id:parent??'',search,limit:'100',offset:String(offset)}).toString().replace('parent_id=&',''),'GET',undefined,signal);root=page.root_id;nodes.push(...page.nodes);if(page.nodes.length<100)break;offset+=100}
  return {nodes,root}
 }
-export async function allBuckets(){const rows=[];let offset=0;while(true){const page=await api('/buckets?offset='+offset);rows.push(...page.buckets);if(!page.has_more)return rows;offset+=100}}
+export async function allBuckets(signal){const rows=[];let offset=0;while(true){const page=await api('/buckets?offset='+offset,'GET',undefined,signal);rows.push(...page.buckets);if(!page.has_more)return rows;offset+=100}}
 export async function davFiles(path='',signal){
  const user=getCurrentUser()?.uid;if(!user)throw new ApiError('Sign in to browse Nextcloud files.',401)
  const root=generateRemoteUrl('dav')+'/files/'+encodeURIComponent(user)+'/'

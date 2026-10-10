@@ -1,6 +1,6 @@
 # UI implementation tasks
 
-Status: Proposed, 2026-10-09. Based on the [responsive design](../design/responsive-plugin.md) and standalone sample prototype. No production frontend tasks below are complete. Bucket semantics remain an independent prerequisite for bucket persistence.
+Status: Production core implemented; UI-03 navigation user-accepted. UI-09 daily uploads, thumbnail/detail images and upload success/folder notifications are installed in 0.4.1; 26 upload/preview HTTP checks and 257 cache-enabled installed-browser checks passed. Actual video codec/range, physical touch, screen-reader and comprehensive contrast/zoom acceptance remain open under UI-09/UI-10. Historical prototype entries below are superseded by current implementation notes.
 
 | ID | Task | Dependency | Reviewable deliverable / acceptance |
 | --- | --- | --- | --- |
@@ -13,6 +13,8 @@ Status: Proposed, 2026-10-09. Based on the [responsive design](../design/respons
 | UI-07 | Add token management page | UI-02 | Paginated metadata, issue with scope/boundary/expiry, one-time secret, explicit rotate/revoke semantics and expired states; no persistent browser secret/logging |
 | UI-08 | Integrate accepted bucket model | Bucket decision, schema/API/security/upgrade design; UI-03 | Owner-scoped destinations/filter/create workflows and migration compatibility; documented search/token/move boundaries; no implicit S3 behavior |
 | UI-09 | Add upload and preview workflows | Actual upload/preview contracts, UI-06 | Server-validated file handling, progress/cancel/error/retry behavior, actual host preview; primary action hierarchy revised when enabled |
+
+UI-09 storage decision (2026-10-10): store newly uploaded originals in the authenticated account's `Media Storage/YYYY-MM-DD/` directory, grouped by day only. Create missing directories on demand; never overwrite existing files. Physical storage folders are independent of virtual buckets and folders. Existing-file binding and all reference management remain metadata-only. Users manage originals later through Nextcloud. Implementation must define the authoritative date/timezone, validate destination write permissions and quota, and retain file-ID-based binding when an original is moved within accessible Nextcloud storage. This requirement is implemented in prepared source 0.4.0; installed verification remains pending. See [upload/preview contract](../design/upload-preview.md).
 | UI-10 | Validate integrated plugin | Each connected slice, then full feature set | Record real Nextcloud/browser checks, mobile/desktop, focus/keyboard, screen reader, CSP, zoom/long labels/RTL/themes and host isolation; defer unsupported delivery clearly |
 
 For every slice, update affected architecture/API/schema/security/validation documentation when contracts change. Use real session endpoints and their existing owner/CSRF boundaries. A disabled control or a confirmation never substitutes for server checks.
@@ -72,3 +74,15 @@ The standalone prototype now exercises creation FAB/menu, contextual reference a
 ## Current production implementation
 
 The user approved this prototype and confirmed virtual buckets. Version 0.3.0 implements real session-backed bucket/folder navigation and creation, current-folder search, existing-file binding/rebind, reference rename/move/copy/paste/remove and token management. The latest FAB/toolbar exclusion, measured overflow, separate cancel and rounded-row decisions supersede earlier stacking proposals. See [production contract and evidence](../software/08-production-explorer.md). Upload, previews and binary media delivery remain open; earlier sample-only descriptions above record prototype preparation.
+
+## UI-03 navigation completion — 0.3.9 requirements before code
+
+Use a plugin-owned #ms: URL fragment to identify page, bucket, folder, submitted search, object sort and optional details. Preserve the Nextcloud pathname/query and shell; no server route, schema or API changes. Store only scroll offset in a namespaced history.state member. Never persist selection, clipboard, dialog drafts, file-picker state or token secrets. Submitted navigation creates history entries; repeated identical destinations do not. Back/Forward, direct URLs and reload restore authenticated state and rebuild folder breadcrumbs from current server parent IDs/names, bounded to 128 ancestors and confined to the selected bucket. Search is direct-child only.
+
+Missing/foreign/deleted buckets fall back to default with visible feedback; invalid/moved/deleted folder or detail IDs cannot expose another bucket. Retryable network/auth failures remain explicit rather than silently becoming empty folders. Restored URLs are canonicalized with replaceState. Cancel superseded list/detail/navigation requests. Back/Forward during a mutation is deferred until it finishes; navigation closes unsubmitted dialogs and clears one-time secrets. Restore list scroll after loading and focus the current view without stealing focus on ordinary async list refresh. Validate nested traversal, search, sort, details, page changes, reload, Back/Forward, deletion, malformed/foreign IDs, races, pagination and session errors.
+
+## Current task status — 0.3.9
+
+UI-01/02/04–08/11/12 core implementation is present; integrated accessibility and release acceptance remain under UI-10. UI-03 includes paginated real browsing, visible loading/empty/retry/session errors, stale-response protection and now URL/history/scroll restoration. UI-09 upload/preview is implemented in prepared 0.4.0 source; installed acceptance remains pending. UI-10 still needs latest installed/warm-cache checks, screen-reader, real touch/virtual keyboard, and full zoom/contrast validation. Historical prototype statements do not describe current production feature availability.
+
+UI-03 implementation verification: production build, three frontend model suites, 190 browser fixture checks (including 205-row pagination/scroll) and 245 actual-Nextcloud checks with candidate assets passed. Core implementation is complete; installed/warm-cache acceptance remains pending deployment of 0.3.9.

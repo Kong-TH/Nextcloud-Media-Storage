@@ -32,3 +32,32 @@ The four summaries show active tokens, active tokens expiring within two weeks, 
 Create token displays the latest permitted expiry in your browser's local time. The calendar and manual input use the server's configured maximum lifetime (365 days by default). Choose a future date and at least one permission. Folder-scoped tokens cannot manage credentials. If policy cannot be loaded, cancel and retry rather than assuming a limit.
 
 The one-time secret dialog provides Copy token and Done, with spacing between the value and actions. Copy reports success and leaves the dialog open. If clipboard access is denied, select/copy the value manually; closing removes it from the UI and it cannot be displayed again.
+
+
+## Manage a virtual bucket (0.3.7)
+
+Hover over any bucket row, including Library, to reveal its trailing pencil. Keyboard focus reveals it too; on touch, select/focus the row first. The edit action is separate from navigation and opens Edit bucket without changing the current destination.
+
+Change Bucket name and choose Save changes to rename. Names must be valid and unique among your buckets, including the default display name. Library remains reserved for the default bucket. Rename preserves identity, contents and virtual file paths.
+
+Clear contents asks for confirmation before removing every virtual folder and link inside that bucket; the bucket remains. Delete bucket confirms removal of the bucket and its contents. Library can be renamed and cleared, but its Delete button is disabled. Original Nextcloud files and links in other buckets remain untouched. Cancel/Escape in a confirmation returns to the editor with the name draft preserved; Save changes is independent of destructive actions.
+
+Clearing the current bucket returns to its empty root. Deleting the current additional bucket returns to the default bucket. Actions on another bucket preserve your current view. Successful clear/delete discards copied references to avoid stale sources. The 1000-node traversal limit includes the bucket root; remove smaller virtual folders first if it is exceeded. Tokens scoped to retained roots keep that scope; removed child/bucket boundaries fail closed, and name reuse does not reactivate them.
+
+## Browser navigation (0.3.9)
+
+Browser Back/Forward returns to previous buckets, folders, submitted searches, sort order, details and the API tokens page. Reload or bookmark the plugin URL to reopen the current view. The plugin preserves Nextcloud's own URL path/query. Names and breadcrumbs are refreshed from the server, so renaming a folder does not invalidate its stable ID.
+
+List scrolling is retained for Back/Forward/reload in the current browser history. New navigation starts at the top. Unsubmitted search text, selected objects, clipboard, form drafts and token secrets are not saved in the URL; reload clears transient state. Browser navigation closes an unsaved dialog and waits for a pending save before changing views. Missing or removed buckets/folders recover to an accessible root with a message. A session/network error offers Retry; sign in again when the session expires.
+
+## Upload and previews (prepared 0.4.0; deployment required)
+
+Choose Add → Upload media, choose an image/video and confirm its display name. The dialog shows the actual upload limit. Files are stored in your own Nextcloud `Media Storage/YYYY-MM-DD/` folders, grouped by calendar day using your account timezone (UTC fallback). Originals have unique storage filenames; the display name belongs to the plugin link. Nextcloud quota and folder permissions still apply.
+
+Progress measures transfer; saving on the server is shown separately. Stop cancels transmission and checks whether saving already finished. Retry keeps the same file/name/request to avoid duplicates; close and reopen Upload to choose another payload. Files already saved remain in Nextcloud, including partial/orphan files after a storage/database failure; manage those through Nextcloud before a fresh attempt. Move, Rename, Remove links, Clear contents and Delete bucket never change originals.
+
+Lists show thumbnails where Nextcloud provides them. Details show image previews or a video player; unsupported providers/codecs and inaccessible originals fall back with recovery feedback. Moving an original through Nextcloud within its accessible storage keeps its file-ID link; changed storage/permissions may require Rebind. Copy virtual path continues to copy plugin metadata paths, not public media URLs. Signed/public and external-token delivery are not enabled.
+
+### Finding an uploaded original
+
+After Upload finishes, a dismissible notification shows the display name and the original's path in your Nextcloud account. Open folder in Nextcloud opens the containing folder in a separate tab, rather than opening the image/video. The original has a unique filename inside Media Storage/YYYY-MM-DD; the display name belongs to its virtual link. If the current location cannot be retrieved, the notification still confirms the completed upload and omits the folder action.

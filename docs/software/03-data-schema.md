@@ -36,3 +36,18 @@ Multiple media nodes may already bind the same original Nextcloud file. Each vir
 ## Phase 3 virtual buckets — implementation contract
 
 Add ms_buckets with 64-character id/owner_id/name_key, 255-character name and bigint created_at, primary id and unique owner_id/name_key. IDs also identify separate ms_nodes bucket roots (empty parent, owner-qualified name_key). Keep the existing owner root as synthetic default Library: no populated node/path rewrite. Root nodes remain mutation-protected and excluded from ordinary listing/search. See 08-production-explorer.md; migration/provider validation is pending.
+
+
+## Bucket removal lifecycle (0.3.6)
+
+No migration or column change. Delete ms_bindings and nested ms_nodes metadata child-first, then the additional bucket root and its ms_buckets record, atomically under the existing owner-root lock. All deletes are owner-scoped. Keep the owner root/default Library and unrelated bindings/nodes. Existing ms_tokens.folder_id values are retained on deletion; missing boundaries fail closed rather than becoming NULL/owner-wide. Recreating a bucket name generates a fresh ID. Original Nextcloud filecache/storage data is untouched.
+
+## Bucket rename and clear lifecycle (0.3.7)
+
+No migration. The default display name uses the existing owner-root ms_nodes.name; an empty legacy name displays Library. Rename preserves root ID and deterministic name_key. Additional rename updates both ms_nodes and ms_buckets names/name_keys atomically under the owner-root lock. Uniqueness is owner-local and exact-case, includes the current default display name, and reserves Library for the default. Clear removes descendants/bindings child-first while retaining the root and bucket record/name. Other bucket roots have empty parent IDs and are outside that traversal. Token folder_id values are never widened by clearing/deletion; retained-root scopes remain valid and deleted-descendant scopes fail closed.
+
+## UI-09 upload journal — 0.4.0
+
+`Version000400Date20261010000000` adds `ms_uploads`; no existing node, binding, bucket or token is rewritten. Composite primary key `(owner_id, id)` isolates client request IDs per account. Fields: owner_id (64), id (32 hexadecimal characters), fingerprint (64 SHA-256), physical_path (255), node_id (64, empty before completion), state (16: pending/complete), created_at (bigint). The fingerprint includes virtual parent, alias, exact content hash and size. The server reserves a random physical filename independently of the client ID and captures the account-local calendar day. Journal entries persist after link/bucket removal so retries cannot recreate deleted references, and are purged on account lifecycle cleanup. Files/media bytes are never stored in this table.
+
+SQLite populated upgrade and migration re-entry are executed in `tests/schema.php`; MySQL/PostgreSQL SQL generation is checked separately. Live MySQL journal migration and concurrent upload acceptance require deployment and remain unverified.
