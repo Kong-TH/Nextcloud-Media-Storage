@@ -33,10 +33,17 @@ export async function allBuckets(signal){const rows=[];let offset=0;while(true){
 export async function davFiles(path='',signal){
  const user=getCurrentUser()?.uid;if(!user)throw new ApiError('Sign in to browse Nextcloud files.',401)
  const root=generateRemoteUrl('dav')+'/files/'+encodeURIComponent(user)+'/'
- const response=await fetch(root+path.split('/').filter(Boolean).map(encodeURIComponent).join('/'),{method:'PROPFIND',credentials:'same-origin',signal,headers:{Depth:'1',requesttoken:getRequestToken()??'','Content-Type':'application/xml'},body:'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><d:displayname/><d:resourcetype/><d:getcontenttype/><oc:fileid/></d:prop></d:propfind>'})
+ const target=root+path.split('/').filter(Boolean).map(encodeURIComponent).join('/')
+ const response=await fetch(target,{method:'PROPFIND',credentials:'same-origin',signal,headers:{Depth:'1',requesttoken:getRequestToken()??'','Content-Type':'application/xml'},body:'<?xml version="1.0"?><d:propfind xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:prop><d:displayname/><d:resourcetype/><d:getcontenttype/><oc:fileid/></d:prop></d:propfind>'})
  if(!response.ok)throw new ApiError('Could not browse Nextcloud files. Retry or choose another folder.',response.status)
- const xml=new DOMParser().parseFromString(await response.text(),'application/xml');if(xml.querySelector('parsererror'))throw new Error('Invalid file listing.')
- return [...xml.getElementsByTagNameNS('DAV:','response')].slice(1).flatMap(row=>{
+ const reader=response.body.getReader(),parts=[];let size=0
+ try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>2*1024*1024)throw new Error('This folder listing is too large. Choose a smaller folder in Nextcloud.');parts.push(value)}}finally{await reader.cancel()}
+ const bytes=new Uint8Array(size);let at=0;for(const part of parts){bytes.set(part,at);at+=part.length}
+ const xml=new DOMParser().parseFromString(new TextDecoder().decode(bytes),'application/xml');if(xml.querySelector('parsererror'))throw new Error('Invalid file listing.')
+ const self=decodeURIComponent(new URL(target).pathname).replace(/\/$/,'')
+ const responses=[...xml.getElementsByTagNameNS('DAV:','response')].filter(row=>{const href=row.getElementsByTagNameNS('DAV:','href')[0]?.textContent??'';return decodeURIComponent(new URL(href,location.origin).pathname).replace(/\/$/,'')!==self})
+ if(responses.length>1000)throw new Error('This folder has more than 1000 entries. Choose a smaller folder in Nextcloud.')
+ return responses.flatMap(row=>{
   const props=[...row.getElementsByTagNameNS('DAV:','propstat')].find(p=>/ 200 /.test(p.getElementsByTagNameNS('DAV:','status')[0]?.textContent??''))
   if(!props)return []
   const href=row.getElementsByTagNameNS('DAV:','href')[0]?.textContent??''

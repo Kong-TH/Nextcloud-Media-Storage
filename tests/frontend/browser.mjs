@@ -4,12 +4,14 @@ import {createServer} from 'node:http'
 import {readFile,writeFile} from 'node:fs/promises'
 import assert from 'node:assert/strict'
 import {chooseSelect,selectPopupChecks,tokenSelectChecks,selectEllipsisChecks} from './select-checks.mjs'
+import {multiPickerChecks} from './picker-multi-checks.mjs'
 import {detailChecks} from './detail-checks.mjs'
 import {uploadChecks} from './upload-checks.mjs'
 import {bucketChecks} from './bucket-checks.mjs'
 import {navigationChecks} from './navigation-checks.mjs'
 import {tokenFormChecks,tokenSecretChecks,tokenDashboardChecks} from './token-checks.mjs'
 import {materialChecks,toolbarChecks,buttonSpacingChecks,pickerChecks} from './material-checks.mjs'
+let sourceMode='baseline',importMode='normal';
 let fixtureRevision=1;let next=1,requestCount=0;const nodeOffsets=[];const rows=[{id:'image',parent_id:'root',name:'Photo.png',node_type:'media',binding_status:'available',binding:{mime_type:'image/png',file_size:12,last_known_path:'Photo.png'}},{id:'folder',parent_id:'root',name:'Campaigns',node_type:'folder'}]
 const appVersion=JSON.parse(await readFile('package.json','utf8')).version
 let fixturePolicy=true,fixtureLifetime=3600,uploadMode='normal'
@@ -22,8 +24,11 @@ const server=createServer(async(req,res)=>{
  if(url.pathname==='/app.js'||url.pathname==='/style.css'){res.writeHead(200,{'Content-Type':url.pathname.endsWith('.js')?'application/javascript':'text/css'});res.end(url.pathname.endsWith('.js')?await readFile('js/mediastorage-main.js'):Buffer.concat([Buffer.from('html,body {height:100%;margin:0;} #mediastorage-root {height:100dvh;}'),await readFile('css/mediastorage.css')]));return}
  if(req.method==='PROPFIND'){
   const path=decodeURIComponent(url.pathname).split('/files/fixture/')[1]??''
-  const entries=path===''?[{name:'Chosen.png',id:42},{name:'UI-picker',folder:true}]:path==='UI-picker'?[{name:'Deep folder with a very long name for narrow screens',folder:true}]:path==='UI-picker/Deep folder with a very long name for narrow screens'?[{name:'Leaf.png',id:43}]:[]
-  const xml=entries.map(f=>`<d:response><d:href>/remote.php/dav/files/fixture/${path?path+'/':''}${f.name}${f.folder?'/':''}</d:href><d:propstat><d:prop><d:displayname>${f.name}</d:displayname><d:getcontenttype>${f.folder?'httpd/unix-directory':'image/png'}</d:getcontenttype><oc:fileid>${f.id??0}</oc:fileid><d:resourcetype>${f.folder?'<d:collection/>':''}</d:resourcetype></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>`).join('')
+  let entries=path===''?[{name:'Chosen.png',id:42},{name:'UI-picker',folder:true}]:path==='UI-picker'?[{name:'Deep folder with a very long name for narrow screens',folder:true}]:path==='UI-picker/Deep folder with a very long name for narrow screens'?[{name:'Leaf.png',id:43}]:[]
+  if(sourceMode==='multi')entries=path===''?[{name:'A',folder:true,id:101},{name:'B',folder:true,id:102},{name:'one.png',id:103},{name:'two.png',id:104},{name:'bad.pdf',id:105,mime:'application/pdf'}]:path==='A'?[{name:'child.png',id:106},{name:'Sub',folder:true,id:107},{name:'skip.pdf',id:108,mime:'application/pdf'}]:path==='A/Sub'?[{name:'deep.png',id:109}]:[]
+  if(sourceMode==='large')entries=path===''?Array.from({length:30},(_,i)=>({name:'large-'+i+'.png',id:200+i})):[]
+  if(importMode==='lostOnce'&&path==='A')await new Promise(r=>setTimeout(r,350))
+  const xml=entries.map(f=>`<d:response><d:href>/remote.php/dav/files/fixture/${path?path+'/':''}${f.name}${f.folder?'/':''}</d:href><d:propstat><d:prop><d:displayname>${f.name}</d:displayname><d:getcontenttype>${f.folder?'httpd/unix-directory':f.mime??'image/png'}</d:getcontenttype><oc:fileid>${f.id??0}</oc:fileid><d:resourcetype>${f.folder?'<d:collection/>':''}</d:resourcetype></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>`).join('')
   res.writeHead(207,{'Content-Type':'application/xml'});res.end('<d:multistatus xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:response><d:href>'+url.pathname+'</d:href></d:response>'+xml+'</d:multistatus>');return
  }
  if(!url.pathname.includes('/api/v1/')){res.writeHead(404);res.end();return}
@@ -65,6 +70,7 @@ const server=createServer(async(req,res)=>{
   const items=matching.slice(offset,offset+limit)
   send({root_id:'root',nodes:items,parent_id:parent,...(paged?{total:matching.length,revision:fixtureRevision,next_offset:offset+items.length,has_more:offset+items.length<matching.length}:{})});return
  }
+ if(path==='/imports/entries'){const id='import-'+body.request_id+'-'+body.file_id,old=rows.find(n=>n.id===id);if(old){send(old);return}if(rows.some(n=>n.parent_id===body.parent_id&&n.name===body.name)){send({error:'Destination name already exists'},409);return}const n={id,name:body.name,parent_id:body.parent_id,node_type:body.folder?'folder':'media',...(!body.folder?{binding_status:'available',binding:{mime_type:'image/png',nextcloud_file_id:body.file_id,last_known_path:'Chosen.png',file_size:12}}:{})};rows.push(n);if(importMode==='lostOnce'){importMode='normal';send({error:'Connection lost after commit'},500);return}if(importMode==='slow')await new Promise(r=>setTimeout(r,200));send(n);return}
  if(path==='/folders'||path==='/bindings'){const n={id:'n'+next++,name:body.name,parent_id:body.parent_id,node_type:path==='/folders'?'folder':'media',...(path==='/bindings'?{binding_status:'available',binding:{mime_type:'image/png',nextcloud_file_id:body.file_id,last_known_path:'Chosen.png',file_size:12}}:{})};rows.push(n);send(n,201);return}
  if(path==='/tokens'){if(req.method==='POST'){const token={id:'t'+next++,name:body.name,scopes:body.scopes,expires_at:body.expires_at,status:'active',created_at:Math.floor(Date.now()/1000),folder_id:body.folder_id,last_used_at:null};tokens.push(token);send({token,secret:'fixture-only-secret'},201)}else send({tokens:tokens.slice(Number(url.searchParams.get('offset')??0),Number(url.searchParams.get('offset')??0)+Number(url.searchParams.get('limit')??100)),...(fixturePolicy?{policy:{server_time:Math.floor(Date.now()/1000),max_lifetime_seconds:fixtureLifetime}}:{})});return}
  if(path.startsWith('/tokens/')){const t=tokens.find(t=>t.id===path.split('/')[2]);if(req.method==='DELETE'){t.status='revoked';send(null,204)}else send({token:t,secret:'fixture-rotation-secret'},201);return}
@@ -89,6 +95,10 @@ async function click(selector,scroll=true){const point=await evaluate(`(()=>{con
 async function input(value){await evaluate(`(()=>{const input=document.querySelector('#task input:not([type=checkbox])');input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}))})()`)}
 try{
  await send('Runtime.enable');errors.length=0;await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await send('Page.navigate',{url:base});await wait('location.origin==='+JSON.stringify(base));await wait("document.querySelectorAll('#objects li').length===2")
+ const beforePickerNext=next
+ if(!process.argv.includes('--selection-only'))await multiPickerChecks({send,evaluate,click,wait,check,pause,setSources:mode=>{sourceMode=mode},setImport:mode=>{importMode=mode},getRows:()=>rows})
+ next=beforePickerNext
+ if(!process.argv.includes('--picker-only')){
  if(!process.argv.includes('--selection-only')){
  check('Real Vue mount renders server rows',await evaluate("document.querySelector('#objects').textContent.includes('Photo.png')"))
  check('Drawer footer shows supplied version only',await evaluate("document.querySelector('.drawer-footer').textContent.trim()=== "+JSON.stringify('v'+appVersion)+"&&!document.querySelector('#media-design').textContent.includes('Your media, organized.')&&!document.querySelector('#media-design').textContent.includes('Files stay in Nextcloud.')"))
@@ -287,6 +297,7 @@ try{
   await writeFile('/tmp/mediastorage-sticky-details-'+width+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'))
   await click('#close-detail');await wait("!document.querySelector('#details')")
   check('Sticky Close remains clickable after scrolling '+width,await evaluate("!document.querySelector('#details')"))
+ }
  }
  check('No runtime exceptions',errors.length===0)
  console.log(`${checks.length} built-frontend HTTP fixture checks passed (${requestCount} CSRF-backed requests). This is not live Nextcloud evidence.`)

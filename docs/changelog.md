@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.7.1 — Prepared, 2026-10-10
+
+- Center picker checkboxes with file icons/labels and remove dialog field margins from selection controls.
+- Passed 24 focused fixture checks, 14 actual-host candidate frontend checks, six frontend test files, build and 66 archive checks. Installed 0.7.1 acceptance pending root deployment.
+
+## 0.7.0 — Verified, 2026-10-10
+
+- Select multiple Nextcloud files/folders across navigation; select all eligible direct children after Home.
+- Preserve folder structures and source names, with a single-file virtual alias and explicit unsupported/conflict outcomes.
+- Add owner-locked per-entry import identities, partial retry, Stop and official Material linear progress.
+- Passed 396 browser fixture checks, six frontend test files, backend import tests and 66 archive checks. Installed 0.7.0 passed 12 focused browser and 19 HTTP checks with dedicated account cleanup. UI-16 keep/flatten choices remain planned.
+
 ## 0.6.8 — Prepared, 2026-10-10
 
 - Align detail labels, icons and values at row centers; reset inherited Nextcloud definition-list padding within plugin metadata.

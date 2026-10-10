@@ -1,6 +1,6 @@
 # Incremental browsing, bulk selection and Nextcloud reference import
 
-Status: UI-13 and UI-14 implemented in prepared 0.6.2 source; UI-15 and UI-16 remain planned, requested 2026-10-10. Installed acceptance is tracked separately. These additions do not close the remaining US-MS-07/08 release gates.
+Status: UI-13, UI-14 and UI-15 implemented in prepared 0.7.0 source; UI-16 remains planned. Installed acceptance is tracked separately. These additions do not close the remaining US-MS-07/08 release gates.
 
 ## UI-13 — Load objects in batches of 25
 
@@ -81,3 +81,11 @@ User requests the existing checkbox/Name/Type/Binding header to stay at the top 
 ## Two-row sticky header refinement — 2026-10-10
 
 Prepared 0.6.5 follows the user request to pin the existing Objects/count/selected/Sort row together with the column header. Both existing rows share one opaque sticky wrapper; no additional visible row. Progress/errors remain outside that wrapper. Object details/Close now has a 72px minimum height and 12px vertical padding, with keyboard scroll clearance adjusted for both headers. Scope-menu focus restoration continues to preserve scroll. No API/schema or Nextcloud shell changes. Build, five frontend suites, 42 focused / 279 combined browser fixture checks and 66 archive checks pass. Desktop/light and compact/dark/RTL screenshots visually inspected. Tests verify both summary and columns remain pinned together, scroll stays unchanged after scope-menu closure, and the 72px detail header keeps Close clickable at the end. Installed verification requires root deployment.
+
+## UI-15 implementation contract — 2026-10-10
+
+Authorized after checkpoint d9f2d18. Prepare 0.7.0. The existing authenticated WebDAV Depth:1 enumeration remains complete per browsed folder (no picker paging); reject listings above 1000 entries or 2 MiB instead of silently selecting a truncated subset. Select all includes eligible direct children only, excluding unsupported MIME types and missing IDs. Selection is keyed by source ID and retained across navigation; folder navigation and row checkboxes are independent. One selected file keeps its optional display name; multiple selections use source names. Selected ancestors cover selected descendants once, with an explicit covered count.
+
+Folder import defaults to preserving structure for UI-15; per-root flatten/keep choices remain UI-16. Before writes enumerate a bounded plan (1000 entries, 128 levels), report unsupported descendants, reject repeated/cyclic source IDs and duplicate top-level destination names. Existing destination name conflicts stop without overwriting. Sequential per-entry writes recheck authenticated source and destination access. A session-only POST /api/v1/imports/entries accepts request_id (UUID), file_id, folder flag, parent_id and name. Derive node ID from authenticated owner, request UUID and source ID; owner-locked retries return the existing identical node, rejecting changed parent/name/type/binding. This makes lost-response retries safe while that node exists, without a new schema or durable job promise. Deleting the created metadata removes this retry identity; the task is memory-only and is not resumed after reload.
+
+Use official linear progress: indeterminate enumeration, determinate completed/total writes. Retain the prepared plan and completed mapping on failure, and retry the same request UUID. Cancellation stops future entries, waits for any in-flight write, and reports already created references; no rollback or original file operation. Disable source edits once a plan is prepared; Close discards the local task, not saved metadata. UI-16 will extend review choices and large-operation lifecycle separately. APIs have no external/bearer route and retain session/CSRF middleware. Source creation, moves and deletes remain unavailable.

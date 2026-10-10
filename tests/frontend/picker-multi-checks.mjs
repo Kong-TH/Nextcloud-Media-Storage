@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: AGPL-3.0-or-later
+import {writeFile} from 'node:fs/promises'
+export async function multiPickerChecks({send,evaluate,click,wait,check,pause,setSources,setImport,getRows}){
+ await click('#add-bucket');await wait("document.querySelector('#task').open")
+ await evaluate("(()=>{const e=document.querySelector('#task input');e.value='Picker batch';e.dispatchEvent(new Event('input',{bubbles:true}))})()")
+ await click('#task md-filled-button');await wait("!document.querySelector('#task').open&&document.querySelector('#main h1').textContent==='Picker batch'")
+ const bucketId=await evaluate("document.querySelector('.bucket-entry.active .destination').id.replace('bucket-','')")
+ const open=async()=>{await wait("document.querySelector('#fab').getAttribute('aria-disabled')==='false'");await pause(120);await click('#fab');await wait("!document.querySelector('#fab-menu').hidden");await click('#fab-menu button[data-tip="Reference an existing Nextcloud file"]');await wait("document.querySelector('.file-picker input')&&!document.querySelector('#picker-select-all').disabled")}
+ const source=label=>'.file-picker input[aria-label="Select source '+label+'"]'
+ setSources('multi');await open()
+ check('Picker select-all follows Home in the same navigation row',await evaluate("(()=>{const a=document.querySelector('#picker-select-all'),h=document.querySelector('#picker-home');return h.nextElementSibling===a&&a.nextElementSibling.id==='picker-location'&&Math.abs(a.getBoundingClientRect().top-h.getBoundingClientRect().top)<1})()"))
+ check('Empty selection cannot submit',await evaluate("document.querySelector('#task md-filled-button').disabled"))
+ check('Unsupported source cannot be selected',await evaluate("document.querySelector('.file-picker input[aria-label=\"Select source bad.pdf\"]').disabled"))
+ await click('#picker-select-all');check('Select all chooses files and folders but excludes unsupported items',await evaluate("document.querySelector('#picker-count').textContent.startsWith('4 selected')&&document.querySelectorAll('.file-picker input:checked').length===4&&!document.querySelector('#task .task-field')"))
+ await evaluate("document.querySelector('#picker-select-all').focus()");for(const type of ['keyDown','keyUp'])await send('Input.dispatchKeyEvent',{type,key:'Enter',code:'Enter',windowsVirtualKeyCode:13,...(type==='keyDown'?{text:'\r'}:{})});await pause(80);check('Select all toggles direct children off by keyboard',await evaluate("document.querySelector('#picker-count').textContent.startsWith('0 selected')"))
+ await click('#picker-select-all')
+ await evaluate("[...document.querySelectorAll('.file-picker button')].find(b=>b.textContent.trim()==='folderA').click()")
+ await wait("document.querySelector('#picker-location').textContent==='A'&&!document.querySelector('#picker-back').disabled")
+ check('Folder navigation does not toggle its selection',await evaluate("document.querySelector('#picker-count').textContent.startsWith('4 selected')"))
+ await click(source('child.png'));await click('#picker-select-all')
+ check('Selection from another folder is retained',await evaluate("document.querySelector('#picker-count').textContent.startsWith('6 selected')"))
+ await click('#picker-home');await wait("document.querySelector('#picker-location').textContent==='Nextcloud files'&&document.querySelectorAll('.file-picker input:checked').length===4")
+ for(const width of [1440,390,320]){
+  await send('Emulation.setDeviceMetricsOverride',{width,height:844,deviceScaleFactor:1,mobile:false});await evaluate(`document.querySelector('#media-design').classList.toggle('dark',${width!==1440});document.querySelector('#media-design').dir=${JSON.stringify(width===320?'rtl':'ltr')}`);await pause(100)
+  check('Multi-picker fits dialog and navigation at '+width,await evaluate("(()=>{const d=document.querySelector('#task'),r=d.getBoundingClientRect(),n=document.querySelector('.picker-navigation');return d.scrollWidth<=d.clientWidth&&r.left>=15&&r.right<=innerWidth-15&&n.scrollWidth<=n.clientWidth&&document.querySelectorAll('.file-picker input').length===5})()"))
+  check('Picker checkboxes align with file rows at '+width,await evaluate("(()=>[...document.querySelectorAll('.picker-multi-row')].every(row=>{const input=row.querySelector('input'),label=row.querySelector('.check'),button=row.querySelector('button'),a=input.getBoundingClientRect(),b=button.getBoundingClientRect(),l=label.getBoundingClientRect(),s=getComputedStyle(input);return Math.abs(a.top+a.height/2-b.top-b.height/2)<1&&l.width>=48&&l.height>=48&&s.marginTop==='0px'&&s.marginBottom==='0px'}))()"))
+  await writeFile('/tmp/mediastorage-multi-picker-'+width+'.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'))
+ }
+ setImport('lostOnce');await click('#task md-filled-button');await wait("document.querySelector('#import-progress md-linear-progress')?.indeterminate")
+ check('Enumeration uses indeterminate Material progress',await evaluate("document.querySelector('#import-progress').textContent.includes('Preparing')"))
+ await wait("document.querySelector('#task .error')?.textContent.includes('Retry continues')")
+ check('Partial error keeps task, selection and retry plan',await evaluate("document.querySelector('#task').open&&document.querySelector('#picker-count').textContent.startsWith('6 selected')&&document.querySelector('.file-picker input').disabled&&document.querySelector('#task md-filled-button').textContent.includes('Retry import')"))
+ await click('#task md-filled-button');await wait("!document.querySelector('#task').open")
+ const imported=getRows().filter(n=>n.id.startsWith('import-'))
+ check('Overlapping folders import once and preserve subfolder structure',imported.length===7&&imported.find(n=>n.name==='deep.png').parent_id===imported.find(n=>n.name==='Sub').id)
+ check('Completion reports unsupported and covered items',await evaluate("document.querySelector('#main .status').textContent.includes('Added 7')&&document.querySelector('#main .status').textContent.includes('1 unsupported')&&document.querySelector('#main .status').textContent.includes('2 selected descendant')"))
+ await open();await click('#picker-select-all');await click('#task md-filled-button');await wait("document.querySelector('#task .error')?.textContent.includes('Destination name already exists')")
+ check('Name conflicts retain task without overwriting saved references',getRows().filter(n=>n.id.startsWith('import-')).length===7&&await evaluate("document.querySelector('#task').open&&document.querySelector('#task .error').textContent.includes('0 reference(s) confirmed')"))
+ await click('#task .dialog-actions md-text-button');await wait("!document.querySelector('#task').open")
+ // A new task demonstrates optional single-file alias and no retained selection.
+ await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await evaluate("document.querySelector('#media-design').classList.remove('dark');document.querySelector('#media-design').dir='ltr'")
+ await open();await click(source('one.png'));check('Single-file alias field is available',await evaluate("document.querySelector('#task .task-field input').value==='one.png'"))
+ await evaluate("(()=>{const e=document.querySelector('#task .task-field input');e.value='Alias from picker.png';e.dispatchEvent(new Event('input',{bubbles:true}))})()")
+ await click('#task md-filled-button');await wait("!document.querySelector('#task').open")
+ check('Single alias uses source ID and virtual name',getRows().some(n=>n.name==='Alias from picker.png'&&n.binding?.nextcloud_file_id===103))
+ setSources('large');await open();await click('#picker-select-all');setImport('slow')
+ await click('#task md-filled-button');await wait("!!document.querySelector('#import-progress md-linear-progress')")
+ check('Import uses official Material progress and prevents double submission',await evaluate("document.querySelector('#import-progress md-linear-progress').localName==='md-linear-progress'&&document.querySelector('#task md-filled-button').disabled"))
+ await click('#task .dialog-actions md-text-button');await wait("document.querySelector('#task .error')?.textContent.includes('Stopped.')")
+ const partial=getRows().filter(n=>n.name.startsWith('large-')).length
+ check('Stop retains completed references and stops future writes',partial>0&&partial<30)
+ setImport('normal');await click('#task md-filled-button');await wait("!document.querySelector('#task').open")
+ check('Retry completes all 30 entries without duplicates',getRows().filter(n=>n.name.startsWith('large-')).length===30)
+ await evaluate(`fetch('/index.php/apps/mediastorage/api/v1/buckets/'+${JSON.stringify(bucketId)},{method:'DELETE',headers:{requesttoken:document.head.dataset.requesttoken}}).then(r=>{if(!r.ok)throw new Error('Fixture cleanup failed')})`)
+ setSources('baseline');await send('Page.navigate',{url:(await evaluate('location.origin'))+'/#ms:bucket=root'});await wait("document.querySelectorAll('#objects li').length===2&&document.querySelector('#fab').getAttribute('aria-disabled')==='false'")
+}

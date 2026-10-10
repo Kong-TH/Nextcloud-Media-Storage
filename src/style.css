@@ -426,3 +426,14 @@
 #media-design .detail-fact.compact {display:grid;grid-template-columns:minmax(94px,1fr) minmax(0,1.2fr);align-items:center;gap:8px;}
 #media-design .detail-fact.compact dd {margin:0;line-height:24px;}
 #media-design .detail-actions {padding-block-start:12px;border-block-start:1px solid var(--outline);align-items:flex-start;gap:8px;}
+
+/* Picker selection and folder navigation are independent sibling controls. */
+#media-design .picker-multi-row {display:flex;align-items:center;min-width:0;min-height:48px;}
+#media-design .picker-multi-row .check {display:grid;place-items:center;flex-shrink:0;margin:0;padding:0;}
+#media-design .picker-multi-row input[type=checkbox] {margin:0;min-height:0;}
+#media-design .picker-multi-row button {flex:1;min-width:0;width:auto;overflow-wrap:anywhere;}
+#media-design .picker-multi-row button md-icon {flex-shrink:0;}
+#media-design #picker-count {margin-block:8px;font-size:13px;}
+#media-design #import-progress {margin-block:16px;}
+#media-design #import-progress p {margin-block:8px;}
+#media-design .picker-navigation {gap:4px;}

@@ -65,6 +65,39 @@ final class VirtualFileSystemService {
             return $node;
         });
     }
+    /** One owner-locked import entry; retries retain identity while metadata exists. */
+    public function importEntry(string $owner, string $requestId, int $fileId, bool $folder, string $name, string $parent): array {
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/D', $requestId) || $fileId < 1) {
+            throw new MediaException('Invalid import identity.');
+        }
+        NodeRules::name($name);
+        return $this->mutate($owner, function () use ($owner, $requestId, $fileId, $folder, $name, $parent) {
+            $this->folder($owner, $parent); $this->checkDepth($owner, $parent, 1);
+            $binding = $this->storage->importSource($owner, $fileId, $folder);
+            $id = substr(hash('sha256', 'import:' . $owner . ':' . $requestId . ':' . $fileId), 0, 32);
+            try { $existing = $this->store->get($owner, $id); }
+            catch (MediaException $e) { if ($e->status !== 404) { throw $e; } $existing = null; }
+            if ($existing !== null) {
+                if ($existing['name'] !== $name || $existing['parent_id'] !== $parent || $existing['node_type'] !== ($folder ? 'folder' : 'media')) {
+                    throw new MediaException('Imported reference changed. Close this task and review the destination.', 409);
+                }
+                if ($binding !== null) {
+                    $old = $this->store->binding($owner, $id);
+                    if (!$old || (int)$old['nextcloud_file_id'] !== $fileId || !hash_equals($old['storage_reference'], $binding['storage_reference'])) {
+                        throw new MediaException('Imported binding changed. Review the destination.', 409);
+                    }
+                }
+                return $existing;
+            }
+            if ($this->store->sibling($owner, $parent, $name)) { throw new MediaException('Destination name already exists: ' . $name, 409); }
+            $node = ['id' => $id, 'owner_id' => $owner, 'parent_id' => $parent, 'name' => $name,
+                'name_key' => hash('sha256', $name), 'node_type' => $folder ? 'folder' : 'media',
+                'created_at' => time(), 'updated_at' => time(), 'lock_version' => 0];
+            $this->store->insert($node);
+            if ($binding !== null) { $this->store->putBinding($owner, $id, $binding + ['created_at' => time()]); }
+            return $node;
+        });
+    }
     /** Call under the owner lock before a new physical upload is added. */
     public function validateCreation(string $owner, string $name, string $parent): void {
         NodeRules::name($name); $this->folder($owner, $parent); $this->checkDepth($owner, $parent, 1);

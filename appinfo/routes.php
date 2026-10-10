@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 declare(strict_types=1);
 return ['routes' => [
+    ['name' => 'node#importEntry', 'url' => '/api/v1/imports/entries', 'verb' => 'POST'],
     ['name' => 'access#create', 'url' => '/api/v1/nodes/{id}/signed-urls', 'verb' => 'POST'],
     ['name' => 'access#index', 'url' => '/api/v1/nodes/{id}/signed-urls', 'verb' => 'GET'],
     ['name' => 'access#destroy', 'url' => '/api/v1/access/{id}', 'verb' => 'DELETE'],

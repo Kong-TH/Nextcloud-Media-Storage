@@ -3,6 +3,7 @@
 import {readFile,writeFile} from 'node:fs/promises'
 import {randomBytes} from 'node:crypto'
 import assert from 'node:assert/strict'
+import {multiPickerLiveChecks} from './picker-live-checks.mjs'
 import {bucketChecks} from './bucket-checks.mjs'
 import {navigationChecks} from './navigation-checks.mjs'
 import {uploadLiveChecks} from './upload-live-checks.mjs'
@@ -52,6 +53,7 @@ try{
  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64')
  const dav=base+'/remote.php/dav/files/'+encodeURIComponent(username)+'/UI-fixture.png',davHeaders={Authorization:basic(username,password),'Content-Type':'image/png'}
  assert.equal((await fetch(dav,{method:'PUT',headers:davHeaders,body:png})).status,201,'Create physical UI fixture')
+ if(process.env.MEDIASTORAGE_TEST_PICKER_ONLY==='yes')assert.equal((await fetch(base+'/remote.php/dav/files/'+encodeURIComponent(username)+'/UI-empty',{method:'MKCOL',headers:{Authorization:basic(username,password)}})).status,201,'Create empty source fixture')
  for(const folder of ['UI-picker','UI-picker/Deep folder with a very long name for narrow screens'])assert.equal((await fetch(base+'/remote.php/dav/files/'+encodeURIComponent(username)+'/'+folder,{method:'MKCOL',headers:{Authorization:basic(username,password)}})).status,201,'Create picker navigation fixture')
  assert.equal((await fetch(base+'/remote.php/dav/files/'+encodeURIComponent(username)+'/UI-picker/Deep folder with a very long name for narrow screens/Leaf.png',{method:'PUT',headers:davHeaders,body:png})).status,201,'Create nested picker fixture')
  await send('Runtime.enable');errors.length=0;await send('Page.enable');await send('Network.enable');await send('Network.setCacheDisabled',{cacheDisabled:!cacheEnabled});await send('Network.clearBrowserCookies');await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await send('Page.navigate',{url:base+'/index.php/login'});await wait("document.querySelector('input[name=user]')!==null")
@@ -73,7 +75,9 @@ try{
  }
  const expectedVersion=JSON.parse(await readFile('package.json','utf8')).version
  if(!candidate)check('Installed version is supplied by server and displayed without slogans',await evaluate("document.querySelector('#mediastorage-root').dataset.version=== "+JSON.stringify(expectedVersion)+"&&document.querySelector('.drawer-footer').textContent.trim()=== "+JSON.stringify('v'+expectedVersion)+"&&!document.querySelector('#media-design').textContent.includes('Your media, organized.')&&!document.querySelector('#media-design').textContent.includes('Files stay in Nextcloud.')"))
- if(process.env.MEDIASTORAGE_TEST_EXTENDED_ONLY==='yes'){
+ if(process.env.MEDIASTORAGE_TEST_PICKER_ONLY==='yes'){
+  await multiPickerLiveChecks({send,evaluate,check,wait,click,pause,png,dav,davHeaders});check('No runtime exceptions in installed picker',errors.length===0);console.log(checks.length+' focused '+(candidate?'candidate':'installed')+' Nextcloud picker checks passed; dedicated account cleanup follows.')
+ }else if(process.env.MEDIASTORAGE_TEST_EXTENDED_ONLY==='yes'){
   await integratedChecks({send,evaluate,check,wait,click,pause,videos:[{extension:'webm',mime:'video/webm',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO??'/tmp/mediastorage-ui-video.webm')},{extension:'mp4',mime:'video/mp4',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO_MP4??'/tmp/mediastorage-ui-video.mp4')}]})
   console.log(`${checks.length} focused integrated acceptance checks passed (${candidate?'candidate':'installed'} assets).`)
   await writeFile('/tmp/mediastorage-integrated-results.json',JSON.stringify({browser:(await send('Browser.getVersion')).product,candidate,cacheEnabled,checks},null,2))
