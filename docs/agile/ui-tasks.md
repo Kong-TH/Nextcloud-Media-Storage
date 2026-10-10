@@ -94,3 +94,16 @@ The user accepted the installed UI without observed errors. UI-01–09/11/12 cor
 Physical mobile/keyboard (including the virtual keyboard), real browser zoom and complete visual-state contrast remain manual release gates. The user removed actual screen-reader testing from UI-10; accessible labels and existing keyboard/accessibility-tree checks remain in scope. CDP emulation and token-pair measurements do not fulfill them. Phase 4 signed/temporary access and external streaming protections remain planned; current video delivery delegates to authenticated Nextcloud DAV. No production UI change or app redeployment is needed for this test/documentation slice.
 
 Final combined installed-browser acceptance passed 305 checks with cache enabled and no candidate interception; disposable account cleanup completed.
+
+## New requested tasks — 2026-10-10, planned only
+
+The user requested recording four additions before implementation. See [bulk selection and import requirements](../design/bulk-selection-and-import.md) for behavior, edge cases and mandatory test cases.
+
+| ID | Task | Dependency | Acceptance |
+| --- | --- | --- | --- |
+| UI-13 | Incremental object loading in batches of 25 | Existing browsing/navigation | Append at scroll end; accurate counts; stable ordering; no duplicate or stale rows; loading/retry/exhaustion states |
+| UI-14 | Select-all with loaded/all-matching dropdown modes | UI-13 and bounded server selection contract | Select loaded UI objects or all matching database objects; counts/exclusions and all bulk actions include unloaded selections |
+| UI-15 | Multiple file/folder selection in Add from Nextcloud | Existing picker and source enumeration contract | Row checkboxes, selection across navigation, select-all after Home; separate navigation/selection and multi-item naming |
+| UI-16 | Per-folder keep/flatten import choices with Material progress | UI-15 and bounded batch import contract | Independent choice per selected folder; flatten only its outer wrapper; preserve nested folders; official md-linear-progress, partial failure/retry/cancel and multi-folder tests |
+
+No production code was changed for these tasks. The user requested task registration only; implementation awaits a subsequent instruction. Existing US-MS-07/08 and manual UI acceptance remain open.

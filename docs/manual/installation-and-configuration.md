@@ -1,5 +1,34 @@
 # Installation and Configuration
 
+## Current prepared release: 0.6.0
+
+Source includes the Material explorer, account-isolated virtual buckets/reference operations, session uploads/previews, scoped API credentials, temporary grants and streaming/protection. The installed page was checked on 2026-10-10 and still reports 0.5.1; do not infer deployment from source version. Historical sections below retain earlier evidence.
+
+Development packaging requires Node/npm and Python 3 (standard library only):
+
+```bash
+npm ci --ignore-scripts
+npm run package
+python3 tests/package_release.py
+```
+
+Artifacts are `dist/mediastorage-0.6.0.tar.gz` and its `.sha256` file. The archive contains one `mediastorage/` root and internal `SHA256SUMS`, with normalized metadata and exact frontend build hashes. No repository history, credentials, tests or node_modules are packaged. Build fingerprints reject changed frontend inputs or tampered/stale assets. This unsigned archive has not yet been installed; checksums establish byte identity, not publisher trust. Do not use the Snap-only development deployment script as a generic installer.
+
+For a non-Snap disposable target, verify the archive checksum, inspect the members, extract to an administrator-controlled staging directory, then install the `mediastorage/` directory into the configured writable app directory with ownership matching that Nextcloud deployment. Enable/upgrade with that instance's supported app manager/occ and verify version, migrations and acceptance tests. Never overwrite a newer app with an older archive or assume copying files rolls back schema. Back up both Nextcloud database and files first. A restore must recover a consistent database/file pair; reinstalling code is not a database restore. Exact archive installation acceptance remains pending.
+
+For the local Snap instance, `sudo sh scripts/deploy-snap.sh` remains the development installer, requiring root and prebuilt assets. It installs from the workspace, not the release archive. Expect `mediastorage 0.6.0 enabled`, then rerun installed checks. No schema is added beyond 000500. Do not expose delivery externally before verifying query-secret redaction in the actual proxy/server logs.
+
+Operator policy is configured through Nextcloud app settings. See [US-MS-07](../agile/user-stories/US-MS-07.md) for exact keys/defaults/bounds. Example on the local Snap host:
+
+```bash
+sudo nextcloud.occ config:app:set mediastorage delivery_grant_limit --value=120
+sudo nextcloud.occ config:app:set mediastorage delivery_hotlink_protection --value=1
+sudo nextcloud.occ config:app:set mediastorage delivery_allowed_domains --value='["media.example.com"]'
+```
+
+Hotlink policy defaults off and is advisory. When enabled, the current host is allowed, explicit disallowed browser origins are rejected and headerless authorized backend requests remain supported. Invalid policy or disabled native rate/file-lock protection fails closed with 503. Avoid changing policy for existing test harnesses: the default-grant test expects 120 requests/minute. 429 responses include Retry-After; 304/HEAD/416 still require current capability authorization and consume request quota.
+
+
 The backend foundation and installable metadata exist. Author: Kongphai Wutthichaiya. Licence: AGPL-3.0-or-later. App 0.2.0 is enabled and 70 live HTTP checks passed on the local Snap instance.
 
 Identify the target release, PHP runtime and database first. Once implemented and built, install the app as `custom_apps/mediastorage`, with dependencies and compiled assets included, and enable through Nextcloud's supported app mechanisms. Run migration and enablement checks on a disposable instance before production. Exact commands and package layout will be verified during Phase 1.

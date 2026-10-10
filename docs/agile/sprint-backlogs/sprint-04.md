@@ -32,3 +32,11 @@ User requested commit and continuation. Commit b5ac69e contains verified US-MS-0
 ## US-MS-07 local verification — 0.6.0 prepared
 
 61 streaming/protection checks pass: range parsing/overflow/conditions, actual controller seek and exact chunks, authorization before metadata, stream closure/deadline/skipped callback, native limiter 429 mapping, IP/identity separation, concurrency rollback/idempotence, disabled protection and optional advisory domains. Existing access/token suites pass 64/76; baseline/bucket/upload pass 69/62/46; schema checks and three frontend suites/build pass. No new database migration. Live harness now requires 0.6.0 and covers partial responses, validators and the default native grant quota. Installed verification and native-player/parallel-stream acceptance remain pending.
+
+## Packaging follow-up — 2026-10-10
+
+The user authorized committing US-MS-07 and continuing. Commit bfd532c records the 0.6.0 implementation/local evidence; no push. An authenticated installed-page check still reports 0.5.1. Continue the independent [US-MS-08 packaging slice](../user-stories/US-MS-08.md) while retaining US-MS-07 installed acceptance as open. This is not permission to publish or a claim that either story is complete.
+
+## Installed version observed — 2026-10-10
+
+After the user reported rebuilding, an authenticated app-page probe returned data-version 0.6.0. This confirms the displayed installed version only. The 0.6.0 HTTP/player/concurrency/policy acceptance suites have not yet run; US-MS-07 remains open.

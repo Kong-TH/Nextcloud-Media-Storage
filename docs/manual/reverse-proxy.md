@@ -11,3 +11,7 @@ Never share-cache authenticated or signed private media by default. Redact crede
 ## Temporary capability logging — 0.5.0
 
 The actual route is `/index.php/apps/mediastorage/delivery/v1/{selector}?key=...` (installation prefix may vary). Redact the `key` value and credential-bearing request/referrer fields from access/error/tracing logs, including upstream proxies. Management POST responses contain a one-time secret URL and must not be body-logged. The app does not log these values. Keep delivery responses private/no-store and do not add public caching. Basic GET/HEAD is implemented in prepared source; Range/conditional/rate policy remains US-MS-07.
+
+## Prepared streaming policy — 0.6.0
+
+Source now implements single Range/If-Range and conditional requests with private/no-store headers, native IP/grant/issuer quotas and concurrent stream slots. Preserve 206/304/412/416/429/503 and Retry-After without converting them into cached success pages. Disable response body buffering where needed for streaming, and bound upstream/client timeouts; application chunk/deadline checks cannot interrupt every blocked transport or storage read. The optional domain policy is advisory and headerless authorized backends remain supported. No reverse-proxy configuration or public deployment has been verified by local unit tests.

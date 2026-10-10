@@ -68,3 +68,7 @@ TemporaryAccessService owns issuance, current authorization and revocation; Acce
 ## US-MS-07 streaming contract
 
 DeliveryRules computes authorized preconditions/single-range plans. DeliveryProtectionService wraps public Nextcloud rate limiting, trusted client IP, optional advisory origin policy and named concurrency locks. BoundedStreamResponse owns exact-length chunk output, timeout and cleanup; HeadResponse handles all bodyless replies. TemporaryAccessService keeps owner authorization and stream opening under the owner lock. ScopedApiService adds external IP/token throttling. No new persistence tables. See [US-MS-07](../agile/user-stories/US-MS-07.md).
+
+## Release artifact boundary
+
+`npm run package` builds assets, records frontend source/output hashes and invokes the standard-library Python packager. The deployable boundary is an explicit runtime allowlist, independent of the workspace and its ignored private/test files. A deterministic archive contains one application root and SHA-256 manifest; a sidecar checksum covers the archive. Version/source/output mismatch and symlink inputs fail before generation. This unsigned local artifact is separate from the Snap workspace deploy path and does not establish package installation or release support; see US-MS-08/Sprint 05.

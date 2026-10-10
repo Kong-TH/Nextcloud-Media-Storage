@@ -244,3 +244,7 @@ The user deployed 0.5.1 without errors. `MEDIASTORAGE_TEST_DISPOSABLE=yes python
 ## US-MS-07 — 0.6.0 prepared
 
 Run `sh scripts/php-snap.sh tests/streaming.php` (61 streaming/protection checks, plus 64 access and 76 token checks). After deploying 0.6.0, run `MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/access_http.py`; it uses only disposable accounts and adds exact range/conditional assertions and 120 HEAD requests plus the expected native grant 429. Quota settings must be defaults for this harness. HEAD consumes quota without opening a stream. Installed results, native player delivery, parallel concurrency and configured hotlink scenarios are pending; local doubles do not establish distributed protection or proxy behavior.
+
+## US-MS-08 — local release packaging
+
+Run `npm run package` and `python3 tests/package_release.py`. Python 3 uses only its standard library. The second command generates two temporary archives and passes 66 checks covering all hashes, deterministic output, required runtime files, private/development exclusions, normalized safe members, version/source/asset mismatch rejection and file/directory symlink rejection. Generated `dist/` artifacts are ignored by Git. The archive has not been installed on Nextcloud; workspace deployment is not exact-archive acceptance. See Sprint 05 for open release gates.

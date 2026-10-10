@@ -12,3 +12,6 @@ for(const [name,file] of [['Vue','vue/LICENSE'],['Material Web','@material/web/L
 }
 notices+='\nGoogle Material Symbols font\n'+await readFile('img/material-symbols-NOTICE.txt','utf8')+'\n'+await readFile('img/material-symbols-LICENSE.txt','utf8')
 await writeFile('js/THIRD-PARTY-NOTICES.txt',notices)
+// Record exact source and output hashes for packaging; Python uses only its standard library.
+const {execFileSync}=await import('node:child_process')
+execFileSync('python3',['scripts/package-release.py','--record-build'],{stdio:'inherit'})
