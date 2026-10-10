@@ -1,6 +1,6 @@
 # US-MS-07: Streaming and abuse controls
 
-Status: Implementation committed in bfd532c (0.6.0), with 61 local streaming/protection checks passed. Installed streaming/protection/player/concurrency acceptance remains pending. User accepted deployed UI-16 after the 0.8.0 deployment request; that report does not verify this story. The contract below was recorded before implementation.
+Status: Complete for the recorded installed 0.8.0 target on 2026-10-10. Installed acceptance passed 76 access HTTP, 31 streaming/policy HTTP and 19 browser checks; 61 local streaming/protection checks also pass. Wider release gates remain US-MS-08. The contract below was recorded before implementation.
 
 ## Delivery behavior
 
@@ -35,3 +35,15 @@ Optional hotlink policy compares exact normalized hosts from valid HTTP(S) Origi
 Local tests must cover parsing/precedence, strong/weak tags, dates, suffix/open/clamped/invalid/huge ranges, exact output limits, stream closure/cleanup, trusted IP use, configured rate limits/Retry-After, concurrency rollback/release, advisory policy and disabled-protection failure. Installed HTTP checks must verify real image/video byte ranges and conditional responses, revoked/error cache isolation, native player seek, actual 429 and parallel stream limits. Do not claim unrun checks passed or proxy/load matrix support. US-MS-08 remains release packaging/security/compatibility work.
 
 References: [HTTP semantics RFC 9110](https://www.rfc-editor.org/rfc/rfc9110.html), installed Nextcloud 34 public ILimiter/ILockingProvider/IOutput interfaces and [controller guidance](https://docs.nextcloud.com/server/stable/developer_manual/basics/controllers.html).
+
+## US-MS-07 installed acceptance — 2026-10-10
+
+US-MS-07 is verified on installed Media Storage 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. No production code, schema, API or asset changes were needed for this acceptance slice.
+
+- `tests/access_http.py`: **76 live checks**, including exact ranges, conditional precedence, HEAD, revoked metadata denial and the default native grant quota (120 HEAD requests, then 429 with Retry-After).
+- `tests/streaming_http.py`: **31 live checks**, including a 64 MiB source with exact distant bytes, actual TCP-backpressured concurrent streams, per-grant/IP/issuer limits, cancellation/rejection lock cleanup, per-grant ETag isolation, configured hotlink allow/deny, invalid-policy failure and owner/original preservation.
+- `MEDIASTORAGE_TEST_STREAMING_ONLY=yes node tests/frontend/live.mjs`: **19 installed browser checks**, including the displayed/server version check and anonymous native MP4/WebM metadata, exact ranges, HEAD/304, playback and seek. The harness clears cookies and uses a neutral same-origin page, disposing of app session-expiry navigation; it does not substitute the session DAV bridge or intercept candidate assets.
+- `sh scripts/php-snap.sh tests/streaming.php`: **61 local streaming/protection checks**, plus 64 access and 76 token checks.
+- `MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py`: **130 live regression checks**; dedicated account/original cleanup completed.
+
+All live harnesses exited successfully and removed their dedicated accounts/originals. The policy suite restored all five changed app settings, including absence of previously unset keys. These results establish the recorded direct local target, not a proxy/CDN/load or database/version matrix, memory benchmark, crash-recovery certification or independent security review. Those remain US-MS-08 gates. UI-10 physical mobile/keyboard, actual browser zoom and full-state contrast remain open; screen-reader testing remains excluded by user decision.

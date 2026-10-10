@@ -4,6 +4,7 @@ import {readFile,writeFile} from 'node:fs/promises'
 import {randomBytes} from 'node:crypto'
 import assert from 'node:assert/strict'
 import {multiPickerLiveChecks} from './picker-live-checks.mjs'
+import {streamingPlayerChecks} from './streaming-live-checks.mjs'
 import {bucketChecks} from './bucket-checks.mjs'
 import {navigationChecks} from './navigation-checks.mjs'
 import {uploadLiveChecks} from './upload-live-checks.mjs'
@@ -75,7 +76,9 @@ try{
  }
  const expectedVersion=JSON.parse(await readFile('package.json','utf8')).version
  if(!candidate)check('Installed version is supplied by server and displayed without slogans',await evaluate("document.querySelector('#mediastorage-root').dataset.version=== "+JSON.stringify(expectedVersion)+"&&document.querySelector('.drawer-footer').textContent.trim()=== "+JSON.stringify('v'+expectedVersion)+"&&!document.querySelector('#media-design').textContent.includes('Your media, organized.')&&!document.querySelector('#media-design').textContent.includes('Files stay in Nextcloud.')"))
- if(process.env.MEDIASTORAGE_TEST_PICKER_ONLY==='yes'){
+ if(process.env.MEDIASTORAGE_TEST_STREAMING_ONLY==='yes'){
+  await streamingPlayerChecks({send,evaluate,check,wait,videos:[{extension:'webm',mime:'video/webm',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO??'/tmp/mediastorage-ui-video.webm')},{extension:'mp4',mime:'video/mp4',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO_MP4??'/tmp/mediastorage-ui-video.mp4')}]});check('No runtime exceptions in anonymous native player checks',errors.length===0);console.log(checks.length+' installed temporary-delivery native player checks passed; dedicated account cleanup follows.')
+ }else if(process.env.MEDIASTORAGE_TEST_PICKER_ONLY==='yes'){
   await multiPickerLiveChecks({send,evaluate,check,wait,click,pause,png,dav,davHeaders});check('No runtime exceptions in installed picker',errors.length===0);console.log(checks.length+' focused '+(candidate?'candidate':'installed')+' Nextcloud picker checks passed; dedicated account cleanup follows.')
  }else if(process.env.MEDIASTORAGE_TEST_EXTENDED_ONLY==='yes'){
   await integratedChecks({send,evaluate,check,wait,click,pause,videos:[{extension:'webm',mime:'video/webm',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO??'/tmp/mediastorage-ui-video.webm')},{extension:'mp4',mime:'video/mp4',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO_MP4??'/tmp/mediastorage-ui-video.mp4')}]})

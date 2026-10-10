@@ -1,11 +1,11 @@
 # Sprint 04: Temporary delivery and protection
 
-Status: US-MS-06 complete on installed 0.5.1; US-MS-07 implementation prepared for installed acceptance, 2026-10-10. User authorized US-MS-06 after accepting the installed explorer. UI-10 retains physical mobile/keyboard, browser zoom and all-state contrast acceptance; screen-reader testing is excluded at the user's request.
+Status: US-MS-06 complete on installed 0.5.1; US-MS-07 verified on installed 0.8.0, 2026-10-10. User authorized US-MS-06 after accepting the installed explorer. UI-10 retains physical mobile/keyboard, browser zoom and all-state contrast acceptance; screen-reader testing is excluded at the user's request.
 
 ## Selected work
 
 1. US-MS-06: per-resource opaque temporary read capabilities, session/scoped bearer issuance and revocation, owner lifecycle cleanup and real delivery without API secrets in URLs.
-2. US-MS-07 in progress: external streaming ranges/validators, throttling, hotlink policy and cache isolation.
+2. US-MS-07 complete on the recorded target: external streaming ranges/validators, throttling, hotlink policy and cache isolation.
 
 Read [US-MS-06](../user-stories/US-MS-06.md) for the documentation-first contract. Release 0.5.0 requires migration 000500 and privileged deployment before installed acceptance. Preserve the existing 0.4.1 baseline and all virtual-only mutation semantics. Do not claim Phase 4 protection complete from basic GET/HEAD delivery.
 
@@ -40,3 +40,15 @@ The user authorized committing US-MS-07 and continuing. Commit bfd532c records t
 ## Installed version observed — 2026-10-10
 
 After the user reported rebuilding, an authenticated app-page probe returned data-version 0.6.0. This confirms the displayed installed version only. The 0.6.0 HTTP/player/concurrency/policy acceptance suites have not yet run; US-MS-07 remains open.
+
+## US-MS-07 installed acceptance — 2026-10-10
+
+US-MS-07 is verified on installed Media Storage 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. No production code, schema, API or asset changes were needed for this acceptance slice.
+
+- `tests/access_http.py`: **76 live checks**, including exact ranges, conditional precedence, HEAD, revoked metadata denial and the default native grant quota (120 HEAD requests, then 429 with Retry-After).
+- `tests/streaming_http.py`: **31 live checks**, including a 64 MiB source with exact distant bytes, actual TCP-backpressured concurrent streams, per-grant/IP/issuer limits, cancellation/rejection lock cleanup, per-grant ETag isolation, configured hotlink allow/deny, invalid-policy failure and owner/original preservation.
+- `MEDIASTORAGE_TEST_STREAMING_ONLY=yes node tests/frontend/live.mjs`: **19 installed browser checks**, including the displayed/server version check and anonymous native MP4/WebM metadata, exact ranges, HEAD/304, playback and seek. The harness clears cookies and uses a neutral same-origin page, disposing of app session-expiry navigation; it does not substitute the session DAV bridge or intercept candidate assets.
+- `sh scripts/php-snap.sh tests/streaming.php`: **61 local streaming/protection checks**, plus 64 access and 76 token checks.
+- `MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py`: **130 live regression checks**; dedicated account/original cleanup completed.
+
+All live harnesses exited successfully and removed their dedicated accounts/originals. The policy suite restored all five changed app settings, including absence of previously unset keys. These results establish the recorded direct local target, not a proxy/CDN/load or database/version matrix, memory benchmark, crash-recovery certification or independent security review. Those remain US-MS-08 gates. UI-10 physical mobile/keyboard, actual browser zoom and full-state contrast remain open; screen-reader testing remains excluded by user decision.

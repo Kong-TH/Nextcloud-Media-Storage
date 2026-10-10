@@ -1,6 +1,6 @@
 # Compatibility and Testing
 
-Current result: deployed app 0.2.0 on Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL; 130 local checks, schema tests and 70 live HTTP checks passed. Earlier sections retain chronological inspection evidence.
+Current result: US-MS-07 verified on installed 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. See the latest acceptance below; earlier sections retain chronological evidence.
 
 ## Compatibility evidence
 
@@ -84,3 +84,15 @@ The follow-up FAB/toolbar/tooltip study passed 71 Chrome/CDP checks plus in-memo
 ## Installed 0.5.1 acceptance — 2026-10-10
 
 The user deployed 0.5.1 without errors. `MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/access_http.py` passed **47 live checks** with mandatory HEAD enabled: status 200, zero response bytes, Content-Length 68 for the 68-byte fixture. Exact anonymous GET, expiry/revocation, conditional revoked denial, owner/issuer/folder restrictions, rebind/physical move/content changes and UID recreation passed. `MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py` passed **130 live regression checks**. Both harnesses exited 0 and cleaned their dedicated accounts/originals. US-MS-06 is complete on Nextcloud 34.0.4 / Snap MySQL. US-MS-07 Range/validators/rate/hotlink controls and the wider release matrix remain planned. No 0.5.1 browser suite is claimed; production UI behavior did not change.
+
+## US-MS-07 installed acceptance — 2026-10-10
+
+US-MS-07 is verified on installed Media Storage 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. No production code, schema, API or asset changes were needed for this acceptance slice.
+
+- `tests/access_http.py`: **76 live checks**, including exact ranges, conditional precedence, HEAD, revoked metadata denial and the default native grant quota (120 HEAD requests, then 429 with Retry-After).
+- `tests/streaming_http.py`: **31 live checks**, including a 64 MiB source with exact distant bytes, actual TCP-backpressured concurrent streams, per-grant/IP/issuer limits, cancellation/rejection lock cleanup, per-grant ETag isolation, configured hotlink allow/deny, invalid-policy failure and owner/original preservation.
+- `MEDIASTORAGE_TEST_STREAMING_ONLY=yes node tests/frontend/live.mjs`: **19 installed browser checks**, including the displayed/server version check and anonymous native MP4/WebM metadata, exact ranges, HEAD/304, playback and seek. The harness clears cookies and uses a neutral same-origin page, disposing of app session-expiry navigation; it does not substitute the session DAV bridge or intercept candidate assets.
+- `sh scripts/php-snap.sh tests/streaming.php`: **61 local streaming/protection checks**, plus 64 access and 76 token checks.
+- `MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py`: **130 live regression checks**; dedicated account/original cleanup completed.
+
+All live harnesses exited successfully and removed their dedicated accounts/originals. The policy suite restored all five changed app settings, including absence of previously unset keys. These results establish the recorded direct local target, not a proxy/CDN/load or database/version matrix, memory benchmark, crash-recovery certification or independent security review. Those remain US-MS-08 gates. UI-10 physical mobile/keyboard, actual browser zoom and full-state contrast remain open; screen-reader testing remains excluded by user decision.

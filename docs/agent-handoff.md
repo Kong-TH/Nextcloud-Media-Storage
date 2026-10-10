@@ -1,3 +1,15 @@
+## US-MS-07 installed acceptance — 2026-10-10
+
+US-MS-07 is verified on installed Media Storage 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. No production code, schema, API or asset changes were needed for this acceptance slice.
+
+- `tests/access_http.py`: **76 live checks**, including exact ranges, conditional precedence, HEAD, revoked metadata denial and the default native grant quota (120 HEAD requests, then 429 with Retry-After).
+- `tests/streaming_http.py`: **31 live checks**, including a 64 MiB source with exact distant bytes, actual TCP-backpressured concurrent streams, per-grant/IP/issuer limits, cancellation/rejection lock cleanup, per-grant ETag isolation, configured hotlink allow/deny, invalid-policy failure and owner/original preservation.
+- `MEDIASTORAGE_TEST_STREAMING_ONLY=yes node tests/frontend/live.mjs`: **19 installed browser checks**, including the displayed/server version check and anonymous native MP4/WebM metadata, exact ranges, HEAD/304, playback and seek. The harness clears cookies and uses a neutral same-origin page, disposing of app session-expiry navigation; it does not substitute the session DAV bridge or intercept candidate assets.
+- `sh scripts/php-snap.sh tests/streaming.php`: **61 local streaming/protection checks**, plus 64 access and 76 token checks.
+- `MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py`: **130 live regression checks**; dedicated account/original cleanup completed.
+
+All live harnesses exited successfully and removed their dedicated accounts/originals. The policy suite restored all five changed app settings, including absence of previously unset keys. These results establish the recorded direct local target, not a proxy/CDN/load or database/version matrix, memory benchmark, crash-recovery certification or independent security review. Those remain US-MS-08 gates. UI-10 physical mobile/keyboard, actual browser zoom and full-state contrast remain open; screen-reader testing remains excluded by user decision.
+
 ## UI-16 user acceptance and commit authorization — 2026-10-10
 
 User confirms the deployed UI-16 works and authorizes committing 0.8.0. This records user acceptance after the deployment request, not an automated installed-byte or full installed-suite result. UI-01–16 feature implementation is complete; UI-10 physical mobile/keyboard, actual browser zoom and full-state contrast acceptance remains open (screen-reader testing excluded by user). Next technical work is US-MS-07 installed streaming/protection acceptance, followed by US-MS-08 exact-archive installation/upgrade, compatibility matrix, security/proxy/load review and backup/restore verification. Publishing/signing is a separate pending release action; no push is authorized by this checkpoint.
