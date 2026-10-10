@@ -18,6 +18,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Sprint 02: Secure API foundation](agile/sprint-backlogs/sprint-02.md)
 - [Sprint 03: Buckets and Material explorer](agile/sprint-backlogs/sprint-03.md)
 - [Sprint 04: Temporary delivery and protection](agile/sprint-backlogs/sprint-04.md)
+- [Streaming and protection story](agile/user-stories/US-MS-07.md)
 - [Temporary access story](agile/user-stories/US-MS-06.md)
 - [UI implementation tasks](agile/ui-tasks.md)
 - [Foundation story](agile/user-stories/US-MS-01.md)

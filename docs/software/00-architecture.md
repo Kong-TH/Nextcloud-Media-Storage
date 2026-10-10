@@ -64,3 +64,7 @@ Nextcloud Files may close a stream supplied to newFile. UploadService closes it 
 TemporaryAccessService owns issuance, current authorization and revocation; AccessStore persists hashed per-resource capabilities. AccessController retains session/CSRF management, ExternalAccessController verifies scoped bearers, and DeliveryController narrowly permits credential-authorized public GET/HEAD. Owner-root locking serializes authorization/stream opening with metadata, token and grant mutations. Streams use the official Files API and StreamResponse, with no DAV redirect or file materialization. See [US-MS-06](../agile/user-stories/US-MS-06.md).
 
 0.5.1 HEAD correction: a plugin HeadResponse implements public ICallbackResponse with no body callback, preserving representation Content-Length against Nextcloud App::main's empty-render rewrite. GET continues to use the official StreamResponse. No core edits or additional migration.
+
+## US-MS-07 streaming contract
+
+DeliveryRules computes authorized preconditions/single-range plans. DeliveryProtectionService wraps public Nextcloud rate limiting, trusted client IP, optional advisory origin policy and named concurrency locks. BoundedStreamResponse owns exact-length chunk output, timeout and cleanup; HeadResponse handles all bodyless replies. TemporaryAccessService keeps owner authorization and stream opening under the owner lock. ScopedApiService adds external IP/token throttling. No new persistence tables. See [US-MS-07](../agile/user-stories/US-MS-07.md).

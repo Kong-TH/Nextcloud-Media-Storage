@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0 — prepared, 2026-10-10
+
+- Add authorized single-byte-range delivery, ETag/Last-Modified and conditional responses.
+- Stream bounded chunks with cleanup and native concurrency slots; apply native IP/grant/issuer/bearer request quotas with retry headers.
+- Add optional exact-domain advisory hotlink policy while supporting headerless authorized backends.
+- Local checks pass; installed acceptance is pending. No new schema or UI changes.
+
 ## 0.5.1 — HEAD representation headers
 
 - Use a callback HEAD response so Nextcloud does not replace Content-Length with the empty-body length; preserve authorization and avoid opening a file stream.

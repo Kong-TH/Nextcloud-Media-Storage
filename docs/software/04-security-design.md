@@ -45,3 +45,7 @@ Preview/content routes waive CSRF only for safe authenticated GET embedding, nev
 ## US-MS-06 temporary capabilities
 
 See [temporary access contract](../agile/user-stories/US-MS-06.md). Anonymous bytes require a bounded, independently revocable capability pinned to one owner/node/bucket/file/storage/content version. Revalidate parent bearer scope/expiry/revocation and folder containment when applicable. Management retains CSRF or explicit bearer authentication. Uniform no-store 404 errors conceal capability/resource existence. No credentials in app logs or persistent browser state; delivery query keys require access-log redaction. In-flight authorized streams cannot be recalled. Ranges, rate limits and hotlink policy remain US-MS-07.
+
+## US-MS-07 protection contract
+
+Require current capability/bearer authorization before validators or range metadata. Count invalid attempts by trusted Nextcloud IP, aggregate valid grants/issuers across IPs, return no-store 429 with Retry-After, and bound concurrent streams by public provider locks. Core rate/file locking must be enabled; unavailable protection fails closed. Advisory exact-host filtering is optional and never replaces credentials; headerless authorized backends remain supported. No app-side X-Forwarded-For parsing. Native rate windows are best-effort under concurrency; proxy/WAF/timeouts remain needed. See [US-MS-07](../agile/user-stories/US-MS-07.md) for limits, stream cleanup and policy semantics.

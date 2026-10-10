@@ -55,3 +55,7 @@ SQLite populated upgrade and migration re-entry are executed in `tests/schema.ph
 ## Migration 000500 — temporary access
 
 Add ms_access: id (32, primary key), owner_id (64, owner index), node_id (64), bucket_id (64), secret_hash (64), file_id (bigint), storage_reference (64), file_etag (255), issuer_id (nullable 32), created_at/expires_at (bigint), revoked_at (nullable bigint). No plaintext secret, URL or physical path is persisted. Existing tables/data are preserved. Owner lifecycle purge deletes grants first. Node/token IDs are retained as authorization boundaries; deleting references/tokens never turns grants into unrestricted credentials. See the US-MS-06 contract for current-context validation.
+
+## US-MS-07 persistence boundary
+
+Streaming/protection uses existing grants plus public Nextcloud limiter and locking providers. No migration or app-owned rate/lock table is added. Core providers own their storage/expiry; owner cleanup continues to remove grants without touching physical originals.

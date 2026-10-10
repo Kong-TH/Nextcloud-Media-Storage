@@ -1,3 +1,7 @@
+## Current work — 2026-10-10
+
+Commit `b5ac69e` records the verified UI-10/US-MS-06 baseline; no push was performed. Source/build is now **0.6.0 prepared**, implementing US-MS-07 range/conditional delivery, bounded callbacks, native request quotas/concurrency and optional advisory hotlink policy. Installed evidence remains **0.5.1** below. Local streaming/protection tests pass 61 checks plus 64 access and 76 token checks. Baseline/bucket/upload/schema, three frontend suites and build pass. Updated live access harness expects 0.6.0 and adds ranges/validators/native grant 429, but has not run on the new release. Native player delivery, parallel installed concurrency, configured hotlink checks and wider release matrix remain pending; do not mark US-MS-07 complete. Next: deploy 0.6.0, run installed acceptance, then US-MS-08.
+
 # Agent handoff — 2026-10-09
 
 **Latest verified installed release: 0.5.1.** On 2026-10-10 the full temporary access HTTP suite passed **47 checks**, including anonymous exact-byte GET, HEAD with correct representation length/no body, expiry/revocation, scope/issuer/resource changes and owner recreation. The existing Phase 3 HTTP suite passed **130 checks** on the same installed release. Both suites cleaned their dedicated accounts/originals. Previous 0.4.1 browser evidence (305 checks) is historical; no 0.5.1 browser suite was run because this story changes delivery APIs, not UI behavior.

@@ -38,3 +38,14 @@ function double(string $interface, array $handlers): object {
     eval($code . '}');
     return new $class($handlers);
 }
+
+/** Default protection dependency for unrelated service regressions. */
+function deliveryProtection(): OCA\MediaStorage\Service\DeliveryProtectionService {
+    return new OCA\MediaStorage\Service\DeliveryProtectionService(
+        double(OCP\IConfig::class, ['getAppValue'=>fn($app,$key,$default)=>$default, 'getSystemValueBool'=>fn($key,$default)=>$default, 'getSystemValueInt'=>fn($key,$default)=>$default]),
+        double(OCP\IRequest::class, ['getRemoteAddress'=>fn()=>'127.0.0.1','getHeader'=>fn()=>'']),
+        double(OCP\IURLGenerator::class, ['getBaseUrl'=>fn()=>'https://example.test']),
+        double(OCP\Security\RateLimiting\ILimiter::class, ['registerAnonRequest'=>fn()=>null]),
+        double(OCP\Lock\ILockingProvider::class, ['acquireLock'=>fn()=>null,'releaseLock'=>fn()=>null])
+    );
+}

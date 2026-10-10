@@ -49,7 +49,7 @@ foreach (['1' => 60, '3600' => 3600, '999999999' => 31536000] as $configured => 
 $lifetime = '3600';
 denied(fn() => $tokens->issue('alice', 'Beyond policy', ['media:read'], time() + 7200), 400, 'Issuance uses the advertised configured policy');
 $lifetime = '31536000';
-$api = new ScopedApiService($tokens, $nodes, $vfs);
+$api = new ScopedApiService($tokens, $nodes, $vfs, deliveryProtection());
 $folder = $vfs->create('alice', 'allowed'); $inside = $vfs->create('alice', 'inside', $folder['id']);
 $outside = $vfs->create('alice', 'outside'); $bobFolder = $vfs->create('bob', 'bob-only');
 $issued = $tokens->issue('alice', 'Read backend', ['media:read'], time() + 3600);

@@ -113,7 +113,7 @@ try:
         provision('POST', '', {'userid': user, 'password': password}); created.append(user)
     a, at = login(*users[0]); b, bt = login(*users[1])
     status, page, _ = request(a, 'GET', prefix + '/')
-    check(status == 200 and b'data-version="0.5.1"' in page, 'Installed source is 0.5.1 before testing new endpoints')
+    check(status == 200 and b'data-version="0.6.0"' in page, 'Installed source is 0.6.0 before testing new endpoints')
     _, tree = api(a, at, 'GET', '/api/v1/nodes'); root = tree['root_id']
     _, folder = api(a, at, 'POST', '/api/v1/folders', {'name': 'allowed', 'parent_id': root})
     png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=')
@@ -133,7 +133,16 @@ try:
     check('no-store' in headers.get('Cache-Control','') and headers.get('Referrer-Policy') == 'no-referrer' and headers.get('X-Content-Type-Options') == 'nosniff', 'Public delivery security headers')
     status, body, headers = delivery(url, 'HEAD')
     check(status == 200 and body == b'' and int(headers.get('Content-Length',0)) == len(png), 'HEAD authorizes metadata without body (status=' + str(status) + ', bytes=' + str(len(body)) + ', length=' + str(headers.get('Content-Length')) + ')')
-    check(delivery(url, headers={'Range':'bytes=0-4'})[0] == 200 and headers.get('Accept-Ranges') == 'none', 'Range is explicitly not yet implemented')
+    validator = headers['ETag']; modified_at = headers['Last-Modified']
+    for range_value, expected, expected_bytes in [('bytes=0-4',206,png[:5]),('bytes=5-',206,png[5:]),('bytes=-5',206,png[-5:]),('bytes=0-999999999999999999999',206,png),('bytes=999999999999999999999-',416,b''),('bytes=-0',416,b''),('bytes=5-2',416,b''),('bytes=0-1,3-4',416,b''),('items=0-4',200,png),('bytes=bad',200,png)]:
+        code, part, range_headers = delivery(url, headers={'Range':range_value})
+        check(code == expected and part == expected_bytes and range_headers.get('Accept-Ranges') == 'bytes', 'Streaming range ' + range_value)
+        if code == 206: check('Content-Range' in range_headers and int(range_headers['Content-Length']) == len(part), 'Partial representation headers match bytes')
+    check(delivery(url,'HEAD',{'Range':'bytes=0-4'})[2].get('Content-Length') == str(len(png)), 'HEAD ignores range and describes full original')
+    for conditions, expected in [({'If-None-Match':validator},304),({'If-None-Match':'W/'+validator},304),({'If-Modified-Since':modified_at},304),({'If-Match':'"wrong"'},412),({'If-Match':'W/'+validator},412),({'Range':'bytes=0-4','If-Range':validator},206),({'Range':'bytes=0-4','If-Range':'"wrong"'},200),({'Range':'bytes=0-4','If-Range':modified_at},206)]:
+        code, part, conditional_headers = delivery(url,headers=conditions)
+        check(code == expected and 'no-store' in conditional_headers.get('Cache-Control',''), 'Authorized conditional status ' + str(expected))
+        if code in (304,412): check(part == b'', 'Conditional response has no representation body')
     conditional_status = delivery(url, headers={'If-None-Match':'*'})[0]
     check(conditional_status in (200,304), 'Host conditional handling occurs after successful authorization')
     target = urllib.parse.urlsplit(url)
@@ -145,6 +154,12 @@ try:
     check(status == 200 and metadata['access'][0]['id'] == gid and 'url' not in json.dumps(metadata) and 'secret_hash' not in json.dumps(metadata), 'Management metadata never redisplays URL/verifier')
     check(api(b,bt,'GET',endpoint)[0] == 404, 'Cross-owner metadata denied')
     check(api(b,bt,'DELETE','/api/v1/access/'+gid)[0] == 404, 'Cross-owner revoke denied')
+    _, quota = api(a,at,'POST',endpoint,{'ttl_seconds':900})
+    for attempt in range(120):
+        if delivery(quota['url'],'HEAD')[0] != 200: raise AssertionError('Native grant quota rejected too early')
+    quota_status, quota_body, quota_headers = delivery(quota['url'],'HEAD')
+    check(quota_status == 429 and quota_headers.get('Retry-After') == '60', 'Native grant limiter rejects request 121 with Retry-After')
+    check(delivery(url,'HEAD')[0] == 200, 'One exhausted grant does not block a separate authorized grant')
     _, second = api(a,at,'POST',endpoint,{'ttl_seconds':60})
     changed = target._replace(path=urllib.parse.urlsplit(second['url']).path).geturl()
     check(delivery(changed)[0] == 404, 'Selector substitution cannot authorize another grant')

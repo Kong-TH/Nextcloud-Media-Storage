@@ -25,7 +25,7 @@ $passed = 0; $nodes = new MemoryStore(); $repository = new MemoryTokens(); $gran
 $etag = 'version-one'; $readable = true; $storageId = 'fixture-storage'; $mime = 'image/png'; $opens = 0; $streamFails = false;
 $physicalStorage = double(OCP\Files\Storage\IStorage::class, ['getId' => function () use (&$storageId) { return $storageId; }]);
 $file = double(OCP\Files\File::class, ['getId' => fn() => 42, 'getPath' => fn() => '/alice/files/fixture.png',
-    'getStorage' => fn() => $physicalStorage, 'getSize' => fn() => 13,
+    'getStorage' => fn() => $physicalStorage, 'getSize' => fn() => 13, 'getMTime' => fn() => 1700000000,
     'getMimeType' => function () use (&$mime) { return $mime; }, 'getEtag' => function () use (&$etag) { return $etag; },
     'isReadable' => function () use (&$readable) { return $readable; },
     'fopen' => function ($mode) use (&$opens, &$streamFails) { ++$opens; if ($streamFails) return false; $s = fopen('php://temp', 'w+b'); fwrite($s, 'fixture-bytes'); rewind($s); return $s; }]);
@@ -35,7 +35,7 @@ $root = double(OCP\Files\IRootFolder::class, ['getUserFolder' => fn() => $home])
 $storage = new MediaStorageService($root); $vfs = new VirtualFileSystemService($nodes, $storage);
 $config = double(OCP\IConfig::class, ['getAppValue' => fn($app, $key, $default) => $default]);
 $tokens = new ApiTokenService($repository, $nodes, $vfs, $users, $config);
-$api = new ScopedApiService($tokens, $nodes, $vfs);
+$api = new ScopedApiService($tokens, $nodes, $vfs, deliveryProtection());
 $access = new TemporaryAccessService($grants, $nodes, $repository, $tokens, $api, $storage, $config);
 $folder = $vfs->create('alice', 'shared'); $other = $vfs->create('alice', 'outside');
 $media = $vfs->create('alice', 'alias.png', $folder['id'], 42); $nodeId = $media['id'];
@@ -93,7 +93,7 @@ $own=$access->issue('alice',$nodeId,60,$nextToken); $access->revoke('alice',$own
 denied(fn() => $access->revoke('bob',$id),404,'Cross-owner revocation denied');
 $streamFails=true; denied(fn() => $access->read($id,$key),503,'Failed stream opening returns safe retryable error'); $streamFails=false;
 $requestMethod='GET'; $request=double(OCP\IRequest::class,['getMethod'=>function () use (&$requestMethod) { return $requestMethod; },'getHeader'=>fn()=> '']);
-$delivery=new OCA\MediaStorage\Controller\DeliveryController($request,$access);
+$delivery=new OCA\MediaStorage\Controller\DeliveryController($request,$access,deliveryProtection());
 $requestMethod='HEAD'; $response=$delivery->read($id,$key); $headers=(new ReflectionProperty(OCP\AppFramework\Http\Response::class,'headers'))->getValue($response);
 check($response->getStatus()===200 && $headers['Content-Length']==='13','HEAD returns authorized metadata');
 check($response instanceof OCP\AppFramework\Http\ICallbackResponse,'HEAD bypasses framework empty-body length rewrite');

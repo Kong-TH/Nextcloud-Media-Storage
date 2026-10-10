@@ -5,12 +5,14 @@ namespace OCA\MediaStorage\Service;
 use OCA\MediaStorage\Db\NodeStore;
 use OCA\MediaStorage\Exception\MediaException;
 final class ScopedApiService {
-    public function __construct(private ApiTokenService $tokens, private NodeStore $nodes, private VirtualFileSystemService $vfs) {}
+    public function __construct(private ApiTokenService $tokens, private NodeStore $nodes, private VirtualFileSystemService $vfs, private DeliveryProtectionService $protection) {}
     public function access(string $header, string $scope, callable $operation): mixed {
+        $this->protection->request('external');
         $initial = $this->tokens->authenticate($header);
         return $this->tokens->locked($initial['owner_id'], function () use ($header, $scope, $operation) {
             // Recheck revocation/expiry after taking the same lock as token management.
             $token = $this->tokens->authenticate($header);
+            $this->protection->token($token);
             if (!in_array($scope, json_decode($token['scopes'], true, 8, JSON_THROW_ON_ERROR), true)) { throw new MediaException('Insufficient token scope.', 403); }
             $result = $operation($token); $this->tokens->used($token); return $result;
         });

@@ -83,14 +83,15 @@ final class TemporaryAccessService {
         });
     }
     /** Authorize and open inside the lock; never cache authorization across requests. */
-    public function read(string $id, string $key, bool $head = false): array {
+    public function read(string $id, string $key, bool $head = false, ?callable $prepare = null): array {
         $unavailable = fn() => new MediaException('Temporary access not available.', 404);
         if (!preg_match('/^[a-f0-9]{32}$/D', $id) || !preg_match('/^[A-Za-z0-9_-]{43}$/D', $key)) { throw $unavailable(); }
         $initial = $this->access->find($id);
         $expected = $initial['secret_hash'] ?? str_repeat('0', 64);
         if (!hash_equals($expected, hash('sha256', $key)) || !$initial) { throw $unavailable(); }
+        $authorized = false; $result = null;
         try {
-            return $this->tokens->locked($initial['owner_id'], function () use ($id, $key, $head, $unavailable) {
+            return $this->tokens->locked($initial['owner_id'], function () use ($id, $key, $head, $unavailable, $prepare, &$authorized, &$result) {
                 $row = $this->access->find($id);
                 if (!$row || !hash_equals($row['secret_hash'], hash('sha256', $key)) || $row['revoked_at'] !== null || (int)$row['expires_at'] <= time()) { throw $unavailable(); }
                 if ($row['issuer_id'] !== null) {
@@ -103,16 +104,22 @@ final class TemporaryAccessService {
                     || !hash_equals($row['storage_reference'], $binding['storage_reference'])
                     || !hash_equals($row['file_etag'], $file->getEtag())
                     || $this->bucket($row['owner_id'], $row['node_id']) !== $row['bucket_id']) { throw $unavailable(); }
-                $result = ['name' => $node['name'], 'mime' => $file->getMimeType(), 'size' => (int)$file->getSize(), 'stream' => null];
-                if (!$head) {
+                $authorized = true;
+                $result = ['name' => $node['name'], 'mime' => $file->getMimeType(), 'size' => (int)$file->getSize(),
+                    'mtime' => (int)$file->getMTime(), 'etag' => hash('sha256', $id . ':' . $row['file_etag']), 'stream' => null];
+                $result += $prepare !== null ? $prepare($result, $row) : ['body' => !$head, 'offset' => 0];
+                if ($result['body']) {
                     $result['stream'] = $file->fopen('rb');
                     if (!is_resource($result['stream'])) { throw new MediaException('Media stream unavailable.', 503); }
+                    if ($result['offset'] > 0 && fseek($result['stream'], $result['offset']) !== 0) { throw new MediaException('Media seeking unavailable.', 503); }
                 }
                 return $result;
             });
-        } catch (MediaException $error) {
-            if ($error->status === 503) { throw $error; }
-            throw $unavailable();
+        } catch (\Throwable $error) {
+            if (is_resource($result['stream'] ?? null)) { fclose($result['stream']); }
+            if (isset($result['release'])) { ($result['release'])(); }
+            if ($error instanceof MediaException && !$authorized && $error->status !== 503) { throw $unavailable(); }
+            throw $error;
         }
     }
 }

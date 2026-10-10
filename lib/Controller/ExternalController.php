@@ -18,7 +18,7 @@ final class ExternalController extends Controller {
             $result = $this->api->access($this->request->getHeader('Authorization'), $scope, $action);
             return new JSONResponse($result, $status, ['Cache-Control' => 'no-store', 'Pragma' => 'no-cache']);
         } catch (MediaException $error) {
-            $headers = ['Cache-Control' => 'no-store'];
+            $headers = ['Cache-Control' => 'no-store'] + $error->headers;
             if ($error->status === 401) { $headers['WWW-Authenticate'] = 'Bearer realm="mediastorage"'; }
             return new JSONResponse(['error' => $error->getMessage()], $error->status, $headers);
         }
