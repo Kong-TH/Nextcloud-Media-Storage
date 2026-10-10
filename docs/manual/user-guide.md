@@ -1,5 +1,13 @@
 # User guide
 
+## Temporary access APIs — installed 0.5.1
+
+Session clients can POST `/api/v1/nodes/{id}/signed-urls` with `ttl_seconds` to receive a one-time absolute URL and revocation ID. Nextcloud session/request-token requirements apply. Authorized integrations use the corresponding `/external/v1/nodes/{id}/signed-urls` endpoint with a server-held `media:read` bearer. Never send that long-lived bearer to the media recipient.
+
+The recipient can open the temporary URL without signing in. Keep the complete URL private: it is a read credential reusable until expiration/revocation. Default lifetime is 15 minutes; the default maximum is one hour, and bearer-derived access ends no later than its issuer. Session owners revoke using DELETE `/api/v1/access/{id}`; external issuers use DELETE `/external/v1/access/{id}` for their own grants. Owner session metadata listing is available at GET `/api/v1/nodes/{id}/signed-urls` and cannot recover a lost URL.
+
+A changed original, changed binding, another bucket, expired/revoked issuer or inaccessible/deleted reference prevents delivery. Revocation cannot recall bytes already downloaded/in flight. Ordinary Copy virtual path remains metadata copying; there is no new temporary-link UI control in this API story. Installed 0.5.1 temporary access acceptance passed; advanced external streaming/protection is a separate task.
+
 ## Explorer available in 0.3.0
 
 Open Media Storage from Nextcloud's app navigation. The default Library and additional virtual buckets organize references to your accessible Nextcloud files. Use + Add beside Buckets to create another bucket. On narrow screens open the navigation drawer with the menu button. The bottom of the drawer displays the installed plugin version only (for example v0.3.3). Bucket rename/removal is not available yet.

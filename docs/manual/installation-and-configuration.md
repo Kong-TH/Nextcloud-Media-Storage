@@ -62,3 +62,11 @@ The private admin credential file at /tmp/mediastorage-nextcloud-admin.json is m
 ## 0.4.0 upload configuration
 
 Deploy the built 0.4.0 package and enable the app to run migration 000400 (ms_uploads). The Snap deploy script disables before replacing code, then app:enable invokes Nextcloud Installer migrations; it does not reset existing plugin metadata. Upload max_upload_bytes defaults to 104857600 (100 MiB), with a 1 GiB application cap and worker PHP upload/post limits applied. Query the authenticated uploads/policy endpoint for the effective limit; changing CLI PHP alone does not change the web worker. Account core/timezone determines dated upload folders, falling back to UTC. Uploads require an account-owned writable `Media Storage` folder and available quota. No physical-file cleanup job is installed.
+
+## Upgrade to 0.5.1 — temporary access
+
+Build the frontend and deploy the complete app through the existing installation procedure. Migration 000500 adds ms_access without rewriting existing tables; owner cleanup now includes grants. Use the app manager's upgrade/migration runner rather than copying only PHP files into a running enabled release. Local populated SQLite upgrade/re-entry and the actual Nextcloud 34.0.4 / Snap MySQL target have been tested; other deployments remain unverified.
+
+Optional app setting `max_access_lifetime` is a lifetime in seconds (default 3600, clamped 60–86400); the default requested TTL is min(900, maximum). Changing this ceiling affects new issuance; existing grants keep their recorded expiry and can be explicitly revoked. Bearer-issued grants also depend on the issuer's current validity and boundary. Redact delivery `key` query values in all proxy/access/tracing logs before exposing the instance externally. See the API and reverse-proxy guides.
+
+0.5.0 had a HEAD representation-length defect; deploy 0.5.1. Basic temporary GET/HEAD is verified, while external Range/validators, throttling and hotlink policy remain the next story.

@@ -6,6 +6,7 @@ import assert from 'node:assert/strict'
 import {bucketChecks} from './bucket-checks.mjs'
 import {navigationChecks} from './navigation-checks.mjs'
 import {uploadLiveChecks} from './upload-live-checks.mjs'
+import {integratedChecks} from './integrated-checks.mjs'
 import {tokenFormChecks,tokenSecretChecks,tokenDashboardChecks} from './token-checks.mjs'
 import {materialChecks,toolbarChecks,buttonSpacingChecks,pickerChecks} from './material-checks.mjs'
 if(process.env.MEDIASTORAGE_TEST_DISPOSABLE!=='yes')throw new Error('Set MEDIASTORAGE_TEST_DISPOSABLE=yes for the authorized local test instance.')
@@ -72,6 +73,11 @@ try{
  }
  const expectedVersion=JSON.parse(await readFile('package.json','utf8')).version
  if(!candidate)check('Installed version is supplied by server and displayed without slogans',await evaluate("document.querySelector('#mediastorage-root').dataset.version=== "+JSON.stringify(expectedVersion)+"&&document.querySelector('.drawer-footer').textContent.trim()=== "+JSON.stringify('v'+expectedVersion)+"&&!document.querySelector('#media-design').textContent.includes('Your media, organized.')&&!document.querySelector('#media-design').textContent.includes('Files stay in Nextcloud.')"))
+ if(process.env.MEDIASTORAGE_TEST_EXTENDED_ONLY==='yes'){
+  await integratedChecks({send,evaluate,check,wait,click,pause,videos:[{extension:'webm',mime:'video/webm',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO??'/tmp/mediastorage-ui-video.webm')},{extension:'mp4',mime:'video/mp4',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO_MP4??'/tmp/mediastorage-ui-video.mp4')}]})
+  console.log(`${checks.length} focused integrated acceptance checks passed (${candidate?'candidate':'installed'} assets).`)
+  await writeFile('/tmp/mediastorage-integrated-results.json',JSON.stringify({browser:(await send('Browser.getVersion')).product,candidate,cacheEnabled,checks},null,2))
+ }else{
  check('Actual Nextcloud host preserved',await evaluate("!!document.querySelector('#header')&&!!document.querySelector('#media-design')&&!document.body.textContent.includes('DESIGN STUDY')"))
  check('Closed native task dialog is hidden',await evaluate("!document.querySelector('#task').getClientRects().length"))
  check('Workspace respects host bottom inset',await evaluate("document.querySelector('#main').getBoundingClientRect().bottom<=document.querySelector('#mediastorage-root').getBoundingClientRect().bottom+1"))
@@ -155,9 +161,11 @@ await evaluate("document.querySelector('#media-design').classList.remove('dark')
  await bucketChecks({send,evaluate,check,wait,click,pause,name:'UI brand'})
  await uploadLiveChecks({send,evaluate,check,wait,click,pause,png})
  await navigationChecks({send,evaluate,check,wait,click,pause})
+ if(process.env.MEDIASTORAGE_TEST_EXTENDED==='yes')await integratedChecks({send,evaluate,check,wait,click,pause,videos:[{extension:'webm',mime:'video/webm',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO??'/tmp/mediastorage-ui-video.webm')},{extension:'mp4',mime:'video/mp4',bytes:await readFile(process.env.MEDIASTORAGE_TEST_VIDEO_MP4??'/tmp/mediastorage-ui-video.mp4')}]})
  const original=await fetch(dav,{headers:davHeaders});check('Physical file bytes preserved after rename/copy/remove',original.ok&&Buffer.from(await original.arrayBuffer()).equals(png))
  await evaluate('document.activeElement.blur()');const desktop=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-live-desktop.png',Buffer.from(desktop.data,'base64'))
  check('No runtime exceptions in actual host',errors.length===0)
  console.log(`${checks.length} live Nextcloud UI checks passed (${candidate?'candidate local frontend assets':'installed assets'}, cache ${cacheEnabled?'enabled':'disabled'}); dedicated fixture account will be removed.`)
  await writeFile('/tmp/mediastorage-live-ui-results.json',JSON.stringify({browser:(await send('Browser.getVersion')).product,candidate,cacheEnabled,checks},null,2))
-}catch(e){console.error(e.message);if(await evaluate("!!document.querySelector('#media-design')&&!document.querySelector('#task .secret')").catch(()=>false)){const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-live-failure.png',Buffer.from(shot.data,'base64'));console.error(await evaluate("[...document.querySelectorAll('[role=dialog]')].map(d=>({classes:d.className,buttons:[...d.querySelectorAll('button')].map(b=>({label:b.getAttribute('aria-label'),title:b.title,text:b.textContent.slice(0,80)}))}))"))}console.error(await evaluate("({path:location.pathname,dialogs:[...document.querySelectorAll('[role=dialog],dialog')].map(e=>({label:e.getAttribute('aria-label'),open:e.open,visible:!!e.getClientRects().length})),add:document.querySelector('#add-bucket')?.getBoundingClientRect().toJSON()})").catch(()=>({})));if(errors.length)console.error('Browser runtime errors occurred ('+errors.length+').');process.exitCode=1}finally{if(candidate)await send('Fetch.disable');ws.close();if(created)await provision('DELETE')}
+}
+}catch(e){console.error(e.message);console.error('Last passed checks:',checks.slice(-3));console.error(await evaluate("({tag:document.activeElement?.tagName,id:document.activeElement?.id,focused:document.hasFocus()})").catch(()=>({})));if(await evaluate("!!document.querySelector('#media-design')&&!document.querySelector('#task .secret')").catch(()=>false)){const shot=await send('Page.captureScreenshot',{format:'png'});await writeFile('/tmp/mediastorage-live-failure.png',Buffer.from(shot.data,'base64'));console.error(await evaluate("[...document.querySelectorAll('[role=dialog]')].map(d=>({classes:d.className,buttons:[...d.querySelectorAll('button')].map(b=>({label:b.getAttribute('aria-label'),title:b.title,text:b.textContent.slice(0,80)}))}))"))}console.error(await evaluate("({path:location.pathname,dialogs:[...document.querySelectorAll('[role=dialog],dialog')].map(e=>({label:e.getAttribute('aria-label'),open:e.open,visible:!!e.getClientRects().length})),add:document.querySelector('#add-bucket')?.getBoundingClientRect().toJSON()})").catch(()=>({})));if(errors.length)console.error('Browser runtime errors occurred ('+errors.length+').');process.exitCode=1}finally{if(candidate)await send('Fetch.disable');ws.close();if(created)await provision('DELETE')}

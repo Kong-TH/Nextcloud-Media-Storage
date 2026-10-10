@@ -1,6 +1,6 @@
 # UI implementation tasks
 
-Status: Production core implemented; UI-03 navigation user-accepted. UI-09 daily uploads, thumbnail/detail images and upload success/folder notifications are installed in 0.4.1; 26 upload/preview HTTP checks and 257 cache-enabled installed-browser checks passed. Actual video codec/range, physical touch, screen-reader and comprehensive contrast/zoom acceptance remain open under UI-09/UI-10. Historical prototype entries below are superseded by current implementation notes.
+Status: Production core implemented; UI-03 navigation user-accepted. UI-09 daily uploads, thumbnail/detail images and upload success/folder notifications are installed in 0.4.1; 26 upload/preview HTTP checks and 257 cache-enabled installed-browser checks passed. Real silent MP4/H.264 and WebM/VP9 playback/seek/session ranges pass the extended UI-09/UI-10 checks. Physical touch/keyboard and comprehensive visual-state contrast/actual zoom acceptance remain open. Actual screen-reader testing is excluded from UI-10 at the user's request (2026-10-10); historical pending notes are superseded. Historical prototype entries below are superseded by current implementation notes.
 
 | ID | Task | Dependency | Reviewable deliverable / acceptance |
 | --- | --- | --- | --- |
@@ -14,8 +14,8 @@ Status: Production core implemented; UI-03 navigation user-accepted. UI-09 daily
 | UI-08 | Integrate accepted bucket model | Bucket decision, schema/API/security/upgrade design; UI-03 | Owner-scoped destinations/filter/create workflows and migration compatibility; documented search/token/move boundaries; no implicit S3 behavior |
 | UI-09 | Add upload and preview workflows | Actual upload/preview contracts, UI-06 | Server-validated file handling, progress/cancel/error/retry behavior, actual host preview; primary action hierarchy revised when enabled |
 
-UI-09 storage decision (2026-10-10): store newly uploaded originals in the authenticated account's `Media Storage/YYYY-MM-DD/` directory, grouped by day only. Create missing directories on demand; never overwrite existing files. Physical storage folders are independent of virtual buckets and folders. Existing-file binding and all reference management remain metadata-only. Users manage originals later through Nextcloud. Implementation must define the authoritative date/timezone, validate destination write permissions and quota, and retain file-ID-based binding when an original is moved within accessible Nextcloud storage. This requirement is implemented in prepared source 0.4.0; installed verification remains pending. See [upload/preview contract](../design/upload-preview.md).
-| UI-10 | Validate integrated plugin | Each connected slice, then full feature set | Record real Nextcloud/browser checks, mobile/desktop, focus/keyboard, screen reader, CSP, zoom/long labels/RTL/themes and host isolation; defer unsupported delivery clearly |
+UI-09 storage decision (2026-10-10): store newly uploaded originals in the authenticated account's `Media Storage/YYYY-MM-DD/` directory, grouped by day only. Create missing directories on demand; never overwrite existing files. Physical storage folders are independent of virtual buckets and folders. Existing-file binding and all reference management remain metadata-only. Users manage originals later through Nextcloud. Implementation must define the authoritative date/timezone, validate destination write permissions and quota, and retain file-ID-based binding when an original is moved within accessible Nextcloud storage. This requirement is implemented and verified in installed 0.4.1. See [upload/preview contract](../design/upload-preview.md).
+| UI-10 | Validate integrated plugin | Each connected slice, then full feature set | Record real Nextcloud/browser checks, mobile/desktop, focus/keyboard, CSP, zoom/long labels/RTL/themes and host isolation; defer unsupported delivery clearly |
 
 For every slice, update affected architecture/API/schema/security/validation documentation when contracts change. Use real session endpoints and their existing owner/CSRF boundaries. A disabled control or a confirmation never substitutes for server checks.
 
@@ -35,7 +35,7 @@ Add UI-12: FAB/toolbar/tooltip interaction regression, including tooltip appeari
 4. A broken binding remains identifiable and offers an authorized rebind path. Metadata failure is distinguishable from an empty folder or missing media.
 5. Token issue reveals the secret once. Reload/list never reveals it. Rotation does not imply immediate revocation of the old token; revocation is explicit.
 6. At desktop width, use the drawer/list/details with keyboard alone; at mobile width, complete the same core tasks without horizontal table scrolling. Resize during an open view and retain meaningful focus.
-7. Verify real target integration with both themes, RTL, screen-reader announcements, enlarged text, zoom/reflow, reduced motion, virtual keyboard and host navigation/modal behavior. Record actual results and untested platforms.
+7. Verify real target integration with both themes, RTL, accessible names and keyboard focus, enlarged text, zoom/reflow, reduced motion, virtual keyboard and host navigation/modal behavior. Record actual results and untested platforms.
 
 ## Design-study evidence
 
@@ -81,8 +81,16 @@ Use a plugin-owned #ms: URL fragment to identify page, bucket, folder, submitted
 
 Missing/foreign/deleted buckets fall back to default with visible feedback; invalid/moved/deleted folder or detail IDs cannot expose another bucket. Retryable network/auth failures remain explicit rather than silently becoming empty folders. Restored URLs are canonicalized with replaceState. Cancel superseded list/detail/navigation requests. Back/Forward during a mutation is deferred until it finishes; navigation closes unsubmitted dialogs and clears one-time secrets. Restore list scroll after loading and focus the current view without stealing focus on ordinary async list refresh. Validate nested traversal, search, sort, details, page changes, reload, Back/Forward, deletion, malformed/foreign IDs, races, pagination and session errors.
 
-## Current task status — 0.3.9
+## Historical task status — 0.3.9
 
 UI-01/02/04–08/11/12 core implementation is present; integrated accessibility and release acceptance remain under UI-10. UI-03 includes paginated real browsing, visible loading/empty/retry/session errors, stale-response protection and now URL/history/scroll restoration. UI-09 upload/preview is implemented in prepared 0.4.0 source; installed acceptance remains pending. UI-10 still needs latest installed/warm-cache checks, screen-reader, real touch/virtual keyboard, and full zoom/contrast validation. Historical prototype statements do not describe current production feature availability.
 
 UI-03 implementation verification: production build, three frontend model suites, 190 browser fixture checks (including 205-row pagination/scroll) and 245 actual-Nextcloud checks with candidate assets passed. Core implementation is complete; installed/warm-cache acceptance remains pending deployment of 0.3.9.
+
+## Current task status — 0.4.1, 2026-10-10
+
+The user accepted the installed UI without observed errors. UI-01–09/11/12 core behavior is implemented; UI-09 silent MP4/H.264 and WebM/VP9 playback/seek and authenticated session ranges now pass. Phase 3 HTTP acceptance passed 130 checks. UI-10 focused acceptance passed 49 installed checks covering modal/AX names, background control exclusion, focus return, opaque text contrast pairs, reflow equivalents, targeted enlarged text, reduced motion and touch emulation. See [integrated acceptance and manual checklist](../design/integrated-acceptance.md).
+
+Physical mobile/keyboard (including the virtual keyboard), real browser zoom and complete visual-state contrast remain manual release gates. The user removed actual screen-reader testing from UI-10; accessible labels and existing keyboard/accessibility-tree checks remain in scope. CDP emulation and token-pair measurements do not fulfill them. Phase 4 signed/temporary access and external streaming protections remain planned; current video delivery delegates to authenticated Nextcloud DAV. No production UI change or app redeployment is needed for this test/documentation slice.
+
+Final combined installed-browser acceptance passed 305 checks with cache enabled and no candidate interception; disposable account cleanup completed.

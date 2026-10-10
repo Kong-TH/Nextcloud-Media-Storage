@@ -111,3 +111,18 @@ Physical storage is `Media Storage/YYYY-MM-DD/<server-random-id>.<mime-extension
 ## Upload success presentation — 0.4.1
 
 No schema or response contract changes. After a complete upload or reconciliation result, the frontend reads GET /api/v1/nodes/{id} for binding.last_known_path. It reports successful storage independently of this optional lookup. When available, Open folder in Nextcloud navigates to the standard Files route with the containing dir and view=files, encoded by URLSearchParams. No fileid/openfile or binary preview parameter is supplied. Paths remain session/owner-authorized; no public access or token is added.
+
+## US-MS-06 — 0.5.0 temporary access contract
+
+- POST /api/v1/nodes/{id}/signed-urls: session/CSRF, optional integer ttl_seconds (default 900, capped by policy); 201 {access, url}. access includes id, node_id, created_at, expires_at, revoked_at and status. The absolute generated plugin delivery URL contains only a temporary credential, returned once.
+- GET /api/v1/nodes/{id}/signed-urls: session/CSRF; {access: [...], policy: {server_time, default_ttl_seconds, max_ttl_seconds}}, pagination limit 1–100/offset nonnegative, metadata only.
+- DELETE /api/v1/access/{id}: session/CSRF; owner-only idempotent revocation, 204.
+- POST /external/v1/nodes/{id}/signed-urls: same body/result, bearer media:read/current folder containment; expiry also capped at issuer expiry.
+- DELETE /external/v1/access/{id}: bearer media:read; same issuer and current node containment required, 204.
+- GET/HEAD /delivery/v1/{id}?key=<temporary-secret>: credential-only public read of exactly the pinned resource. Uniform no-store 404 for invalid/unavailable grants; 200 for authorized bytes/HEAD, 503 if an authorized stream cannot open. No API bearer/session fallback. HEAD never opens a stream. Range/conditional support remains US-MS-07; current responses advertise Accept-Ranges: none.
+
+The legacy proposed virtual-path delivery route above is superseded by stable grant selectors. Exact binding/content/bucket and current issuer checks prevent resource substitution. Copy virtual path remains metadata-only. See [US-MS-06](../agile/user-stories/US-MS-06.md) for TTL, revocation and in-flight semantics.
+
+Nextcloud/Apache may evaluate wildcard conditional headers on an already-authorized successful response. The app emits no validators in US-MS-06, and invalid/revoked requests must still return 404 even with conditional headers. Full validator/Range behavior remains US-MS-07.
+
+Management `status` describes the grant's own active/expired/revoked lifecycle. It is not a guarantee that current owner/issuer/resource prerequisites still permit delivery; those are rechecked on every GET/HEAD.

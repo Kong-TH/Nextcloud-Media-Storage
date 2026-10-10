@@ -180,3 +180,9 @@ Source implements per-account `Media Storage/YYYY-MM-DD/` uploads, content/size/
 Reproduced the installed first upload failure through real multipart requests and isolated it using the authenticated Log Reader API: Nextcloud closes the input stream and UploadService closed it again. The correction guards resource cleanup, and strict filesystem tests now reproduce stream consumption. Add persistent success/path feedback with a Material action opening the containing Nextcloud folder, including successful reconciliation and graceful optional-location failure. Installed correction acceptance awaits privileged deployment.
 
 0.4.1 installed acceptance: server reports 0.4.1; 26 real upload/preview HTTP checks and 257 cache-enabled installed-browser checks passed, including first-attempt upload, notification/path/folder action and regression coverage. Exact served build assets matched. Disposable accounts were removed. No new commit or push.
+
+## UI-10 acceptance work — 2026-10-10
+
+The user accepted 0.4.1 and authorized continuing. Extend integrated keyboard/accessibility-tree, contrast, reflow/enlarged-text, reduced-motion and emulated-touch checks, alongside real video playback/seek/Range acceptance. Keep physical touchscreen/keyboard (including the virtual keyboard), actual browser zoom and all-state contrast evidence separate. The user removed actual screen-reader testing from UI-10 acceptance on 2026-10-10; accessible names and keyboard/focus checks remain required. This decision supersedes historical screen-reader pending notes. See design/integrated-acceptance.md.
+
+Final combined acceptance: **305 actual-Nextcloud browser checks passed**, using installed 0.4.1 assets, cache enabled, no asset interception, including the new UI-10/video checks. The dedicated account and generated originals were removed. No production change/deployment was needed. Phase 3 HTTP acceptance separately passed 130 checks.

@@ -2,6 +2,13 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 declare(strict_types=1);
 return ['routes' => [
+    ['name' => 'access#create', 'url' => '/api/v1/nodes/{id}/signed-urls', 'verb' => 'POST'],
+    ['name' => 'access#index', 'url' => '/api/v1/nodes/{id}/signed-urls', 'verb' => 'GET'],
+    ['name' => 'access#destroy', 'url' => '/api/v1/access/{id}', 'verb' => 'DELETE'],
+    ['name' => 'externalAccess#create', 'url' => '/external/v1/nodes/{id}/signed-urls', 'verb' => 'POST'],
+    ['name' => 'externalAccess#destroy', 'url' => '/external/v1/access/{id}', 'verb' => 'DELETE'],
+    ['name' => 'delivery#read', 'url' => '/delivery/v1/{id}', 'verb' => 'GET'],
+    ['name' => 'delivery#read', 'url' => '/delivery/v1/{id}', 'verb' => 'HEAD', 'postfix' => 'head'],
     ['name' => 'upload#policy', 'url' => '/api/v1/uploads/policy', 'verb' => 'GET'],
     ['name' => 'upload#status', 'url' => '/api/v1/uploads/{id}', 'verb' => 'GET'],
     ['name' => 'upload#create', 'url' => '/api/v1/uploads', 'verb' => 'POST'],

@@ -199,3 +199,44 @@ MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_CACHE_ENABLED=yes node tests/
 These new installed upload/preview suites have not run yet. `upload_http.py` verifies real multipart/CSRF/MIME/owner boundaries, byte preservation, daily paths, same-ID retries, preview and content bridge, and original moves through Nextcloud. It removes only its own disposable accounts (including their test files). Never run with real user identifiers. `upload-live-checks.mjs` requires installed 0.4.0 PHP even when using candidate frontend interception. Real video codecs/Range playback, screen-reader and physical touch remain additional acceptance work.
 
 0.4.1 upload regression: tests/uploads.php now models Nextcloud consuming/closing the newFile input stream, as well as storage leaving it open. Fixture upload checks cover direct/reconciled success notices, responsive containment, Files directory links, dismissal/focus and optional-location failures. tests/upload_http.py deliberately requires the first upload request to succeed; do not accept a successful Retry as a passing initial-upload result. Installed tests require the corrected PHP deployment.
+
+## UI-10 extended installed acceptance
+
+Requires the authorized local disposable instance, private test credentials outside Git, matching installed assets, Chrome/CDP and ffmpeg with libvpx-vp9/libx264. Generate two tiny synthetic, silent 160x90, two-second videos (no personal media):
+
+```sh
+sh scripts/prepare-test-media.sh
+MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_EXTENDED_ONLY=yes node tests/frontend/live.mjs
+MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_CACHE_ENABLED=yes MEDIASTORAGE_TEST_EXTENDED=yes node tests/frontend/live.mjs
+```
+
+The focused command covers native dialog names/background exclusion/Tab/Escape/focus return, measured opaque theme contrast pairs, narrow reflow, targeted enlarged text, reduced motion, emulated touch, and real WebM/MP4 metadata/play/seek plus session DAV 206 exact bytes and 416. Chromium may expose BODY as a noninteractive focus sentinel during Tab; tests forbid focus on background controls, retain native :modal semantics and re-enter the dialog before its Escape check. Wait for the native close event/next-tick focus restoration.
+
+Full mode adds the existing installed regression suite with cache enabled and exact build-asset checks. Use MEDIASTORAGE_TEST_VIDEO and MEDIASTORAGE_TEST_VIDEO_MP4 only for alternative synthetic fixtures; expected duration/dimensions are fixed. Never use personal video files. The account and all physical fixtures are removed on exit. Focused results are written to /tmp/mediastorage-integrated-results.json; full results to /tmp/mediastorage-live-ui-results.json.
+
+These tests do not certify WCAG conformance or all codecs: physical touch/keyboard (including the virtual keyboard), real browser zoom and every composited visual-state contrast check require the manual checklist in docs/design/integrated-acceptance.md. Actual screen-reader testing is out of scope for UI-10 at the user's request on 2026-10-10, superseding historical pending notes; existing accessibility-tree and keyboard tests remain. No original-file mutation endpoints or Phase 4 public delivery are added.
+
+Final combined acceptance: **305 actual-Nextcloud browser checks passed**, using installed 0.4.1 assets, cache enabled, no asset interception, including the new UI-10/video checks. The dedicated account and generated originals were removed. No production change/deployment was needed. Phase 3 HTTP acceptance separately passed 130 checks.
+
+## US-MS-06 temporary access — 0.5.0 prepared
+
+```bash
+sh scripts/php-snap.sh tests/access.php
+sh scripts/php-snap.sh tests/schema.php
+# Only after installing 0.5.0 on the authorized disposable host:
+MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/access_http.py
+```
+
+Local: 63 capability checks plus 76 existing token/scope checks pass. Coverage includes TTL policy, one-time verifier storage, cross-owner/issuer boundaries, exact expiry, uniform credential denial, rebind/content/storage changes, current folder/bucket scope, revocation recheck after initial lookup, safe headers, HEAD without a stream, official route parsing and revoked/deleted resources. Populated SQLite 000500/re-entry preserves old nodes/tokens/uploads; MySQL/PostgreSQL generation only. Baseline/bucket/upload suites, three frontend suites and build also pass.
+
+The live harness provisions two disposable accounts, creates originals only in those accounts and cleans them up, including a deletion/recreation check. It never prints credentials/capability URLs. The harness is syntax-checked but **has not run against installed 0.5.0**. No 0.5.0 browser/HTTP result is claimed. US-MS-07 Range/validators/rate/hotlink controls remain unimplemented.
+
+## HEAD integration correction — 0.5.1 prepared
+
+Installed 0.5.0 issued/read/revoked real capabilities. The full live suite failed HEAD because Nextcloud App::main replaces a regular empty Response Content-Length with zero; Apache omits that length on HEAD. Add HeadResponse implementing the public ICallbackResponse interface, preserving representation headers without opening/outputting a stream. A local regression asserts callback behavior. Current local capability count is 64.
+
+A separate diagnostic run passed 46 HTTP checks on installed 0.5.0 with **HEAD explicitly excluded**; this is not full acceptance. It covers bearer boundaries/revocation, expiry, rebind, physical move/content changes, original preservation and UID recreation; dedicated accounts were cleaned. Wildcard conditional requests may return 304 after valid authorization in Apache; revoked credentials still return 404. Updated tests/access_http.py expects installed 0.5.1 and retains the mandatory HEAD check. Deploy 0.5.1 and rerun the full live suite before completing the story. No new schema beyond 000500.
+
+## Installed 0.5.1 acceptance — 2026-10-10
+
+The user deployed 0.5.1 without errors. `MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/access_http.py` passed **47 live checks** with mandatory HEAD enabled: status 200, zero response bytes, Content-Length 68 for the 68-byte fixture. Exact anonymous GET, expiry/revocation, conditional revoked denial, owner/issuer/folder restrictions, rebind/physical move/content changes and UID recreation passed. `MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py` passed **130 live regression checks**. Both harnesses exited 0 and cleaned their dedicated accounts/originals. US-MS-06 is complete on Nextcloud 34.0.4 / Snap MySQL. US-MS-07 Range/validators/rate/hotlink controls and the wider release matrix remain planned. No 0.5.1 browser suite is claimed; production UI behavior did not change.

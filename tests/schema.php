@@ -72,6 +72,20 @@ $uploadInsert = $pdo->prepare('INSERT INTO test_ms_uploads (owner_id,id,fingerpr
 foreach (['alice','bob'] as $owner) $uploadInsert->execute([$owner,str_repeat('d',32),str_repeat('e',64),'Media Storage/2026-10-10/fixture.png','','pending',time()]);
 try { $uploadInsert->execute(['alice',str_repeat('d',32),str_repeat('e',64),'x','','pending',time()]); throw new RuntimeException('Duplicate upload ID accepted for owner'); }
 catch (PDOException $e) { if ($e->getCode() !== '23000') throw $e; }
+// Add capabilities over populated upload/token data and prove migration re-entry.
+$before = clone $schema;
+$accessUpgrade = new OCA\MediaStorage\Migration\Version000500Date20261010000000();
+$accessUpgrade->changeSchema($output, fn() => $wrapper, []);
+$platform = new SqlitePlatform();
+$diff = (new Doctrine\DBAL\Schema\Comparator($platform))->compareSchemas($before, $schema);
+foreach ($platform->getAlterSchemaSQL($diff) as $sql) $pdo->exec($sql);
+$accessUpgrade->changeSchema($output, fn() => $wrapper, []);
+if (count($schema->getTables()) !== 6 || (int)$pdo->query('SELECT count(*) FROM test_ms_uploads')->fetchColumn() !== 2 || (int)$pdo->query('SELECT count(*) FROM test_ms_tokens')->fetchColumn() !== 1 || (int)$pdo->query('SELECT count(*) FROM test_ms_nodes')->fetchColumn() !== 5) throw new RuntimeException('Access upgrade changed populated data');
+$grantInsert = $pdo->prepare('INSERT INTO test_ms_access (id,owner_id,node_id,bucket_id,secret_hash,file_id,storage_reference,file_etag,created_at,expires_at) VALUES (?,?,?,?,?,?,?,?,?,?)');
+$grantInsert->execute([str_repeat('f',32),'alice','a3','root-a',str_repeat('e',64),42,str_repeat('b',64),'etag',time(),time()+60]);
+if ($pdo->query('SELECT issuer_id FROM test_ms_access')->fetchColumn() !== null || $pdo->query('SELECT revoked_at FROM test_ms_access')->fetchColumn() !== null) throw new RuntimeException('New capability nullable fields incorrect');
+try { $grantInsert->execute([str_repeat('f',32),'bob','b1','root-b',str_repeat('e',64),42,str_repeat('b',64),'etag',time(),time()+60]); throw new RuntimeException('Duplicate capability selector accepted'); }
+catch (PDOException $e) { if ($e->getCode() !== '23000') throw $e; }
 // SQL compilation is distinct from provider execution/support.
 foreach ([new Doctrine\DBAL\Platforms\MySQL80Platform(), new Doctrine\DBAL\Platforms\PostgreSQLPlatform()] as $platform) {
     if (!$schema->toSql($platform)) throw new RuntimeException('Empty schema SQL');
@@ -83,4 +97,4 @@ $metadata->getElementsByTagName('author')->item(0)->textContent = 'Test fixture'
 $metadata->getElementsByTagName('licence')->item(0)->textContent = 'AGPL-3.0-or-later';
 $source = getenv('NEXTCLOUD_SOURCE') ?: '/snap/nextcloud/current/htdocs';
 if (!$metadata->schemaValidate($source . '/resources/app-info.xsd')) throw new RuntimeException('App metadata template invalid');
-echo "PASS: migration schema creation/re-entry, SQLite installation and populated 0.1-to-0.2-to-0.3-to-0.4 schema upgrades and owner-scoped upload journal, root isolation, sibling constraints, case-sensitive keys and rollback; MySQL/PostgreSQL SQL generation only; app metadata template schema valid.\n";
+echo "PASS: migration schema creation/re-entry, SQLite installation and populated 0.1-to-0.2-to-0.3-to-0.4-to-0.5 schema upgrades, owner-scoped upload journal and hashed capability schema, root isolation, sibling constraints, case-sensitive keys and rollback; MySQL/PostgreSQL SQL generation only; app metadata template schema valid.\n";

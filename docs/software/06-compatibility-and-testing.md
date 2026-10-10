@@ -80,3 +80,7 @@ A standalone HTML/CSS/JavaScript prototype was exercised in headless Chrome 154.
 
 
 The follow-up FAB/toolbar/tooltip study passed 71 Chrome/CDP checks plus in-memory reference-model invariants. Coverage includes reference alias identity, move/rename/remove, name-conflict recovery, menu/tooltip ownership, keyboard/focus and 320–1440px layout/clearance. [Validation evidence](../design/validation.md) records observed regressions and remaining limits. This does not validate real server Copy/Paste or physical file preservation in a deployed UI.
+
+## Installed 0.5.1 acceptance — 2026-10-10
+
+The user deployed 0.5.1 without errors. `MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/access_http.py` passed **47 live checks** with mandatory HEAD enabled: status 200, zero response bytes, Content-Length 68 for the 68-byte fixture. Exact anonymous GET, expiry/revocation, conditional revoked denial, owner/issuer/folder restrictions, rebind/physical move/content changes and UID recreation passed. `MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py` passed **130 live regression checks**. Both harnesses exited 0 and cleaned their dedicated accounts/originals. US-MS-06 is complete on Nextcloud 34.0.4 / Snap MySQL. US-MS-07 Range/validators/rate/hotlink controls and the wider release matrix remain planned. No 0.5.1 browser suite is claimed; production UI behavior did not change.

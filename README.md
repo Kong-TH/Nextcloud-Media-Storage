@@ -2,7 +2,7 @@
 
 Native Nextcloud app foundation (`mediastorage`) for private virtual media organization, using Nextcloud filesystem, database, and session authentication.
 
-**Status:** Source 0.4.1 fixes first-upload stream cleanup and adds upload success/path notifications with a Nextcloud folder action, alongside per-account daily uploads with idempotent retry, measured progress/cancellation reconciliation, authenticated Nextcloud previews and session video delivery, plus UI-03 history restoration and bucket/token management. Installed 0.4.1 passed 26 upload/preview HTTP checks and 257 cache-enabled actual-Nextcloud browser checks; fixture/unit evidence is recorded separately. Signed/public and external-token binary delivery remain planned. See [implementation and evidence](docs/software/08-production-explorer.md).
+**Status:** Installed 0.5.1 adds revocable per-reference temporary media URLs with session/scoped-bearer management and anonymous authorized GET/HEAD streams. The new live HTTP suite passed 47 checks and the existing Phase 3 suite passed 130 checks. Local tests/build pass. Prior 0.4.1 browser evidence (305 checks) is recorded separately. Advanced external streaming and abuse controls remain planned. See [Sprint 04](docs/agile/sprint-backlogs/sprint-04.md) and [temporary access](docs/agile/user-stories/US-MS-06.md).
 
 Initial target: installed Nextcloud 34.0.4 / PHP 8.4.26. Live HTTP integration is verified on this Nextcloud 34.0.4 / Snap MySQL environment only. Other Nextcloud releases and database deployments remain unverified.
 

@@ -1,6 +1,6 @@
 # Product Backlog
 
-US-MS-01–03 are implemented and verified by unit/schema checks and 33 live HTTP checks on Nextcloud 34.0.4 / Snap MySQL. Extended acceptance gates remain pending. US-MS-04 passed local tests and the combined 70-check live suite after upgrade to 0.2.0. US-MS-05 and US-MS-09 are in progress: the virtual-bucket model is approved and the core Material explorer is implemented; upload/preview and acceptance gates remain open. US-MS-06–08 remain planned.
+US-MS-01–03 are implemented and verified by unit/schema checks and 33 live HTTP checks on Nextcloud 34.0.4 / Snap MySQL. Extended acceptance gates remain pending. US-MS-04 passed local tests and the combined 70-check live suite after upgrade to 0.2.0. US-MS-05 and US-MS-09 are in progress: the virtual-bucket model is approved and the core Material explorer is implemented; installed uploads/previews and silent MP4/WebM session playback/ranges pass; manual accessibility/device release gates remain open. US-MS-06 is implemented and verified on installed 0.5.1: 47 temporary-access HTTP checks and 130 Phase 3 regression checks passed. US-MS-07–08 remain planned.
 
 | ID | Phase | Deliverable | Acceptance evidence |
 | --- | --- | --- | --- |
@@ -21,4 +21,4 @@ Later-phase work does not count as implemented merely because interfaces are des
 
 Lifecycle cleanup is implemented in deployed 0.2.0; live deletion/recreation isolation passed. Wider concurrent lifecycle races remain a release review item.
 
-UI-09 source update (0.4.0): session upload, persistent retry journal, daily per-account physical storage, progress/Stop reconciliation, thumbnails/details and session DAV content bridge are implemented. Source checks pass; deployed multipart/preview and warm-cache acceptance remain pending. Public/signed and external-token media delivery remain planned.
+UI-09 update (installed 0.4.1): session upload, persistent retry journal, daily per-account physical storage, progress/Stop reconciliation, thumbnails/details and session DAV content bridge are implemented. Installed multipart/preview and warm-cache acceptance passed; extended video playback/seek/session ranges and Phase 3 HTTP acceptance also pass. Public/signed and external-token media delivery remain planned.

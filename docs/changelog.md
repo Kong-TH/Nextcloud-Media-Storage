@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.5.1 — HEAD representation headers
+
+- Use a callback HEAD response so Nextcloud does not replace Content-Length with the empty-body length; preserve authorization and avoid opening a file stream.
+- Installed 0.5.0 diagnostic acceptance passed 46 checks with HEAD excluded after reproducing this defect. Full installed 0.5.1 acceptance passed 47 temporary-access HTTP checks and 130 Phase 3 regression checks; dedicated accounts/originals cleaned.
+
+## 0.5.0 — temporary media access (superseded by 0.5.1)
+
+- Add owner-isolated, short-lived opaque read URLs for individual media references, one-time URL return and idempotent revocation.
+- Session management retains CSRF; scoped external read tokens may issue bounded grants whose access follows issuer validity and current folder scope.
+- Pin bucket/file/storage/content version; authorize every anonymous GET/HEAD and stream through official Files APIs without exposing original paths or long-lived tokens.
+- Add migration 000500 and owner lifecycle cleanup. Existing virtual path copying and original-file operations are unchanged.
+- Local tests/build pass; installed acceptance awaits deployment. Range/validators/throttling and hotlink policy remain US-MS-07.
+
 ## 0.4.1 — upload completion and location feedback
 
 - Fix first-upload HTTP 500 caused by closing a stream already consumed by Nextcloud; preserve idempotent retry and original files.
