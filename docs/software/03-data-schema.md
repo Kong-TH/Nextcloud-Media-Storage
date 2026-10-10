@@ -59,3 +59,11 @@ Add ms_access: id (32, primary key), owner_id (64, owner index), node_id (64), b
 ## US-MS-07 persistence boundary
 
 Streaming/protection uses existing grants plus public Nextcloud limiter and locking providers. No migration or app-owned rate/lock table is added. Core providers own their storage/expiry; owner cleanup continues to remove grants without touching physical originals.
+
+## UI-13 paging — 0.6.1 prepared
+
+No schema migration. Session explorer pages use existing ms_nodes.lock_version on the deterministic owner root to reject shifted pagination after metadata transactions. Existing ms_bindings owner/node join supplies cached MIME for global type ordering; count and page share owner/parent/search constraints. Old listings remain compatible. This is conservative collection invalidation, not a persisted snapshot or a bulk-selection table.
+
+## UI-14 — ephemeral bulk selection (0.6.2 prepared)
+
+All-matching selection stores parent/search/root revision, total and excluded IDs only in memory. Commands resolve revision-validated pages of 25 and a final revision check before writes; loaded mode captures the current loaded IDs. No persisted selection, new table, migration or endpoint. Full selected metadata is held transiently at command time for clipboard/names, without rendering unrequested rows. Existing per-object owner/permission checks remain authoritative, and partial operations report success count and retain remaining IDs. This is not an atomic bulk transaction; original Nextcloud files remain unchanged. See design/bulk-selection-and-import.md and the API contract.

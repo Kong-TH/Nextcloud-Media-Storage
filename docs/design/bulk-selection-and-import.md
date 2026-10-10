@@ -1,6 +1,6 @@
 # Incremental browsing, bulk selection and Nextcloud reference import
 
-Status: planned tasks only, requested 2026-10-10. No implementation or verification is claimed by this document. These additions do not close the remaining US-MS-07/08 release gates.
+Status: UI-13 and UI-14 implemented in prepared 0.6.2 source; UI-15 and UI-16 remain planned, requested 2026-10-10. Installed acceptance is tracked separately. These additions do not close the remaining US-MS-07/08 release gates.
 
 ## UI-13 — Load objects in batches of 25
 
@@ -51,3 +51,33 @@ Acceptance cases: A has ten files; keep A; flatten A's outer wrapper; A contains
 ## Delivery sequence and test obligations
 
 Implement UI-13 first, then UI-14; implement UI-15 before UI-16. Document API/schema/security changes and batch/selection/import consistency before backend edits. Use relevant local Material skills during implementation. Each task requires focused model/service tests and actual browser/API acceptance for its behavior, including large collections and multiple-folder combinations. Record local and installed results separately; writing these test cases is not a passing test result. No new screen-reader gate is added.
+
+## UI-13 implementation contract — 2026-10-10
+
+User authorized UI-13 after committing the prior packaging/backlog slice. Add an opt-in `paged=true` session listing mode: `limit=25`, `offset`, `sort=name|type`, and subsequent `revision` from the first response. Return `total`, `has_more`, `next_offset`, `revision`, and server-ordered nodes. Legacy offset listings and external APIs retain their existing contract. Sort and count in the database, including MIME-backed type order, with ID tie-breaking; do not sort each loaded subset independently in the browser.
+
+Use the existing owner-root lock_version as a conservative collection revision, with checks before and after the queries. All existing metadata transactions increment it. A changed revision returns 409 and requires an explicit reload rather than appending a potentially shifted page. Other owner metadata transactions can also invalidate paging; this conservative behavior is intentional. This is a revision-validated live collection, not a persistent snapshot; no schema change or full-collection fetch is needed. Root/page/count reads must use fresh committed visibility so concurrent writes cannot pass undetected. Refresh resets paging; unchanged append preserves rows, selection, focus and scroll. Hydrate binding details only for the new batch, with bounded concurrency.
+
+Provide scroll-end automatic loading and a keyboard-accessible Load more/Retry fallback. Display an official md-linear-progress during append. Initial and append errors are separate; an append failure retains data. On navigation abort and discard superseded requests, even if transport cancellation is ignored. Restoring history scroll may fetch enough bounded pages to reach that position, without eagerly loading the entire folder. Version 0.6.1 will distinguish the changed frontend in Nextcloud asset caches. UI-14–16 remain planned.
+
+## UI-14 implementation contract — 2026-10-10
+
+Authorized next task: UI-14. Selecting All matching stores the current parent, submitted search, root revision, total and excluded IDs; activation performs no extra listing requests. Loaded mode captures only currently loaded IDs. Choosing a mode activates that selection; the checkbox clears or selects its current mode. Individual exclusions update mixed state and count. Sort retains selection, while navigation/search/reload clears it.
+
+Before Copy, Move, Remove or single-object Rename, resolve an all-matching descriptor through revision-validated pages of at most 25, then perform a final revision check before any writes or clipboard change. Show official linear progress and prevent competing navigation/submissions. Any enumeration error or stale revision stops before mutation and retains the selection for explicit recovery. This is a validated live collection, not a durable snapshot or transaction covering an entire bulk action. Existing per-object endpoints recheck authorization; partial mutations report completed items and preserve remaining explicit IDs. Transient metadata for unloaded selected objects supports names and clipboard operations without rendering those rows. Paste uses the full captured clipboard. No schema or new API endpoint is needed; no original file is moved/deleted. Selection is never persisted in URL/history/storage.
+
+UI-14 local completion: 265 combined fixture browser checks, five frontend suites, 30 actual SQLite paging checks, 69 strict-double service checks, schema validation and 66 archive checks pass. Scope-menu width/offset respects object-list insets and RTL; the official self-hosted font subset includes check/select_all. Option activation uses Material Web close-menu reasons for pointer and Enter/Space, excluding Escape. Selection-preparation failures show a visible alert and stale-revision reload above the list. Installed 0.6.2 verification remains pending deployment; UI-15/16 are not implemented.
+
+## UI-14 header placement correction — 2026-10-10
+
+User rejects the extra selection-control layer. Put select-all in the existing checkbox column and the scope arrow immediately before Name in the same column-heading row. Remove the standalone selection row and its visible scope label. Preserve an accessible scope label, checked menu choice and tooltip. Keep this compact header available on mobile, hiding only Type/Binding labels. Do not change row columns, content insets or selection behavior. Verify the controls share the header row on desktop/mobile and with details open. Prepared cache version: 0.6.3.
+
+0.6.3 placement evidence: build, five frontend suites, 268 combined browser fixture checks, 32 focused browser checks (including details-open geometry) and 66 archive checks pass. Desktop/details and compact screenshots visually inspected. Installed verification remains pending.
+
+## Sticky object and detail headers — 2026-10-10
+
+User requests the existing checkbox/Name/Type/Binding header to stay at the top of the object scroll area after it reaches that edge, and OBJECT DETAILS/Close to stay at the top of the independent details scroll area. Use scoped CSS sticky positioning with opaque matching surfaces and local stacking, preserving natural layout height and the Nextcloud shell. Keep the detail close action clickable at the scroll end. Account for header height in keyboard scroll clearance. Check desktop/mobile, both themes, RTL, scope popover stacking and details content longer than the viewport. Closing the scope menu must restore focus without changing list scroll; use preventScroll for its sticky anchor while respecting focus moved outside the menu. Prepared cache version: 0.6.4; no API/schema changes.
+
+## Two-row sticky header refinement — 2026-10-10
+
+Prepared 0.6.5 follows the user request to pin the existing Objects/count/selected/Sort row together with the column header. Both existing rows share one opaque sticky wrapper; no additional visible row. Progress/errors remain outside that wrapper. Object details/Close now has a 72px minimum height and 12px vertical padding, with keyboard scroll clearance adjusted for both headers. Scope-menu focus restoration continues to preserve scroll. No API/schema or Nextcloud shell changes. Build, five frontend suites, 42 focused / 279 combined browser fixture checks and 66 archive checks pass. Desktop/light and compact/dark/RTL screenshots visually inspected. Tests verify both summary and columns remain pinned together, scroll stays unchanged after scope-menu closure, and the 72px detail header keeps Close clickable at the end. Installed verification requires root deployment.

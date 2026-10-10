@@ -38,6 +38,18 @@ final class VirtualFileSystemService {
         return ['root_id' => $root['id'], 'parent_id' => $parent,
             'nodes' => $this->store->children($owner, $parent, $search, $limit, $offset), 'limit' => $limit, 'offset' => $offset];
     }
+    public function objectPage(string $owner, ?string $parent, string $search, string $sort, int $limit, int $offset, ?int $revision): array {
+        if ($limit < 1 || $limit > 25 || $offset < 0 || strlen($search) > 255 || !in_array($sort, ['name', 'type'], true)
+            || ($offset > 0 && $revision === null) || ($revision !== null && $revision < 0)) { throw new MediaException('Invalid object page.'); }
+        $root = $this->root($owner); $parent ??= $root['id']; $this->folder($owner, $parent);
+        $current = (int)$root['lock_version'];
+        if ($revision !== null && $revision !== $current) { throw new MediaException('This collection changed. Reload objects to continue.', 409); }
+        $data = $this->store->objectPage($owner, $parent, $search, $sort, $limit, $offset);
+        if ((int)$this->store->get($owner, $root['id'])['lock_version'] !== $current) { throw new MediaException('This collection changed. Reload objects to continue.', 409); }
+        $next = $offset + count($data['nodes']);
+        return $data + ['root_id' => $root['id'], 'parent_id' => $parent, 'revision' => $current,
+            'limit' => $limit, 'offset' => $offset, 'next_offset' => $next, 'has_more' => $next < $data['total']];
+    }
     public function create(string $owner, string $name, ?string $parent = null, ?int $fileId = null): array {
         NodeRules::name($name);
         return $this->mutate($owner, function () use ($owner, $name, $parent, $fileId) {

@@ -39,6 +39,24 @@ class NodeStore {
         $q->orderBy('name_key', 'ASC')->addOrderBy('id', 'ASC')->setMaxResults($limit)->setFirstResult($offset);
         $r = $q->executeQuery(); $rows = $r->fetchAllAssociative(); $r->closeCursor(); return $rows;
     }
+    /** Database ordering and count for revision-validated explorer pages. */
+    public function objectPage(string $owner, string $parent, string $search, string $sort, int $limit, int $offset): array {
+        $q = $this->db->getQueryBuilder();
+        $q->from('ms_nodes', 'n')->leftJoin('n', 'ms_bindings', 'b', $q->expr()->andX(
+            $q->expr()->eq('b.virtual_node_id', 'n.id'), $q->expr()->eq('b.owner_id', 'n.owner_id')))
+            ->where($q->expr()->eq('n.owner_id', $q->createNamedParameter($owner)))
+            ->andWhere($q->expr()->eq('n.parent_id', $q->createNamedParameter($parent)))
+            ->andWhere($q->expr()->in('n.node_type', $q->createNamedParameter(['folder', 'media'], IQueryBuilder::PARAM_STR_ARRAY)));
+        if ($search !== '') { $q->andWhere($q->expr()->like('n.name', $q->createNamedParameter('%' . $this->db->escapeLikeParameter($search) . '%'))); }
+        $count = clone $q; $count->selectAlias($count->createFunction('COUNT(*)'), 'total');
+        $result = $count->executeQuery(); $total = (int)$result->fetchOne(); $result->closeCursor();
+        $q->select('n.*')->selectAlias('b.mime_type', 'listing_mime');
+        if ($sort === 'type') { $q->orderBy($q->createFunction("CASE WHEN n.node_type = 'folder' THEN 'Folder' WHEN b.mime_type LIKE 'image/%' THEN 'Image' WHEN b.mime_type LIKE 'video/%' THEN 'Video' ELSE 'File' END"), 'ASC'); }
+        $q->addOrderBy('n.name', 'ASC')->addOrderBy('n.id', 'ASC')->setMaxResults($limit)->setFirstResult($offset);
+        $result = $q->executeQuery(); $rows = $result->fetchAllAssociative(); $result->closeCursor();
+        foreach ($rows as &$row) { if ($row['listing_mime'] !== null) { $row['binding'] = ['mime_type' => $row['listing_mime']]; } unset($row['listing_mime']); }
+        return ['nodes' => $rows, 'total' => $total];
+    }
     public function sibling(string $owner, string $parent, string $name): ?array {
         $q = $this->db->getQueryBuilder(); $q->select('*')->from('ms_nodes')
             ->where($q->expr()->eq('owner_id', $q->createNamedParameter($owner)))

@@ -72,3 +72,11 @@ DeliveryRules computes authorized preconditions/single-range plans. DeliveryProt
 ## Release artifact boundary
 
 `npm run package` builds assets, records frontend source/output hashes and invokes the standard-library Python packager. The deployable boundary is an explicit runtime allowlist, independent of the workspace and its ignored private/test files. A deterministic archive contains one application root and SHA-256 manifest; a sidecar checksum covers the archive. Version/source/output mismatch and symlink inputs fail before generation. This unsigned local artifact is separate from the Snap workspace deploy path and does not establish package installation or release support; see US-MS-08/Sprint 05.
+
+## Incremental explorer collection — 0.6.1 prepared
+
+The Objects view uses a bounded ObjectPager with generation/abort guards and one in-flight page. Session nodes listings opt into a revision-validated database-sorted/counting mode; legacy helper allNodes remains for destination enumeration and unrelated existing callers. The UI hydrates only each new batch of at most 25 and keeps existing rows unchanged during append/failure. Native scroll checks and a keyboard fallback load more; browser history can restore a deep scroll by loading only the pages required for that offset. Root lock_version invalidates offsets conservatively after owner metadata transactions; a changed collection requires explicit reload rather than silently skipping rows. No schema migration or bulk selection/import implementation.
+
+## UI-14 — ephemeral bulk selection (0.6.2 prepared)
+
+All-matching selection stores parent/search/root revision, total and excluded IDs only in memory. Commands resolve revision-validated pages of 25 and a final revision check before writes; loaded mode captures the current loaded IDs. No persisted selection, new table, migration or endpoint. Full selected metadata is held transiently at command time for clipboard/names, without rendering unrequested rows. Existing per-object owner/permission checks remain authoritative, and partial operations report success count and retain remaining IDs. This is not an atomic bulk transaction; original Nextcloud files remain unchanged. See design/bulk-selection-and-import.md and the API contract.

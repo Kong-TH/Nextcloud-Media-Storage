@@ -49,3 +49,11 @@ See [temporary access contract](../agile/user-stories/US-MS-06.md). Anonymous by
 ## US-MS-07 protection contract
 
 Require current capability/bearer authorization before validators or range metadata. Count invalid attempts by trusted Nextcloud IP, aggregate valid grants/issuers across IPs, return no-store 429 with Retry-After, and bound concurrent streams by public provider locks. Core rate/file locking must be enabled; unavailable protection fails closed. Advisory exact-host filtering is optional and never replaces credentials; headerless authorized backends remain supported. No app-side X-Forwarded-For parsing. Native rate windows are best-effort under concurrency; proxy/WAF/timeouts remain needed. See [US-MS-07](../agile/user-stories/US-MS-07.md) for limits, stream cleanup and policy semantics.
+
+## Explorer paging boundary — 0.6.1
+
+Opt-in paged session listings constrain count, joined MIME metadata and returned rows by authenticated owner and direct parent; foreign parents fail before querying. Search values remain escaped parameters, sort is a fixed allowlist and limits are bounded to 25. Revision is a consistency marker, not authorization: each page revalidates parent ownership. No long-lived selection or secret is stored in paging/history state. Existing API listings and external scope checks remain unchanged.
+
+## UI-14 — ephemeral bulk selection (0.6.2 prepared)
+
+All-matching selection stores parent/search/root revision, total and excluded IDs only in memory. Commands resolve revision-validated pages of 25 and a final revision check before writes; loaded mode captures the current loaded IDs. No persisted selection, new table, migration or endpoint. Full selected metadata is held transiently at command time for clipboard/names, without rendering unrequested rows. Existing per-object owner/permission checks remain authoritative, and partial operations report success count and retain remaining IDs. This is not an atomic bulk transaction; original Nextcloud files remain unchanged. See design/bulk-selection-and-import.md and the API contract.

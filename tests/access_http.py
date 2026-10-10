@@ -113,7 +113,8 @@ try:
         provision('POST', '', {'userid': user, 'password': password}); created.append(user)
     a, at = login(*users[0]); b, bt = login(*users[1])
     status, page, _ = request(a, 'GET', prefix + '/')
-    check(status == 200 and b'data-version="0.6.0"' in page, 'Installed source is 0.6.0 before testing new endpoints')
+    expected_version = json.loads(Path(__file__).resolve().parents[1].joinpath('package.json').read_text())['version']
+    check(status == 200 and ('data-version="'+expected_version+'"').encode() in page, 'Installed source matches the expected build before testing endpoints')
     _, tree = api(a, at, 'GET', '/api/v1/nodes'); root = tree['root_id']
     _, folder = api(a, at, 'POST', '/api/v1/folders', {'name': 'allowed', 'parent_id': root})
     png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=')

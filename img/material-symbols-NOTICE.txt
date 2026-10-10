@@ -1,8 +1,8 @@
 Google Material Symbols
 Copyright Google LLC
 Licensed under the Apache License, Version 2.0; see material-symbols-LICENSE.txt.
-Official font subset: material-symbols-outlined.ttf (6,804 bytes).
+Official font subset: material-symbols-outlined.ttf (7,148 bytes).
 Retrieved 2026-10-10 from the Google Fonts CSS API and fonts.gstatic.com.
-Source CSS: https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add,arrow_back,arrow_forward,close,content_copy,content_paste,delete,description,drive_file_move,edit,expand_more,folder,folder_open,grid_view,home,image,info,key,menu,more_horiz,movie,search&display=block
+Source CSS: https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&icon_names=add,arrow_back,arrow_forward,check,close,content_copy,content_paste,delete,description,drive_file_move,edit,expand_more,folder,folder_open,grid_view,home,image,info,key,menu,more_horiz,movie,search,select_all&display=block
 Use md-icon ligatures with this font; request a new official subset when adding icons.
 Historical standalone prototype SVG paths also originate from https://github.com/google/material-design-icons.

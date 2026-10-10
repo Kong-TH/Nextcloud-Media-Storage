@@ -19,8 +19,9 @@ final class NodeController extends Controller {
         catch (MediaException $e) { return new JSONResponse(['error' => $e->getMessage()], $e->status); }
     }
     #[NoAdminRequired]
-    public function index(?string $parent_id = null, string $search = '', int $limit = 100, int $offset = 0): JSONResponse {
-        return $this->response(fn($owner) => $this->vfs->listing($owner, $parent_id, $search, $limit, $offset));
+    public function index(?string $parent_id = null, string $search = '', int $limit = 100, int $offset = 0, bool $paged = false, string $sort = 'name', ?int $revision = null): JSONResponse {
+        return $this->response(fn($owner) => $paged ? $this->vfs->objectPage($owner, $parent_id, $search, $sort, $limit, $offset, $revision)
+            : $this->vfs->listing($owner, $parent_id, $search, $limit, $offset));
     }
     #[NoAdminRequired]
     public function show(string $id): JSONResponse { return $this->response(fn($owner) => $this->vfs->show($owner, $id)); }

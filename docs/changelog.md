@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.6.8 — Prepared, 2026-10-10
+
+- Align detail labels, icons and values at row centers; reset inherited Nextcloud definition-list padding within plugin metadata.
+- Add strict alignment and actual host-default CSS regression checks. Installed acceptance pending deployment.
+
+## 0.6.7 — Prepared, 2026-10-10
+
+- Redesign object metadata as compact, aligned icon rows with readable full paths.
+- Ellipsize long selected dropdown values and expose full text through hover/focus tooltips.
+- Build, five frontend test files, 373 browser fixture checks and 66 release archive checks pass. Installed acceptance pending deployment.
+
+## 0.6.6 — Prepared, 2026-10-10
+
+- Replace native dropdowns across object sort, token filters/sort and task destination/access fields with official Material Web selects.
+- Keep popovers within the plugin theme and separate option Escape from parent dialog dismissal.
+- Correct async initial destination labels and retain scroll when select focus returns.
+- 341 combined browser fixture checks pass; installed acceptance pending deployment.
+
+## 0.6.5 — Prepared, 2026-10-10
+
+- Pin Objects/count/selected/Sort and column headings together as the existing two-row header.
+- Give the sticky Object details/Close header 72px minimum height and vertical breathing room.
+- Build and local browser regression pass; installed verification requires deployment.
+
+## 0.6.4 — Prepared, 2026-10-10
+
+- Keep the existing object column header visible at the top of its scroll area.
+- Keep Object details heading and Close visible while independently scrolling long details.
+- Restore scope-menu focus without jumping the scrolled object list.
+- Preserve layout height with theme-matched sticky surfaces and keyboard scroll clearance; local checks pass, installed acceptance pending.
+
+## 0.6.3 — Prepared, 2026-10-10
+
+- Merge select-all and scope dropdown into the existing Name/Type/Binding header; remove the separate selection layer.
+- Align checkbox/name controls with object rows, retaining one compact header on mobile and accessible scope feedback.
+- Local validation passes; installed verification pending deployment.
+
+## 0.6.2 — Prepared, 2026-10-10
+
+- Add loaded/all-matching select-all modes with official Material Web dropdown, mixed state and exclusions.
+- Resolve all selected metadata in revision-validated batches before commands, with progress and stale-collection recovery.
+- Include unloaded objects in Copy/Paste, Move, Remove and single Rename; preserve remaining IDs after partial failures.
+- Keep selection ephemeral and clear it on scope/history/reload changes; retain it when sorting.
+- Installed verification pending deployment; UI-15/16 remain planned.
+
+## 0.6.1 — UI-13 prepared, 2026-10-10
+
+- Load Objects incrementally in 25-item batches, with global database sorting and loaded/total counts.
+- Add append progress/retry, keyboard Load more and revision-change reload; preserve selection/scroll during append and bounded history restoration.
+- Keep legacy listings compatible; no schema migration. Local acceptance is recorded separately from pending installed tests.
+
 ## 0.6.0 — prepared, 2026-10-10
 
 - Add authorized single-byte-range delivery, ETag/Last-Modified and conditional responses.

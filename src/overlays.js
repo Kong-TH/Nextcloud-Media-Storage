@@ -30,15 +30,15 @@ export default class DesignOverlays {
    else if(['ArrowDown','ArrowUp','Home','End'].includes(e.key)){
     e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?entries.length-1:(index+(e.key==='ArrowDown'?1:-1)+entries.length)%entries.length;entries[next]?.focus();
    }else if(e.key==='Tab'){
-    e.preventDefault();const tabs=[...document.querySelectorAll('button,md-text-button,md-filled-button,md-icon-button,md-filled-tonal-icon-button,md-fab,input,select,a[href],[tabindex="0"]')].filter(x=>!x.disabled&&!x.closest('[inert]')&&(x===trigger||x.tabIndex>=0||(x.localName.startsWith('md-')&&!x.hasAttribute('tabindex')))&&x.getClientRects().length&&!element.contains(x));
+    e.preventDefault();const tabs=[...document.querySelectorAll('button,md-text-button,md-filled-button,md-icon-button,md-filled-tonal-icon-button,md-fab,md-outlined-select,input,select,a[href],[tabindex="0"]')].filter(x=>!x.disabled&&!x.closest('[inert]')&&(x===trigger||x.tabIndex>=0||(x.localName.startsWith('md-')&&!x.hasAttribute('tabindex')))&&x.getClientRects().length&&!element.contains(x));
     const next=tabs[tabs.indexOf(trigger)+(e.shiftKey?-1:1)];this.closeMenu(false);(next??trigger).focus();
    }
   },true);
   root.addEventListener('click',e=>{if(e.target.closest('button,md-text-button,md-icon-button,md-filled-tonal-icon-button,md-fab')&&!this.tip.contains(e.target))this.hideTip(true);},true);
-  new MutationObserver(()=>{if(this.owner&&!this.available(this.owner))this.hideTip();if(this.pending&&!this.available(this.pending)){clearTimeout(this.showTimer);this.pending=null;}}).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','disabled','open']});
+  new MutationObserver(()=>{if(this.owner&&(!this.available(this.owner)||!this.owner.hasAttribute('data-tip')))this.hideTip();if(this.pending&&(!this.available(this.pending)||!this.pending.hasAttribute('data-tip'))){clearTimeout(this.showTimer);this.pending=null;}}).observe(root,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','disabled','open','data-tip']});
   addEventListener('resize',()=>this.position());document.addEventListener('scroll',()=>this.position(),true);
  }
- available(trigger){return trigger.isConnected&&!trigger.disabled&&!trigger.closest('[hidden],[inert]')&&trigger.getClientRects().length>0;}
+ available(trigger){if(trigger.localName==='md-outlined-select'&&trigger.shadowRoot?.querySelector('md-menu')?.open)return false;return trigger.isConnected&&!trigger.disabled&&!trigger.closest('[hidden],[inert]')&&trigger.getClientRects().length>0;}
  schedule(trigger){
   clearTimeout(this.exitTimer);if(trigger===this.suppressed||!this.available(trigger))return;
   if(trigger===this.owner&&!this.tip.hidden)return;
@@ -67,7 +67,7 @@ export default class DesignOverlays {
  positionTip(){if(this.owner&&!this.tip.hidden)this.place(this.tip,this.owner,true);}
  position(){
   if(this.menu&&!this.available(this.menu.trigger)){const focused=this.menu.element.contains(document.activeElement);this.closeMenu(false);if(focused)document.getElementById('main').focus();}
-  if(this.owner&&!this.available(this.owner))this.hideTip();
+  if(this.owner&&(!this.available(this.owner)||!this.owner.hasAttribute('data-tip')))this.hideTip();
   if(this.menu)this.place(this.menu.element,this.menu.trigger,this.menu.trigger.id==='fab');this.positionTip();
  }
  openMenu(element,trigger){

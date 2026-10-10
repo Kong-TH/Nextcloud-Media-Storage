@@ -18,7 +18,8 @@
       "php tests/explorer.php",
       "php tests/uploads.php",
       "php tests/access.php",
-      "php tests/streaming.php"
+      "php tests/streaming.php",
+      "php tests/paging.php"
     ]
   },
   "license": "AGPL-3.0-or-later"
