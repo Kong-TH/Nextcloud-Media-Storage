@@ -1,6 +1,6 @@
 # Compatibility and Testing
 
-Current result: US-MS-07 verified on installed 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. See the latest acceptance below; earlier sections retain chronological evidence.
+Current result: installed 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL has US-MS-07 acceptance. Exact 0.8.0 archive fresh install, populated upgrade and paired restore are separately verified on Nextcloud 34.0.4 / PHP 8.5.11 / SQLite: 197 release checks plus child 76/31/19 HTTP/browser checks passed. See the [release report](../release/0.8.0-readiness.md) for precise scope and open production/manual gates. Earlier sections retain chronological evidence.
 
 ## Compatibility evidence
 

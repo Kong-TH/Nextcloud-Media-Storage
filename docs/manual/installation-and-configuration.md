@@ -1,22 +1,22 @@
 # Installation and Configuration
 
-## Current prepared release: 0.6.0
+## Current release candidate: 0.8.0
 
-Source includes the Material explorer, account-isolated virtual buckets/reference operations, session uploads/previews, scoped API credentials, temporary grants and streaming/protection. The installed page was checked on 2026-10-10 and still reports 0.5.1; do not infer deployment from source version. Historical sections below retain earlier evidence.
+The primary installed target is Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. Exact-archive fresh install, populated upgrade and paired restore are separately verified on Nextcloud 34.0.4 / PHP 8.5.11 / SQLite. See the [release acceptance report](../release/0.8.0-readiness.md) for artifact identity and open gates; historical sections below retain earlier evidence.
 
-Development packaging requires Node/npm and Python 3 (standard library only):
+Build and validate the unsigned artifact:
 
-```bash
+```sh
 npm ci --ignore-scripts
 npm run package
 python3 tests/package_release.py
 ```
 
-Artifacts are `dist/mediastorage-0.6.0.tar.gz` and its `.sha256` file. The archive contains one `mediastorage/` root and internal `SHA256SUMS`, with normalized metadata and exact frontend build hashes. No repository history, credentials, tests or node_modules are packaged. Build fingerprints reject changed frontend inputs or tampered/stale assets. This unsigned archive has not yet been installed; checksums establish byte identity, not publisher trust. Do not use the Snap-only development deployment script as a generic installer.
+The output is `dist/mediastorage-0.8.0.tar.gz` and its `.sha256` checksum. Inspect safe archive members and verify both the archive checksum and internal `SHA256SUMS`. Stage in an administrator-controlled directory and install the exact `mediastorage/` tree into the target's configured writable app directory, with deployment-appropriate ownership. Do not overlay older leftover code into the new tree. Quiesce writes, back up configuration/database/originals together, disable the app, replace its app directory, then enable/upgrade through the real Nextcloud app manager/occ. Reload/restart web workers to invalidate opcode caches before HTTP acceptance. The official test Apache image caches opcode revalidation for 60 seconds; CLI enablement does not reset existing web workers.
 
-For a non-Snap disposable target, verify the archive checksum, inspect the members, extract to an administrator-controlled staging directory, then install the `mediastorage/` directory into the configured writable app directory with ownership matching that Nextcloud deployment. Enable/upgrade with that instance's supported app manager/occ and verify version, migrations and acceptance tests. Never overwrite a newer app with an older archive or assume copying files rolls back schema. Back up both Nextcloud database and files first. A restore must recover a consistent database/file pair; reinstalling code is not a database restore. Exact archive installation acceptance remains pending.
+Do not downgrade schema by copying old code. Restore a consistent database/configuration/original-file/code snapshot instead. The automated release harness verifies a maintenance-mode SQLite backup and fresh-container restore; production MySQL backup/restore remains a separate gate. See tests/README.md for reproduction. Checksums establish byte identity, not publisher trust or an app-store signature.
 
-For the local Snap instance, `sudo sh scripts/deploy-snap.sh` remains the development installer, requiring root and prebuilt assets. It installs from the workspace, not the release archive. Expect `mediastorage 0.6.0 enabled`, then rerun installed checks. No schema is added beyond 000500. Do not expose delivery externally before verifying query-secret redaction in the actual proxy/server logs.
+The Snap-only `sudo sh scripts/deploy-snap.sh` remains a workspace development installer requiring root and built assets. It is not the exact-archive installation path. No new migration is added by 0.8.0 beyond 000500. No Nextcloud restart or Snap redeployment is needed for the tests/documentation-only release acceptance work. Verify actual server/proxy log redaction before external delivery; the local container logging fixture does not modify Snap.
 
 Operator policy is configured through Nextcloud app settings. See [US-MS-07](../agile/user-stories/US-MS-07.md) for exact keys/defaults/bounds. Example on the local Snap host:
 

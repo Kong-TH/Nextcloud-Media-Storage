@@ -1,3 +1,11 @@
+## US-MS-08 exact-archive acceptance — 2026-10-10
+
+User authorized committing US-MS-07 and proceeding to US-MS-08. Commit 938bd57 records US-MS-07 acceptance without push. Exact 0.8.0 archive installation, populated 0.2.0 upgrade and paired maintenance-mode SQLite backup/restore are now verified in disposable official-image containers. The release harness passed 197 checks; child suites passed 76 access HTTP, 31 streaming/policy HTTP and 19 native-player browser checks on the restored exact archive. Every installed archive member and served JS/CSS matches. Local packaging passed 66 checks, six frontend test files pass and npm audit reported zero advisories. No production PHP/schema/API/frontend change and no Snap redeployment are required by this slice.
+
+Actual added target: Nextcloud 34.0.4 / PHP 8.5.11 / SQLite. Primary Snap target remains Nextcloud 34.0.4 / PHP 8.4.26 / MySQL. Local Nginx forwarding preserves range/conditional/error status and configured Apache/Nginx access logs omit known secrets. Original files, old nodes/bindings/tokens and grant authorization survive paired restore. Containers/anonymous volumes and private backup/credentials were removed successfully. Official image OPcache revalidation is 60 seconds; restart web workers after code replacement before acceptance. SELinux remains enabled; use Docker copy rather than denied host bind mounts for fixture configuration.
+
+Read [the exact artifact report](release/0.8.0-readiness.md) before release. US-MS-08 remains open for actual production TLS/proxy/trusted-IP/error/tracing logs, load/memory/stalled-storage/crash behavior, production MySQL backup/restore, the chosen support matrix and manual UI-10 gates. Other database/version combinations are unclaimed. Screen-reader testing remains excluded. No signing/publication/push was performed.
+
 ## US-MS-07 installed acceptance — 2026-10-10
 
 US-MS-07 is verified on installed Media Storage 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. No production code, schema, API or asset changes were needed for this acceptance slice.

@@ -5,7 +5,7 @@
 User confirms the deployed UI-16 works and authorizes committing 0.8.0. This records user acceptance after the deployment request, not an automated installed-byte or full installed-suite result. UI-01–16 feature implementation is complete; UI-10 physical mobile/keyboard, actual browser zoom and full-state contrast acceptance remains open (screen-reader testing excluded by user). At that checkpoint, the next technical work was US-MS-07 installed streaming/protection acceptance, followed by US-MS-08 exact-archive installation/upgrade, compatibility matrix, security/proxy/load review and backup/restore verification. Publishing/signing is a separate pending release action; no push is authorized by this checkpoint.
 
 
-Status: US-MS-08 packaging slice in progress, 2026-10-10. US-MS-07 installed acceptance is complete on 0.8.0; see Sprint 04. No release publication is authorized by this work.
+Status: US-MS-08 automated exact-archive acceptance verified; production/manual release gates remain open, 2026-10-10. US-MS-07 installed acceptance is complete on 0.8.0; see Sprint 04. No release publication is authorized by this work.
 
 ## Implemented and locally verified
 
@@ -18,11 +18,11 @@ This establishes local archive generation and validation only. It does not estab
 | Gate | Evidence/status |
 | --- | --- |
 | US-MS-07 installed HTTP / player / parallel stream / policy acceptance | Passed on installed 0.8.0: 76 access HTTP, 31 streaming/policy HTTP and 19 browser checks; see Sprint 04 |
-| Install exact archive, upgrade populated data and compare installed bytes | Pending on a disposable target; workspace Snap deploy is a different path |
-| Database/version matrix | Actual target: Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL through 0.5.1; local populated SQLite schema upgrade and PostgreSQL SQL generation do not establish full deployments |
-| Authorization and lifecycle security review | Existing automated tests cover owner/scope/revocation/virtual-only behavior; wider concurrency races and independent release review remain open |
-| Proxy, logging and large-file behavior | Query-secret redaction, trusted proxy IPs, memory/load and stalled client/storage timeouts need actual deployment evidence |
-| Backup/restore consistency | Database and files must restore together; rollback by copying older code is unsupported; exercise on disposable backup before release |
+| Install exact archive, upgrade populated data and compare installed bytes | Verified exact 0.8.0 archive on official Nextcloud 34.0.4 / PHP 8.5.11 / SQLite; populated 0.2.0 upgrade, all member hashes and served assets match |
+| Database/version matrix | Actual targets: Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL through 0.8.0; exact archive on Nextcloud 34.0.4 / PHP 8.5.11 / SQLite. PostgreSQL SQL generation is not a live deployment |
+| Authorization and lifecycle security review | Developer source review, npm audit (zero reported advisories) and restored-archive owner/scope/revocation/preservation suites pass; no independent penetration-test claim |
+| Proxy, logging and large-file behavior | Local Nginx forwarding and configured access-log redaction pass; actual production TLS/trusted IPs/error/tracing logs, memory/load/stalled storage/crash behavior remain open |
+| Backup/restore consistency | Quiesced paired SQLite/config/files/code restore into a fresh container passes; actual MySQL backup/restore remains open. Copying older code alone is unsupported |
 | Manual UI checks | Physical mobile/keyboard, real browser zoom and all-state contrast remain; screen-reader gate excluded by user |
 | Publishing | Not performed; no app-store signing/upload or Git push |
 
@@ -85,3 +85,7 @@ US-MS-07 is verified on installed Media Storage 0.8.0 / Nextcloud 34.0.4 / PHP 8
 - `MEDIASTORAGE_TEST_PHASE=3 python3 tests/http_integration.py`: **130 live regression checks**; dedicated account/original cleanup completed.
 
 All live harnesses exited successfully and removed their dedicated accounts/originals. The policy suite restored all five changed app settings, including absence of previously unset keys. These results establish the recorded direct local target, not a proxy/CDN/load or database/version matrix, memory benchmark, crash-recovery certification or independent security review. Those remain US-MS-08 gates. UI-10 physical mobile/keyboard, actual browser zoom and full-state contrast remain open; screen-reader testing remains excluded by user decision.
+
+## US-MS-08 exact-archive results — 2026-10-10
+
+See [the release report](../../release/0.8.0-readiness.md) for exact SHA-256, immutable image identity, full commands, 197 release checks and child 76/31/19 HTTP/browser checks. All containers/anonymous volumes and private backups/credentials were cleaned. Packaging passes 66 checks and all six frontend test files pass. The prepared package remains unsigned and unpublished. Automated results do not close the remaining production/manual gates above. No production implementation, schema or API changes were needed.

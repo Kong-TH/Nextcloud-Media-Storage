@@ -341,3 +341,18 @@ MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_STREAMING_ONLY=yes node tests
 All harnesses use the private administrator fixture configuration documented above; never commit it. Access quota checks require default quota settings. The policy harness requires app-config provisioning access and temporarily changes five instance-wide settings, so run it during a quiet test window. It saves original values to a mode-0600 `/tmp/mediastorage-stream-settings-<nonce>.json` recovery file before mutation, restores values in `finally`, and deletes the file only after successful cleanup. If killed before cleanup, restore the listed app keys (remove keys recorded as null), remove the disposable accounts and rerun; do not assume an interrupted run restored settings.
 
 The browser mode requires real silent 160×90, roughly two-second VP9 WebM and H.264 MP4 fixtures. Set `MEDIASTORAGE_TEST_VIDEO` and `MEDIASTORAGE_TEST_VIDEO_MP4` to their paths; defaults are `/tmp/mediastorage-ui-video.webm` and `/tmp/mediastorage-ui-video.mp4`. It uses the existing CDP test browser, clears its cookies and uploads sources only within its own disposable account. Capability URLs remain in process/browser memory and are never printed.
+
+## US-MS-08 isolated exact-archive acceptance — 2026-10-10
+
+```sh
+npm run package
+python3 tests/package_release.py
+MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/release_install.py \
+  --archive dist/mediastorage-0.8.0.tar.gz --browser
+```
+
+Requires Docker access, official `nextcloud:34-apache` and `nginx:stable-alpine` images, free loopback ports 18089/18090 (override `--port`/`--proxy-port`), and the existing CDP browser plus real video fixtures for `--browser`. The harness generates independent administrator credentials and does not read the Snap private credential file. It installs historical 0.2.0 from tracked `f57a04c` (override `--previous-ref` only with a compatible previous fixture), populates folder/binding/token/original data, replaces the app with the exact archive, runs actual migrations and restarts web workers to invalidate their 60-second OPcache interval. It verifies all member hashes, original preservation and new grant delivery.
+
+It snapshots SQLite/config/data/custom_apps under maintenance mode, proves a later virtual deletion preserves originals, independently verifies a fresh archive installation, then restores the paired snapshot into that fresh container. Old node/binding/token/grant and original bytes recover consistently; installed and served assets match. Child access/policy suites run against the restored archive; `--browser` also checks anonymous MP4/WebM playback/seek. The minimal generated Nginx fixture preserves partial/conditional/error status and private caching. Explicit Apache `%U` and Nginx `$uri` access logging omits query/Referer/Authorization; known secrets are checked in memory only. Production error/tracing logs and actual trusted-proxy IP behavior are outside this fixture's claim.
+
+Observed: **197 release harness checks**, with child suites **76 access HTTP / 31 streaming-policy HTTP / 19 browser checks**, plus **66 packaging checks** and **six frontend test files**. Actual runtime: Nextcloud 34.0.4 / PHP 8.5.11 / SQLite. All harness containers and anonymous volumes are removed in `finally`; private credentials/backup are discarded. After a hard kill, inspect only the `mediastorage-release-` containers for cleanup; do not prune unrelated Docker resources. No application/API/schema code or Snap configuration changes. See [the release report](../docs/release/0.8.0-readiness.md) for exact artifact identity, security review and open gates.

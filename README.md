@@ -2,9 +2,11 @@
 
 Native Nextcloud app foundation (`mediastorage`) for private virtual media organization, using Nextcloud filesystem, database, and session authentication.
 
-**Status:** Installed 0.5.1 adds revocable per-reference temporary media URLs with session/scoped-bearer management and anonymous authorized GET/HEAD streams. The new live HTTP suite passed 47 checks and the existing Phase 3 suite passed 130 checks. Local tests/build pass. Prior 0.4.1 browser evidence (305 checks) is recorded separately. Source 0.6.0 adds range/conditional streaming and native abuse controls; installed acceptance remains pending. Run `npm run package` to build an unsigned archive and `python3 tests/package_release.py` to validate it. Packaging requires Python 3; see the installation guide. See [Sprint 04](docs/agile/sprint-backlogs/sprint-04.md) and [temporary access](docs/agile/user-stories/US-MS-06.md).
+**Status:** Media Storage 0.8.0 implements account-isolated virtual buckets, reference management, daily uploads, previews, scoped API tokens, temporary media access, conditional/range streaming and native abuse controls. UI-01–16 feature implementation is complete. Installed 0.8.0 streaming acceptance passed 76 access HTTP, 31 streaming/policy HTTP and 19 native-player browser checks, plus 130 API regression checks. Release acceptance and remaining manual gates are tracked in [US-MS-08](docs/agile/user-stories/US-MS-08.md); an unsigned artifact is not a published release.
 
-Initial target: installed Nextcloud 34.0.4 / PHP 8.4.26. Live HTTP integration is verified on this Nextcloud 34.0.4 / Snap MySQL environment only. Other Nextcloud releases and database deployments remain unverified.
+The recorded primary target is Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. Separate release-container results are recorded in the compatibility document; do not infer other database/version support from schema generation alone.
+
+Build an unsigned deterministic archive with `npm run package` and validate it with `python3 tests/package_release.py` (Python 3 required). Install the exact archive through the target Nextcloud app manager/occ, quiesce requests during replacement and restart/reload web workers as needed to invalidate opcode caches. Back up and restore the database, configuration and original files together; copying older app code is not a schema rollback. See the [installation guide](docs/manual/installation-and-configuration.md).
 
 Start with the [documentation index](docs/index.md), [Sprint 01](docs/agile/sprint-backlogs/sprint-01.md), [installation guide](docs/manual/installation-and-configuration.md), and [tests](tests/README.md).
 

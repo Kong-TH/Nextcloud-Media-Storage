@@ -1,6 +1,6 @@
 # US-MS-08 — Release readiness
 
-Status: In progress. Packaging is implemented; 66 archive checks passed for prepared 0.8.0. User accepted deployed UI-16 after the 0.8.0 deployment request. Exact-archive installation, upgrade and the remaining gates below are unverified; workspace Snap deployment is a different installation path. US-MS-07 implementation is committed in bfd532c, with installed streaming/protection acceptance still pending.
+Status: Automated exact-archive acceptance verified on 2026-10-10; release gates remain open. The 0.8.0 artifact passed 66 packaging checks and 197 isolated install/upgrade/paired-restore/proxy checks. Child suites passed 76 access HTTP, 31 streaming/policy HTTP and 19 native-player browser checks on the restored exact archive. Actual container target: Nextcloud 34.0.4 / PHP 8.5.11 / SQLite. US-MS-07 is complete on installed Snap 0.8.0 and committed in 938bd57. See the [release report](../../release/0.8.0-readiness.md) for the exact artifact, security review, environment and remaining gates.
 
 ## Packaging contract
 
@@ -10,6 +10,6 @@ The archive records a SHA-256 manifest of every packaged file and a separate arc
 
 ## Remaining acceptance
 
-Verify archive structure, file hashes, reproducibility and stale-build rejection locally. Install the exact archive on a disposable Nextcloud target and run migrations/HTTP/browser checks before claiming package installation acceptance. Review authorization, original-file preservation, secret handling, proxy logging, upload/rate policy and rollback/backup procedures. Record actual database/version testing separately from SQL generation. Current declared target remains Nextcloud 34; PostgreSQL and a full live SQLite installation are not established by schema unit tests.
+Exact-archive fresh installation, populated 0.2.0-to-0.8.0 upgrade, quiesced paired SQLite backup/restore, exact installed/served bytes and local Nginx forwarding/access-log redaction are verified. This does not establish the actual production proxy/TLS/trusted-IP/logging configuration, load/memory/stalled-storage/crash behavior or MySQL backup/restore. PostgreSQL and other version/database combinations remain unclaimed; SQL generation is separate evidence.
 
-Physical mobile/keyboard, actual browser zoom and visual-state contrast remain manual release checks. Actual screen-reader testing is excluded at the user's request. Public release remains pending until outstanding US-MS-07 and compatibility/security gates have evidence; do not mark this story complete based on packaging alone.
+Physical mobile/keyboard, actual browser zoom and visual-state contrast remain manual release checks. Actual screen-reader testing is excluded at the user's request. Public release/signing remains pending the [open release gates](../../release/0.8.0-readiness.md#open-release-gates); do not mark the entire story complete from automated acceptance alone.

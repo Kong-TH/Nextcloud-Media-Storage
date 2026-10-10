@@ -19,6 +19,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Sprint 03: Buckets and Material explorer](agile/sprint-backlogs/sprint-03.md)
 - [Sprint 05: Release readiness](agile/sprint-backlogs/sprint-05.md)
 - [Sprint 04: Temporary delivery and protection](agile/sprint-backlogs/sprint-04.md)
+- [0.8.0 exact-archive acceptance and open gates](release/0.8.0-readiness.md)
 - [Release readiness story](agile/user-stories/US-MS-08.md)
 - [Streaming and protection story](agile/user-stories/US-MS-07.md)
 - [Temporary access story](agile/user-stories/US-MS-06.md)
