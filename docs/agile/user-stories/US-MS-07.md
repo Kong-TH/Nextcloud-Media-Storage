@@ -1,6 +1,6 @@
 # US-MS-07: Streaming and abuse controls
 
-Status: In progress, authorized 2026-10-10 after commit b5ac69e. Installed baseline is 0.5.1. This contract is recorded before implementation.
+Status: Implementation committed in bfd532c (0.6.0), with 61 local streaming/protection checks passed. Installed streaming/protection/player/concurrency acceptance remains pending. User accepted deployed UI-16 after the 0.8.0 deployment request; that report does not verify this story. The contract below was recorded before implementation.
 
 ## Delivery behavior
 

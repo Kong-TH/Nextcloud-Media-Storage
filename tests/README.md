@@ -309,3 +309,11 @@ Run `MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_PICKER_ONLY=yes node tes
 ### Picker alignment regression — 0.7.1
 
 Focused fixture and live picker suites assert checkbox/button center differences below 1px, zero input block margins and 48px selection targets at desktop, mobile and RTL widths. The assertion failed before the scoped CSS fix. Passed 24 fixture checks and 14 actual-host candidate frontend checks; candidate interception is not installed-version evidence.
+
+## UI-16 per-folder import review — prepared 0.8.0
+
+Run `npm test`, `node tests/frontend/browser.mjs --picker-only`, `node tests/frontend/browser.mjs`, `sh scripts/php-snap.sh tests/imports.php` and `python3 tests/package_release.py`. Model cases cover ten-file roots, both kept/both contents/mixed roots, selected descendants, nested-only folders, empty and unsupported-only roots, sibling collisions, exact/over 1000-source and 128-level bounds, paged destination collisions/revision changes, cancellation and partial continuation. Fixture browser cases exercise real Material selection/keyboard Escape, before-write review, independent choices/editing/back, mixed destination structures, duplicate conflicts, stop during enumeration, write-time permission loss/retry, and incremental 25-row review disclosure.
+
+`MEDIASTORAGE_TEST_DISPOSABLE=yes MEDIASTORAGE_TEST_PICKER_ONLY=yes MEDIASTORAGE_TEST_CANDIDATE_ASSETS=yes node tests/frontend/live.mjs` uses real authenticated Nextcloud sources and database endpoints with candidate assets. It checks both mixed directions, prepared nested paths, unsupported/empty outcomes, geometry/theme and original byte preservation; its disposable account is removed afterward. Remove `MEDIASTORAGE_TEST_CANDIDATE_ASSETS=yes` after privileged deployment for installed 0.8.0 evidence. Candidate interception is not installed acceptance. The same existing import endpoint is used; no new backend/schema behavior is introduced.
+
+Observed: six frontend test files, 19 import checks plus 69 baseline PHP checks, build and 66 archive checks pass. Full fixture regression passed 441 checks before the final scoped heading-color correction; final focused fixture checks passed 69 and final actual-host candidate checks passed 26 afterward. Desktop/light and 320 px dark/RTL screenshots were inspected. Installed 0.8.0 verification remains pending.

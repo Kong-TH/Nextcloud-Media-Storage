@@ -1,6 +1,6 @@
 # US-MS-08 — Release readiness
 
-Status: in progress; packaging slice authorized by the user's request to continue, 2026-10-10. US-MS-07 source is committed as bfd532c, but installed acceptance still requires 0.6.0 deployment: the authenticated app page currently reports 0.5.1.
+Status: In progress. Packaging is implemented; 66 archive checks passed for prepared 0.8.0. User accepted deployed UI-16 after the 0.8.0 deployment request. Exact-archive installation, upgrade and the remaining gates below are unverified; workspace Snap deployment is a different installation path. US-MS-07 implementation is committed in bfd532c, with installed streaming/protection acceptance still pending.
 
 ## Packaging contract
 

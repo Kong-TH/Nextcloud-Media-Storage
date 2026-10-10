@@ -5,6 +5,7 @@ import {readFile,writeFile} from 'node:fs/promises'
 import assert from 'node:assert/strict'
 import {chooseSelect,selectPopupChecks,tokenSelectChecks,selectEllipsisChecks} from './select-checks.mjs'
 import {multiPickerChecks} from './picker-multi-checks.mjs'
+import {folderReviewChecks} from './folder-review-checks.mjs'
 import {detailChecks} from './detail-checks.mjs'
 import {uploadChecks} from './upload-checks.mjs'
 import {bucketChecks} from './bucket-checks.mjs'
@@ -27,6 +28,9 @@ const server=createServer(async(req,res)=>{
   let entries=path===''?[{name:'Chosen.png',id:42},{name:'UI-picker',folder:true}]:path==='UI-picker'?[{name:'Deep folder with a very long name for narrow screens',folder:true}]:path==='UI-picker/Deep folder with a very long name for narrow screens'?[{name:'Leaf.png',id:43}]:[]
   if(sourceMode==='multi')entries=path===''?[{name:'A',folder:true,id:101},{name:'B',folder:true,id:102},{name:'one.png',id:103},{name:'two.png',id:104},{name:'bad.pdf',id:105,mime:'application/pdf'}]:path==='A'?[{name:'child.png',id:106},{name:'Sub',folder:true,id:107},{name:'skip.pdf',id:108,mime:'application/pdf'}]:path==='A/Sub'?[{name:'deep.png',id:109}]:[]
   if(sourceMode==='large')entries=path===''?Array.from({length:30},(_,i)=>({name:'large-'+i+'.png',id:200+i})):[]
+  if(sourceMode==='conflict')entries=path===''?[{name:'A',folder:true,id:101},{name:'B',folder:true,id:102}]:[{name:'same.png',id:path==='A'?301:302}]
+  if(sourceMode==='manyFolders')entries=path===''?Array.from({length:30},(_,i)=>({name:'Folder '+i,folder:true,id:400+i})):[]
+  if(importMode==='slowPrepare'&&path==='A')await new Promise(r=>setTimeout(r,1000))
   if(importMode==='lostOnce'&&path==='A')await new Promise(r=>setTimeout(r,350))
   const xml=entries.map(f=>`<d:response><d:href>/remote.php/dav/files/fixture/${path?path+'/':''}${f.name}${f.folder?'/':''}</d:href><d:propstat><d:prop><d:displayname>${f.name}</d:displayname><d:getcontenttype>${f.folder?'httpd/unix-directory':f.mime??'image/png'}</d:getcontenttype><oc:fileid>${f.id??0}</oc:fileid><d:resourcetype>${f.folder?'<d:collection/>':''}</d:resourcetype></d:prop><d:status>HTTP/1.1 200 OK</d:status></d:propstat></d:response>`).join('')
   res.writeHead(207,{'Content-Type':'application/xml'});res.end('<d:multistatus xmlns:d="DAV:" xmlns:oc="http://owncloud.org/ns"><d:response><d:href>'+url.pathname+'</d:href></d:response>'+xml+'</d:multistatus>');return
@@ -70,7 +74,7 @@ const server=createServer(async(req,res)=>{
   const items=matching.slice(offset,offset+limit)
   send({root_id:'root',nodes:items,parent_id:parent,...(paged?{total:matching.length,revision:fixtureRevision,next_offset:offset+items.length,has_more:offset+items.length<matching.length}:{})});return
  }
- if(path==='/imports/entries'){const id='import-'+body.request_id+'-'+body.file_id,old=rows.find(n=>n.id===id);if(old){send(old);return}if(rows.some(n=>n.parent_id===body.parent_id&&n.name===body.name)){send({error:'Destination name already exists'},409);return}const n={id,name:body.name,parent_id:body.parent_id,node_type:body.folder?'folder':'media',...(!body.folder?{binding_status:'available',binding:{mime_type:'image/png',nextcloud_file_id:body.file_id,last_known_path:'Chosen.png',file_size:12}}:{})};rows.push(n);if(importMode==='lostOnce'){importMode='normal';send({error:'Connection lost after commit'},500);return}if(importMode==='slow')await new Promise(r=>setTimeout(r,200));send(n);return}
+ if(path==='/imports/entries'){const id='import-'+body.request_id+'-'+body.file_id,old=rows.find(n=>n.id===id);if(old){send(old);return}if(importMode==='denySecond'&&rows.some(n=>n.id.startsWith('import-'+body.request_id+'-'))){send({error:'Source permission was revoked'},403);return}if(rows.some(n=>n.parent_id===body.parent_id&&n.name===body.name)){send({error:'Destination name already exists'},409);return}const n={id,name:body.name,parent_id:body.parent_id,node_type:body.folder?'folder':'media',...(!body.folder?{binding_status:'available',binding:{mime_type:'image/png',nextcloud_file_id:body.file_id,last_known_path:'Chosen.png',file_size:12}}:{})};rows.push(n);if(importMode==='lostOnce'){importMode='normal';send({error:'Connection lost after commit'},500);return}if(importMode==='slow')await new Promise(r=>setTimeout(r,200));send(n);return}
  if(path==='/folders'||path==='/bindings'){const n={id:'n'+next++,name:body.name,parent_id:body.parent_id,node_type:path==='/folders'?'folder':'media',...(path==='/bindings'?{binding_status:'available',binding:{mime_type:'image/png',nextcloud_file_id:body.file_id,last_known_path:'Chosen.png',file_size:12}}:{})};rows.push(n);send(n,201);return}
  if(path==='/tokens'){if(req.method==='POST'){const token={id:'t'+next++,name:body.name,scopes:body.scopes,expires_at:body.expires_at,status:'active',created_at:Math.floor(Date.now()/1000),folder_id:body.folder_id,last_used_at:null};tokens.push(token);send({token,secret:'fixture-only-secret'},201)}else send({tokens:tokens.slice(Number(url.searchParams.get('offset')??0),Number(url.searchParams.get('offset')??0)+Number(url.searchParams.get('limit')??100)),...(fixturePolicy?{policy:{server_time:Math.floor(Date.now()/1000),max_lifetime_seconds:fixtureLifetime}}:{})});return}
  if(path.startsWith('/tokens/')){const t=tokens.find(t=>t.id===path.split('/')[2]);if(req.method==='DELETE'){t.status='revoked';send(null,204)}else send({token:t,secret:'fixture-rotation-secret'},201);return}
@@ -97,6 +101,7 @@ try{
  await send('Runtime.enable');errors.length=0;await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await send('Page.navigate',{url:base});await wait('location.origin==='+JSON.stringify(base));await wait("document.querySelectorAll('#objects li').length===2")
  const beforePickerNext=next
  if(!process.argv.includes('--selection-only'))await multiPickerChecks({send,evaluate,click,wait,check,pause,setSources:mode=>{sourceMode=mode},setImport:mode=>{importMode=mode},getRows:()=>rows})
+ if(!process.argv.includes('--selection-only'))await folderReviewChecks({send,evaluate,click,wait,check,pause,setSources:mode=>{sourceMode=mode},setImport:mode=>{importMode=mode},getRows:()=>rows})
  next=beforePickerNext
  if(!process.argv.includes('--picker-only')){
  if(!process.argv.includes('--selection-only')){

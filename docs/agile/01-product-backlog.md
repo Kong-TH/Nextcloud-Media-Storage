@@ -23,6 +23,8 @@ Lifecycle cleanup is implemented in deployed 0.2.0; live deletion/recreation iso
 
 UI-09 update (installed 0.4.1): session upload, persistent retry journal, daily per-account physical storage, progress/Stop reconciliation, thumbnails/details and session DAV content bridge are implemented. Installed multipart/preview and warm-cache acceptance passed; extended video playback/seek/session ranges and Phase 3 HTTP acceptance also pass. Public/signed and external-token media delivery remain planned.
 
-## Additional UI backlog — 2026-10-10
+## Additional UI backlog — implemented and user-accepted, 2026-10-10
 
-Planned only at the user's request: UI-13 (25-object incremental scrolling), UI-14 (loaded/all-matching select-all modes), UI-15 (multi-file/folder Nextcloud picker with select-all after Home), UI-16 (per-folder keep/outer-wrapper flatten choices and official Material progress). See [UI tasks](ui-tasks.md) and [detailed requirements/test cases](../design/bulk-selection-and-import.md). No implementation or test execution is claimed for these additions.
+UI-13 (25-object incremental scrolling), UI-14 (loaded/all-matching selection), UI-15 (multi-source picker) and UI-16 (independent keep/outer-wrapper contents choices with Material progress) are implemented. The user accepted deployed UI-16 after the 0.8.0 deployment request. Local/candidate test evidence is recorded in the handoff; this user report is not an automated installed-suite result. No additional UI feature task is currently planned. UI-10 physical mobile/keyboard, actual zoom and full-state contrast checks remain open; screen-reader testing was excluded by the user.
+
+Remaining story work: US-MS-07 installed streaming/protection/player/parallel-limit acceptance; US-MS-08 exact-archive install/upgrade, compatibility/security/proxy/load and backup/restore validation. Signing/publication remains a separate pending release action. Earlier planned-only paragraphs and version-specific evidence above are historical.

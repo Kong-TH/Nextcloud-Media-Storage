@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.0 — User-accepted, 2026-10-10
+
+- Review each selected folder independently: keep its wrapper or import its contents while preserving nested folders.
+- Preview bounded destinations and reject planned/existing name conflicts before confirmation; show empty/unsupported outcomes.
+- Reuse source-authorized deterministic entry retries, Stop and official Material progress; incrementally disclose review rows. No schema/API changes.
+- Local validation and actual-host candidate evidence are recorded in the handoff. User confirmed the deployed feature works; this is not a new automated installed-suite result.
+
 ## 0.7.1 — Prepared, 2026-10-10
 
 - Center picker checkboxes with file icons/labels and remove dialog field margins from selection controls.

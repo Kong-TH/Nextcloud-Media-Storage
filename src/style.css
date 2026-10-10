@@ -437,3 +437,14 @@
 #media-design #import-progress {margin-block:16px;}
 #media-design #import-progress p {margin-block:8px;}
 #media-design .picker-navigation {gap:4px;}
+
+/* Folder review replaces the picker body within the existing dialog. */
+#media-design .import-review-heading {display:flex;align-items:center;gap:8px;min-width:0;}
+#media-design .import-review-heading h3 {margin:0;font-size:18px;color:var(--on);}
+#media-design .import-target,#media-design .import-source-path {overflow-wrap:anywhere;}
+#media-design .import-review-list {max-height:260px;overflow:auto;overscroll-behavior:contain;min-width:0;margin:12px 0;padding:0;list-style:none;}
+#media-design .import-folder-choice {display:grid;gap:8px;margin-block-end:16px;min-width:0;}
+#media-design .import-source-path {font-size:14px;}
+#media-design .import-preview li {display:flex;align-items:center;gap:12px;min-height:48px;padding-block:8px;}
+#media-design .import-preview md-icon {flex-shrink:0;}
+#media-design .import-preview span {min-width:0;overflow-wrap:anywhere;}
