@@ -26,6 +26,8 @@ cache:
 
 package:
   stage: package
+  tags:
+    - docker
   image: node:24-bookworm
   script:
     - apt-get update
@@ -42,6 +44,8 @@ package:
 
 publish:
   stage: publish
+  tags:
+    - docker
   image: debian:bookworm-slim
   needs:
     - job: package
