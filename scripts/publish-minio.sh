@@ -49,5 +49,11 @@ python3 "$script_dir/s3-put.py" "$archive" "$prefix/$(basename "$archive")"
 python3 "$script_dir/s3-put.py" "$checksum" "$prefix/$(basename "$checksum")"
 base=${MINIO_ENDPOINT%/}
 name=$(basename "$archive")
-printf 'Uploaded %s/%s/%s/%s\n' "$base" "$MINIO_BUCKET" "$prefix" "$name"
-printf 'Checksum %s/%s/%s/%s\n' "$base" "$MINIO_BUCKET" "$prefix" "$(basename "$checksum")"
+checksum_name=$(basename "$checksum")
+archive_url="${base}/${MINIO_BUCKET}/${prefix}/${name}"
+checksum_url="${base}/${MINIO_BUCKET}/${prefix}/${checksum_name}"
+printf 'Uploaded %s\n' "$archive_url"
+printf 'Checksum %s\n' "$checksum_url"
+# GitLab dotenv values are the public object URLs, never credentials.
+printf 'ARCHIVE_URL=%s\nCHECKSUM_URL=%s\nARCHIVE_NAME=%s\nCHECKSUM_NAME=%s\n' \
+    "$archive_url" "$checksum_url" "$name" "$checksum_name" > minio.env

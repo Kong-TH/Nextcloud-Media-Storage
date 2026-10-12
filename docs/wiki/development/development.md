@@ -16,7 +16,7 @@ The production frontend is built from `src/` with `npm run package`. See the ins
 
 ## GitLab CI
 
-`.gitlab-ci.yml` packages the unsigned archive on branches, tags, and merge requests. The publish job uploads `dist/mediastorage-VERSION.tar.gz` and its `.sha256` file to MinIO on the default branch and on tags. Both jobs request the runner tag `docker` because they start a container image. GitLab runs a job only on a runner that has every requested tag.
+`.gitlab-ci.yml` packages the unsigned archive on branches, tags, and merge requests. The publish job uploads `dist/mediastorage-VERSION.tar.gz` and its `.sha256` file to MinIO on the default branch and on tags. A tag pipeline then creates a GitLab release for that tag and links both objects. Push a tag, for example `v0.8.0`, to create the release; a branch pipeline does not. The jobs request the runner tag `docker` because they start a container image. GitLab runs a job only on a runner that has every requested tag.
 
 Set these GitLab CI/CD variables. Mask `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY`. If the variables are protected, protect the default branch and release tags as well, or the publish job will not see them.
 
