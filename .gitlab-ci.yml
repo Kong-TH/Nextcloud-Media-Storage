@@ -55,6 +55,5 @@ publish:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH && $MINIO_ENDPOINT && $MINIO_ACCESS_KEY && $MINIO_SECRET_KEY && $MINIO_BUCKET
   script:
     - apt-get update
-    - apt-get install -y --no-install-recommends ca-certificates curl
-    - sh scripts/install-mc.sh
+    - apt-get install -y --no-install-recommends ca-certificates python3
     - sh scripts/publish-minio.sh dist

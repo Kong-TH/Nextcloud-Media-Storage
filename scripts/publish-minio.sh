@@ -24,7 +24,7 @@ prefix=${prefix%/}
 case $prefix in
     ''|*..*|*[!A-Za-z0-9./_-]*) echo 'MINIO_PREFIX is empty or unsafe.' >&2; exit 1 ;;
 esac
-command -v mc >/dev/null 2>&1 || { echo 'MinIO client mc is not installed.' >&2; exit 1; }
+command -v python3 >/dev/null 2>&1 || { echo 'python3 is not installed.' >&2; exit 1; }
 archive=
 count=0
 for file in "$dist"/mediastorage-*.tar.gz; do
@@ -44,14 +44,9 @@ if [ ! -s "$checksum" ]; then
     echo "Missing checksum ${checksum}." >&2
     exit 1
 fi
-config=$(mktemp -d)
-trap 'rm -rf "$config"' EXIT
-set --
-if [ "${MINIO_INSECURE:-}" = 'true' ]; then
-    set -- --insecure
-fi
-mc "$@" --config-dir "$config" alias set ci "$MINIO_ENDPOINT" "$MINIO_ACCESS_KEY" "$MINIO_SECRET_KEY" >/dev/null
-mc "$@" --config-dir "$config" cp "$archive" "$checksum" "ci/${MINIO_BUCKET}/${prefix}/"
+script_dir=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
+python3 "$script_dir/s3-put.py" "$archive" "$prefix/$(basename "$archive")"
+python3 "$script_dir/s3-put.py" "$checksum" "$prefix/$(basename "$checksum")"
 base=${MINIO_ENDPOINT%/}
 name=$(basename "$archive")
 printf 'Uploaded %s/%s/%s/%s\n' "$base" "$MINIO_BUCKET" "$prefix" "$name"

@@ -28,5 +28,6 @@ Set these GitLab CI/CD variables. Mask `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY`
 | `MINIO_BUCKET` | Destination bucket |
 | `MINIO_PREFIX` | Optional object prefix; defaults to `mediastorage` |
 | `MINIO_INSECURE` | Optional. Set to `true` only when the endpoint uses a private TLS certificate |
+| `MINIO_REGION` | Optional SigV4 region. Defaults to `us-east-1` |
 
-The job prints a path-style object URL. It does not change the bucket policy and does not store credentials in the repository. A Nextcloud App Store download needs that object to be anonymously readable over HTTPS. Do not commit the MinIO secret or an app-signing private key.
+Each file is uploaded with one path-style `PutObject` request. The job does not list the bucket or start a multipart upload. The object policy needs `s3:PutObject` on `bucket/prefix/*`. The job prints a path-style object URL. It does not change the bucket policy and does not store credentials in the repository. A Nextcloud App Store download needs that object to be anonymously readable over HTTPS. Do not commit the MinIO secret or an app-signing private key.
