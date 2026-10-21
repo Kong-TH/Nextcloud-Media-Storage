@@ -1,3 +1,11 @@
+## App Store certificate request and README screenshots — 2026-10-21
+
+The user submitted the App Store certificate signing request for app id `mediastorage` as [nextcloud/app-certificate-requests#1361](https://github.com/nextcloud/app-certificate-requests/pull/1361). The PR is open and awaits Nextcloud review; no certificate has been issued, so no archive has been signed, registered or uploaded to the App Store. The private signing key is kept outside the repository and must never be committed. The PR lists the self-hosted GitLab project as the primary development repository and https://github.com/Kong-TH/Nextcloud-Media-Storage as its mirror.
+
+The user captured five 1080x1080 screenshots of installed 0.8.0 on the local Snap host (Nextcloud 34.0.5 after an automatic Snap refresh): explorer, API tokens, selection toolbar, object details and Add from Nextcloud. They are stored in `assets/screenshot/` and shown in the README. `assets/` is not part of the release archive. No application code, schema or deployment changed.
+
+Next release steps after the certificate is merged: sign the staged app (`occ integrity:sign-app`), register the app on apps.nextcloud.com, add `<screenshot>`/`<website>`/`<documentation>` metadata, and publish an anonymously readable HTTPS archive URL with its signature. The US-MS-08 open gates still apply.
+
 ## US-MS-08 exact-archive acceptance — 2026-10-10
 
 User authorized committing US-MS-07 and proceeding to US-MS-08. Commit 938bd57 records US-MS-07 acceptance without push. Exact 0.8.0 archive installation, populated 0.2.0 upgrade and paired maintenance-mode SQLite backup/restore are now verified in disposable official-image containers. The release harness passed 197 checks; child suites passed 76 access HTTP, 31 streaming/policy HTTP and 19 native-player browser checks on the restored exact archive. Every installed archive member and served JS/CSS matches. Local packaging passed 66 checks, six frontend test files pass and npm audit reported zero advisories. No production PHP/schema/API/frontend change and no Snap redeployment are required by this slice.

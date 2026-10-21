@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — 2026-10-21
+
+- Add five application screenshots to `assets/screenshot/` and a Screenshots section to the README.
+- Record the submitted App Store certificate request (nextcloud/app-certificate-requests#1361). No signing or publication was performed. No application code changes.
+
 ## 0.8.0 — User-accepted, 2026-10-10
 
 - Review each selected folder independently: keep its wrapper or import its contents while preserving nested folders.

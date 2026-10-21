@@ -2,6 +2,38 @@
 
 Native Nextcloud app foundation (`mediastorage`) for private virtual media organization, using Nextcloud filesystem, database, and session authentication.
 
+## Screenshots
+
+### Object explorer
+
+Virtual buckets and folders reference existing Nextcloud images and videos. Removing a reference keeps the original file.
+
+![Object explorer showing the Library bucket with image, video and folder references](assets/screenshot/screenshot-01.png)
+
+### API tokens
+
+Scoped tokens for server-to-server integrations, with active, expiring, revoked and expired summaries. Token secrets are shown only once.
+
+![API token dashboard with status summaries, search and filters](assets/screenshot/screenshot-02.png)
+
+### Selection toolbar
+
+Select objects to move, copy, paste, rename or remove their links.
+
+![Selected object with the move, copy, paste, rename and remove-links toolbar](assets/screenshot/screenshot-03.png)
+
+### Object details
+
+Preview an object and inspect its type, binding, bucket, virtual path, original file and size. Rebind it to another file or copy its virtual path.
+
+![Object details panel with preview, metadata and rebind action](assets/screenshot/screenshot-04.png)
+
+### Add from Nextcloud
+
+Choose images, videos or folders from Nextcloud files and add them as virtual references without moving the originals.
+
+![Add from Nextcloud dialog listing folders and media files](assets/screenshot/screenshot-05.png)
+
 **Status:** Media Storage 0.8.0 implements account-isolated virtual buckets, reference management, daily uploads, previews, scoped API tokens, temporary media access, conditional/range streaming and native abuse controls. UI-01–16 feature implementation is complete. Installed 0.8.0 streaming acceptance passed 76 access HTTP, 31 streaming/policy HTTP and 19 native-player browser checks, plus 130 API regression checks. Release acceptance and remaining manual gates are tracked in [US-MS-08](docs/agile/user-stories/US-MS-08.md); an unsigned artifact is not a published release.
 
 The recorded primary target is Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. Separate release-container results are recorded in the compatibility document; do not infer other database/version support from schema generation alone.
