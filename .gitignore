@@ -11,3 +11,6 @@ __pycache__/
 
 # Generated release archives and checksums.
 dist/
+
+# Local signing output.
+/sing.text
