@@ -10,7 +10,11 @@ use OCP\Migration\IOutput;
 $schema = new Schema();
 $wrapper = double(ISchemaWrapper::class, [
     'hasTable' => fn($name) => $schema->hasTable('test_' . $name),
-    'createTable' => fn($name) => $schema->createTable('test_' . $name),
+    'createTable' => function ($name) use ($schema) {
+        $table = $schema->createTable('test_' . $name);
+        // Nextcloud 35 exposes OCP\DB\Schema\ITable instead of Doctrine tables.
+        return interface_exists(OCP\DB\Schema\ITable::class) ? new OC\DB\Schema\Table($table) : $table;
+    },
 ]);
 $output = double(IOutput::class, []);
 $migration = new Version000100Date20261009000000();
@@ -29,6 +33,8 @@ try {
     $insert->execute(['a2', 'alice', 'root-a', 'same', hash('sha256', 'same'), 'folder']);
     throw new RuntimeException('Sibling duplicate accepted');
 } catch (PDOException $e) { if ($e->getCode() !== '23000') throw $e; }
+// Finalize the failed SQLite statement before reusing it on newer SQLite builds.
+$insert->closeCursor();
 $insert->execute(['a3', 'alice', 'root-a', 'Same', hash('sha256', 'Same'), 'folder']);
 $pdo->beginTransaction();
 $pdo->exec("UPDATE test_ms_nodes SET lock_version = lock_version + 1 WHERE id = 'root-a'");

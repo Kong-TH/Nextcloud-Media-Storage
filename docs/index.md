@@ -1,6 +1,6 @@
 # Documentation Index
 
-Updated: 2026-10-10
+Updated: 2026-11-09
 
 This documentation uses the organizational structure of `tiktok-live-sandbox-game/docs`, adapted for a native Nextcloud application. Game-specific GDD, audio, and renderer directories are intentionally omitted.
 
@@ -9,6 +9,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Agent handoff and next tasks](agent-handoff.md)
 - [Project overview](project-overview.md)
 - [Changelog](changelog.md)
+- [Nextcloud 35 compatibility](release/0.9.0-compatibility.md)
 
 ## Agile delivery
 

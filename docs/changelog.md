@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.0 — Prepared Nextcloud 35 compatibility, 2026-11-09
+
+- Use the five user-supplied Google Photos HTTPS screenshot URLs in metadata/template. Direct anonymous image downloads passed; App Store image-proxy display is not yet verified.
+
+- Extend app/template Nextcloud compatibility to 34–35 after testing against Nextcloud 35.0.2 public APIs, migrations, filesystem and HTTP middleware. No public Media Storage endpoint or app-owned schema changes are needed.
+- Fix the local Snap PHP test launcher for core22/core24 bases and the newer php.bin wrapper layout. Adapt reflection doubles for interface self return types and schema tests for Nextcloud 35 ITable wrappers; finalize a failed SQLite statement before reuse.
+- Add an isolated source-copy/SQLite install and HTTP compatibility harness. Add Nextcloud 34.0.4/35.0.2 container matrix checks before GitHub Release publication. These remote matrix jobs have not run yet.
+- MINOR rationale: add a supported server generation and compatibility tooling; synchronize metadata/package/lock at 0.9.0 and preserve published prior versions.
+- See the [compatibility report](release/0.9.0-compatibility.md) for actual checks and limits. No production server deployment, App Store upload, signing, commit or push is implied by preparation.
+
 ## 0.8.1 — Prepared metadata correction, 2026-11-09
 
 - Add five HTTPS screenshot URLs to app metadata and its configurator template, preserving the README gallery order. URLs are pinned to the existing screenshot commit `d44d8103ccb26675e176faa075e6a311a951a29a`.

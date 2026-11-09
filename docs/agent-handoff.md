@@ -1,3 +1,13 @@
+## Google Photos screenshots included in prepared 0.9.0 — 2026-11-09
+
+Before the compatibility commit, the user requested replacing all five screenshot URLs with their supplied lh3.googleusercontent.com/pw URLs. Updated both info.xml and its template in the existing unreleased 0.9.0; no extra version bump. Direct anonymous downloads succeeded for all five PNGs below 2 MiB. Constructed proxy URLs returned File not found, but those URLs had not been registered through an App Store release and do not prove Google Photos cannot be displayed. Actual App Store gallery verification remains pending submission. Do not promise permanent hosting or stable lifetime of third-party image URLs. Runtime/API behavior is unchanged by this metadata adjustment.
+
+## Nextcloud 35 compatibility prepared — 2026-11-09
+
+User's remote Snap server reports Nextcloud 35.0.2, explaining why a 34-only app was not listed as compatible. Do not confuse that server with this workspace. Prepared 0.9.0 declares 34–35 after public-source/local regression and isolated Nextcloud 35.0.2 / PHP 8.4.27 / SQLite HTTP validation. Existing production APIs and database migrations remain unchanged. See [compatibility report](release/0.9.0-compatibility.md) for evidence, reproducible fixture command, and remaining deployment limits.
+
+Local Snap source is now 35.0.2snap2 with core22 and php.bin. The local test helper now discovers the Snap base and binary rather than invoking a shell wrapper through core20's ELF loader. Tests adapt to Nextcloud 35 schema ITable wrappers and reflected self return types. A new fresh-install HTTP harness uses only a private temporary source/config/data copy and removes its fixtures. Docker access was unavailable; no production installation was changed. GitHub release now waits on 34/35 API/install/HTTP matrix jobs; remote execution remains pending. Retain PHP >=8.2 metadata for the 34 range; Nextcloud 35 itself requires PHP >=8.3. No app API URL version change or app-owned schema migration. User authorized committing this slice after the local checks; no push or production deployment is included. Preserve unrelated untracked `sing.text`; it was not opened.
+
 ## App Store listing confirmed; screenshots prepared for 0.8.1 — 2026-11-09
 
 User-provided PDF `Media Storage - Apps - App Store - Nextcloud.pdf` shows Media Storage 0.8.0 on the stable Nextcloud 34 channel, author Kongphai Wutthichaiya, and the GitHub archive URL. This is listing evidence, not a successful install through App Store or internal integrity-signature verification. Earlier App Store-pending statements are historical.

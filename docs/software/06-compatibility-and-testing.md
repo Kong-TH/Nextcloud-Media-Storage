@@ -1,5 +1,9 @@
 # Compatibility and Testing
 
+## Latest target update — 2026-11-09
+
+Prepared 0.9.0 extends the metadata range from Nextcloud 34 only to 34–35. Nextcloud 35.0.2 public-source/local PHP tests and isolated SQLite installation/HTTP checks are recorded in [the 0.9.0 report](../release/0.9.0-compatibility.md). The user's production server reported 35.0.2; it was not accessed or modified. No new Snap confinement/MySQL, browser/manual, or App Store installation result is inferred. Historical results below remain tied to their original app/server versions.
+
 Current result: installed 0.8.0 / Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL has US-MS-07 acceptance. Exact 0.8.0 archive fresh install, populated upgrade and paired restore are separately verified on Nextcloud 34.0.4 / PHP 8.5.11 / SQLite: 197 release checks plus child 76/31/19 HTTP/browser checks passed. See the [release report](../release/0.8.0-readiness.md) for precise scope and open production/manual gates. Earlier sections retain chronological evidence.
 
 ## Compatibility evidence

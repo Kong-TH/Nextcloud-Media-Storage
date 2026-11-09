@@ -21,7 +21,7 @@ Manual runs are limited to the repository's default branch. Direct tag push can 
 
 ## Package and change description
 
-Checks: version/event guards, frontend unit suites, `npm run package`, and `tests/package_release.py`. No live Nextcloud server, database migration matrix, or installed browser tests run in this workflow.
+Checks: version/event guards, frontend unit suites, `npm run package`, and `tests/package_release.py`. Prepared 0.9.0 adds official-image Nextcloud 34.0.4/35.0.2 backend and isolated SQLite HTTP matrix jobs before release. No production Snap/MySQL or installed browser checks run in this workflow. Matrix execution is pending its first remote run.
 
 Published assets:
 

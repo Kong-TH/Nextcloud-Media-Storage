@@ -51,8 +51,47 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-  release:
+  compatibility:
     needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    strategy:
+      fail-fast: false
+      matrix:
+        image: ['34.0.4-apache', '35.0.2-apache']
+    container:
+      image: nextcloud:${{ matrix.image }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Install fixture tooling
+        run: apt-get update && apt-get install -y --no-install-recommends python3
+      - uses: actions/download-artifact@v4
+        with:
+          name: mediastorage-${{ needs.package.outputs.version }}
+          path: dist
+      - name: Backend API and schema regression
+        env:
+          NEXTCLOUD_SOURCE: /usr/src/nextcloud
+        run: |
+          set -eu
+          for suite in run tokens schema explorer uploads access streaming paging imports; do
+            php "tests/${suite}.php"
+          done
+      - name: Fresh archive installation and HTTP acceptance
+        env:
+          MEDIASTORAGE_TEST_DISPOSABLE: 'yes'
+          VERSION: ${{ needs.package.outputs.version }}
+        run: |
+          python3 tests/nextcloud_compatibility.py \
+            --source /usr/src/nextcloud \
+            --archive "dist/mediastorage-${VERSION}.tar.gz" \
+            --suite http_integration --suite upload_http --suite access_http \
+            --suite imports_http --suite paging_http --suite streaming_http
+
+  release:
+    needs: [package, compatibility]
     if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v')))
     runs-on: ubuntu-24.04
     timeout-minutes: 10

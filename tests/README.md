@@ -356,3 +356,18 @@ Requires Docker access, official `nextcloud:34-apache` and `nginx:stable-alpine`
 It snapshots SQLite/config/data/custom_apps under maintenance mode, proves a later virtual deletion preserves originals, independently verifies a fresh archive installation, then restores the paired snapshot into that fresh container. Old node/binding/token/grant and original bytes recover consistently; installed and served assets match. Child access/policy suites run against the restored archive; `--browser` also checks anonymous MP4/WebM playback/seek. The minimal generated Nginx fixture preserves partial/conditional/error status and private caching. Explicit Apache `%U` and Nginx `$uri` access logging omits query/Referer/Authorization; known secrets are checked in memory only. Production error/tracing logs and actual trusted-proxy IP behavior are outside this fixture's claim.
 
 Observed: **197 release harness checks**, with child suites **76 access HTTP / 31 streaming-policy HTTP / 19 browser checks**, plus **66 packaging checks** and **six frontend test files**. Actual runtime: Nextcloud 34.0.4 / PHP 8.5.11 / SQLite. All harness containers and anonymous volumes are removed in `finally`; private credentials/backup are discarded. After a hard kill, inspect only the `mediastorage-release-` containers for cleanup; do not prune unrelated Docker resources. No application/API/schema code or Snap configuration changes. See [the release report](../docs/release/0.8.0-readiness.md) for exact artifact identity, security review and open gates.
+
+## Nextcloud 35 compatibility fixture
+
+See [0.9.0 evidence](../docs/release/0.9.0-compatibility.md). `scripts/php-snap.sh` discovers supported Snap bases (core20/core22/core24) and selects php.bin when the newer php entry point is a shell wrapper. This is standalone CLI testing, not Snap service confinement.
+
+`tests/nextcloud_compatibility.py` copies a complete Nextcloud source distribution into a private temporary directory, replaces copied host configuration, installs SQLite, installs the exact packaged app without force, starts a loopback PHP server, and runs selected existing HTTP suites. Fixtures/server are removed on completion. Do not use a production directory as an output target; the script has no such option. Requires a compatible PHP CLI/modules, Python >=3.12 and enough temporary disk space for a full distribution.
+
+```bash
+MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/nextcloud_compatibility.py \
+  --source /snap/nextcloud/current/htdocs \
+  --archive dist/mediastorage-0.9.0.tar.gz \
+  --php 'sh scripts/php-snap.sh'
+```
+
+For an official image use `/usr/src/nextcloud` and the default `php` command. Repeat `--suite` to select http_integration/upload_http/access_http/streaming_http/paging_http/imports_http; default suites cover hierarchy/tokens/buckets, upload/previews, temporary access and imports. The built-in server is not a production proxy or Snap/MySQL test. GitHub matrix uses official Nextcloud 34.0.4 and 35.0.2 images and gates Release publication on success; validate actual runner results after push.
