@@ -8,13 +8,14 @@ The workflow must be pushed to the GitHub repository, not only to self-hosted Gi
 
 ## Triggers and version handling
 
-- Push to `main` or open/update a pull request: validate metadata, test, build, verify the archive, retain a workflow artifact for 14 days. These runs do not create a release.
+- Push to `main`: validate metadata, test, build, verify the archive, then automatically create `vVERSION` and publish the release if it is new. No manual tag is needed.
+- Open/update a pull request: run the same package checks and retain an artifact for 14 days; never publish a release.
 - Actions → **Build and release** → **Run workflow**, selecting the default branch: build/test first, then create `vVERSION` at the exact checked source commit and publish a release.
 - Push a tag named `vVERSION`: build/test the tag and publish a release for it. Tag must exactly match the checked app/package/lock versions.
 
-The manual route creates the tag automatically; it does not bump metadata or create a version-changing commit. Version authority is `appinfo/info.xml`, synchronized with `package.json` and both root versions in `package-lock.json`. Existing packaging validates agreement. The app currently supports stable three-part versions only; prerelease/build-metadata tags are rejected rather than misrepresented as stable releases.
+Main pushes and the manual route create the tag automatically; it does not bump metadata or create a version-changing commit. Version authority is `appinfo/info.xml`, synchronized with `package.json` and both root versions in `package-lock.json`. Existing packaging validates agreement. The app currently supports stable three-part versions only; prerelease/build-metadata tags are rejected rather than misrepresented as stable releases.
 
-For the first release of the current 0.8.0 source, use Run workflow if `v0.8.0` does not exist. For later releases, prepare and review an appropriate SemVer change in the metadata and changelog first. A new app feature normally needs a minor bump; a compatible bug fix needs a patch bump. CI tooling here leaves app 0.8.0 unchanged and does not claim a new runtime feature/version.
+For the first release of current 0.8.0 source, push the workflow change to main (or use Run workflow) if `v0.8.0` does not exist. For later releases, prepare and review an appropriate SemVer change in the metadata and changelog first. A new app feature normally needs a minor bump; a compatible bug fix needs a patch bump. CI tooling here leaves app 0.8.0 unchanged and does not claim a new runtime feature/version.
 
 Manual runs are limited to the repository's default branch. Direct tag push can publish other commits deliberately; protect release tag patterns and restrict maintainers accordingly. Do not mirror remote tags destructively.
 
@@ -45,10 +46,12 @@ For a signed publication, integrate Nextcloud integrity signing into a clean sta
 
 ## Reruns and failures
 
-Published releases/assets are not overwritten. A manual run refuses an existing tag even if it has no release; use the existing tag's push workflow run (rerun failed jobs from Actions) rather than moving it. If publication partially succeeds and leaves a release missing assets, the guard will stop a rerun: inspect the release and repair deliberately, verifying original asset bytes, rather than using automatic clobber/delete behavior. No automatic rollback/deletion is performed.
+Published releases/assets are not overwritten. When a published release has both expected asset names, a repeated same-version run succeeds without changing its tag or assets, even if main has newer commits. This checks asset presence, not a byte-for-byte match to the new build: a version identifies the original release permanently. To publish changed bytes, update the synchronized app version first. Draft or incomplete releases fail for manual inspection. Branch/manual runs refuse an existing tag without a release; use the existing tag's push workflow run (rerun failed jobs from Actions) rather than moving it. If publication partially succeeds and leaves a release missing assets, the guard will stop a rerun: inspect the release and repair deliberately, verifying original asset bytes, rather than using automatic clobber/delete behavior. No automatic rollback/deletion is performed.
 
-The publisher creates missing tags and uploads assets in the same run. It does not rely on another tag-triggered workflow, because events created through `GITHUB_TOKEN` generally do not trigger further workflows. Concurrency prevents overlapping publishers; version/tag checks prevent accidental release mislabeling. Branch/PR build artifacts remain unsigned.
+The publisher creates missing tags and uploads assets in the same run. It does not rely on another tag-triggered workflow, because events created through `GITHUB_TOKEN` generally do not trigger further workflows. Concurrency prevents overlapping publishers; version/tag checks prevent accidental release mislabeling. All build artifacts and published archives remain unsigned. Version numbers are not automatically incremented; choose the appropriate next SemVer in source before a new app release.
 
 ## Validation record — 2026-11-09
 
 Local frontend unit suites (6 files), production build, deterministic package/66 archive checks, and 4 release-metadata tests pass. YAML structure and embedded shell syntax were checked locally. No GitHub-hosted run, tag creation, release publication, or App Store submission was performed during implementation; external runner permissions and GitHub-side rules still require the first real run.
+
+Automatic-main update: locally checked event gating (main/tag/manual release, PR excluded), existing-release skip behavior, and draft/incomplete failure behavior with a mocked GitHub CLI. Remote Actions execution remains unverified for this revision.

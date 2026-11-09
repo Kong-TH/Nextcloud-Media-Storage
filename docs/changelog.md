@@ -2,6 +2,7 @@
 
 ## Unreleased — 2026-11-09
 
+- Automatically create version tags and releases after successful main builds; skip complete published versions without overwriting and reject draft/incomplete releases for review. PR builds cannot publish.
 - Add GitHub-hosted test/build/package workflow, default-branch manual version-tag creation, and automatic GitHub Release archive/checksum publication for matching version tags.
 - Generate release notes with the source commit and GitHub change history; preserve existing releases and disclose unsigned artifacts. Keep GitLab/MinIO CI unchanged.
 - App version remains 0.8.0: CI infrastructure changes do not alter the packaged application behavior. Future app versions must follow SemVer and synchronized metadata.
