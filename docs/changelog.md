@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — 2026-11-09
+
+- Add GitHub-hosted test/build/package workflow, default-branch manual version-tag creation, and automatic GitHub Release archive/checksum publication for matching version tags.
+- Generate release notes with the source commit and GitHub change history; preserve existing releases and disclose unsigned artifacts. Keep GitLab/MinIO CI unchanged.
+- App version remains 0.8.0: CI infrastructure changes do not alter the packaged application behavior. Future app versions must follow SemVer and synchronized metadata.
+- Local validation: 4 metadata guard tests, 6 frontend test files, production build and 66 archive checks pass. GitHub-hosted execution and remote publication remain unverified.
+
 ## Unreleased — 2026-10-21
 
 - Add five application screenshots to `assets/screenshot/` and a Screenshots section to the README.

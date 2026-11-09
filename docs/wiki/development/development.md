@@ -31,3 +31,7 @@ Set these GitLab CI/CD variables. Mask `MINIO_ACCESS_KEY` and `MINIO_SECRET_KEY`
 | `MINIO_REGION` | Optional SigV4 region. Defaults to `us-east-1` |
 
 Each file is uploaded with one path-style `PutObject` request. The job does not list the bucket or start a multipart upload. The object policy needs `s3:PutObject` on `bucket/prefix/*`. The job prints a path-style object URL. It does not change the bucket policy and does not store credentials in the repository. A Nextcloud App Store download needs that object to be anonymously readable over HTTPS. Do not commit the MinIO secret or an app-signing private key.
+
+## GitHub-hosted builds and release downloads
+
+The [GitHub release workflow](../../manual/github-releases.md) provides independent Node 24 packaging, tag creation on manual release, automatic release publication for version tags, archive/checksum assets, and generated release notes. It reuses existing scripts; GitLab/MinIO CI remains unchanged. Archives remain unsigned until a separate signing integration is completed. See the guide for permissions, exact version checks, and first-run instructions.

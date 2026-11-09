@@ -1,3 +1,7 @@
+## GitHub release automation prepared — 2026-11-09
+
+Added `.github/workflows/release.yml`: main/PR checks, manual default-branch release creating a version tag, and tag-triggered publication to GitHub Releases. Reuses existing Node 24 packaging and checksum checks; metadata/tag mismatch and overwrite guards are enforced. See [GitHub release guide](manual/github-releases.md) for usage and signing limitations. Local frontend/build/66 package checks and 4 metadata tests pass; no remote workflow or release has run. App metadata stays 0.8.0; GitLab/MinIO workflow is unchanged. Existing untracked `.agents/skills/semantic-versioning/` was user-provided and is not part of this change. The user's current request authorizes workflow implementation; it does not require a live publication or private-key transfer.
+
 ## App Store certificate request and README screenshots — 2026-10-21
 
 The user submitted the App Store certificate signing request for app id `mediastorage` as [nextcloud/app-certificate-requests#1361](https://github.com/nextcloud/app-certificate-requests/pull/1361). The PR is open and awaits Nextcloud review; no certificate has been issued, so no archive has been signed, registered or uploaded to the App Store. The private signing key is kept outside the repository and must never be committed. The PR lists the self-hosted GitLab project as the primary development repository and https://github.com/Kong-TH/Nextcloud-Media-Storage as its mirror.

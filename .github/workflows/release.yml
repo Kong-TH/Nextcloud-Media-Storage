@@ -1,0 +1,112 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One publisher at a time; do not cancel an in-flight asset upload.
+concurrency:
+  group: mediastorage-${{ github.event_name == 'pull_request' && github.ref || 'release' }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+      tag: ${{ steps.metadata.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - name: Validate version and release target
+        id: metadata
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: python3 scripts/github-release-metadata.py
+      - run: python3 tests/github_release.py
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - run: npm run package
+      - run: python3 tests/package_release.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mediastorage-${{ steps.metadata.outputs.version }}
+          path: |
+            dist/*.tar.gz
+            dist/*.tar.gz.sha256
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    needs: package
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: mediastorage-${{ needs.package.outputs.version }}
+          path: dist
+      - name: Create tag and publish release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.package.outputs.version }}
+          TAG: ${{ needs.package.outputs.tag }}
+          SOURCE_SHA: ${{ github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum --check "mediastorage-${VERSION}.tar.gz.sha256"
+          # Never overwrite assets on a rerun or move a previously created tag.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists; refusing to replace published bytes." >&2
+            exit 1
+          fi
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            refs=$(gh api "repos/${GH_REPO}/git/matching-refs/tags/${TAG}")
+            if printf '%s' "$refs" | python3 -c 'import json,sys; tag=sys.argv[1]; sys.exit(0 if any(r["ref"] == "refs/tags/" + tag for r in json.load(sys.stdin)) else 1)' "$TAG"; then
+              echo "Tag $TAG already exists. Run its tag workflow instead of retagging." >&2
+              exit 1
+            fi
+          fi
+          cat > release-notes.md <<NOTES
+          ## Package
+          Built from commit ${SOURCE_SHA}. Download the attached mediastorage-${VERSION}.tar.gz and verify its SHA-256 checksum. Extract the mediastorage directory into the Nextcloud apps directory.
+
+          **Unsigned archive:** this workflow does not apply Nextcloud integrity signing or generate the App Store archive signature. Do not submit this asset as a signed App Store release. No App Store publication is performed.
+
+          The generated change list below summarizes GitHub changes; validation and deployment limitations remain recorded in docs/release/ and docs/changelog.md at the source commit.
+          NOTES
+          # --target creates a missing tag at exactly the commit that passed packaging.
+          # Do not depend on that GITHUB_TOKEN-created tag triggering another workflow.
+          gh release create "$TAG" \
+            "mediastorage-${VERSION}.tar.gz" \
+            "mediastorage-${VERSION}.tar.gz.sha256" \
+            --target "$SOURCE_SHA" \
+            --title "Media Storage ${VERSION}" \
+            --notes-file release-notes.md --generate-notes
+          {
+            echo "### Published Media Storage ${VERSION}"
+            echo "Release: https://github.com/${GH_REPO}/releases/tag/${TAG}"
+            echo "Archive: https://github.com/${GH_REPO}/releases/download/${TAG}/mediastorage-${VERSION}.tar.gz"
+            echo "Unsigned; Nextcloud signing remains a separate step."
+          } >> "$GITHUB_STEP_SUMMARY"

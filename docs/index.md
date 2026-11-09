@@ -51,6 +51,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 ## Operations and development
 
 - [Installation and configuration](manual/installation-and-configuration.md)
+- [GitHub builds and releases](manual/github-releases.md)
 - [User guide](manual/user-guide.md)
 - [Reverse proxy guidance](manual/reverse-proxy.md)
 - [Troubleshooting](manual/troubleshooting.md)
