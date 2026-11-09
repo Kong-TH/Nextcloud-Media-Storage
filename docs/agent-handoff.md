@@ -1,3 +1,21 @@
+## App Store listing confirmed; screenshots prepared for 0.8.1 — 2026-11-09
+
+User-provided PDF `Media Storage - Apps - App Store - Nextcloud.pdf` shows Media Storage 0.8.0 on the stable Nextcloud 34 channel, author Kongphai Wutthichaiya, and the GitHub archive URL. This is listing evidence, not a successful install through App Store or internal integrity-signature verification. Earlier App Store-pending statements are historical.
+
+User requested the README's five screenshots on App Store. Added commit-pinned raw GitHub HTTPS image URLs to both app metadata files, in the same gallery order. The supplied Downloads README contains relative image paths, not hosted URLs. Prepared PATCH 0.8.1 corrects listing metadata without runtime/schema changes; package and lock versions match. Template description now matches actual 0.8.0 behavior. Do not overwrite 0.8.0; 0.8.1 still requires publication and an archive signature over its own exact bytes. Validation: anonymous image downloads match all five local PNGs, each below 2 MiB; both metadata files pass installed Nextcloud XSD validation using lxml; build and 66 archive checks pass. The Snap PHP schema harness could not start due to an invalid ELF header; no new PHP/database execution is claimed. Current GitHub workflow remains internally unsigned. Pushing main will automatically publish the new version after checks; no push was performed for this request.
+
+## GitHub v0.8.0 publication verified — 2026-11-09
+
+The user downloaded `/home/kong/Downloads/mediastorage-0.8.0.tar.gz`. Read-only GitHub checks confirm [workflow run 42582673585](https://github.com/Kong-TH/Nextcloud-Media-Storage/actions/runs/42582673585) completed successfully for push commit `cbb1ff1d2dd773961b7b031b8aac804ebb743cc9`. [Release v0.8.0](https://github.com/Kong-TH/Nextcloud-Media-Storage/releases/tag/v0.8.0) is published (not draft), with archive and checksum assets; its target is that same commit. Published at `2026-11-09T07:58:48Z`.
+
+- Download: https://github.com/Kong-TH/Nextcloud-Media-Storage/releases/download/v0.8.0/mediastorage-0.8.0.tar.gz
+- Size: 188606 bytes.
+- SHA-256: `53424016bc1aa267d8083e58bb8ff18231679affa2a874fcd00f800051b370a4`.
+- The downloaded file's SHA-256 matches the GitHub asset digest. Archive inspection found 52 regular files under the single `mediastorage/` root, app ID/version `mediastorage`/`0.8.0`, matching frontend build version, and 51 successfully verified internal `SHA256SUMS` entries.
+- No `appinfo/signature.json` is present: this is an **unsigned GitHub release**, not a signed Nextcloud App Store submission. Internal checksums and the GitHub digest do not replace developer signing. No new installation/upgrade test of this downloaded artifact was performed.
+
+Next: integrate supported Nextcloud integrity signing and generate the separate archive signature over final signed bytes before App Store submission. Do not overwrite the published v0.8.0 assets or move its tag. A changed signed package requires a deliberate new version and release. Keep the existing production/manual release-readiness gates; publication success does not close them. Never upload the private key as a release asset. This evidence-only documentation update does not bump app version.
+
 ## Automatic main releases prepared — 2026-11-09
 
 User requested fully automatic tag/release creation. Successful main pushes now enter the release job and create the metadata version tag/release when absent. PRs only build. Existing complete published versions are skipped successfully without rewriting assets/tags; draft/incomplete releases or an existing tag without a release require inspection. Source versions are not auto-incremented. See the updated GitHub release guide. This revision has not run remotely; archives remain unsigned.

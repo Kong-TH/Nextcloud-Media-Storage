@@ -50,8 +50,20 @@ Published releases/assets are not overwritten. When a published release has both
 
 The publisher creates missing tags and uploads assets in the same run. It does not rely on another tag-triggered workflow, because events created through `GITHUB_TOKEN` generally do not trigger further workflows. Concurrency prevents overlapping publishers; version/tag checks prevent accidental release mislabeling. All build artifacts and published archives remain unsigned. Version numbers are not automatically incremented; choose the appropriate next SemVer in source before a new app release.
 
-## Validation record — 2026-11-09
+## Initial local validation — before first GitHub run, 2026-11-09
 
 Local frontend unit suites (6 files), production build, deterministic package/66 archive checks, and 4 release-metadata tests pass. YAML structure and embedded shell syntax were checked locally. No GitHub-hosted run, tag creation, release publication, or App Store submission was performed during implementation; external runner permissions and GitHub-side rules still require the first real run.
 
 Automatic-main update: locally checked event gating (main/tag/manual release, PR excluded), existing-release skip behavior, and draft/incomplete failure behavior with a mocked GitHub CLI. Remote Actions execution remains unverified for this revision.
+
+## GitHub v0.8.0 publication verified — 2026-11-09
+
+The user downloaded `/home/kong/Downloads/mediastorage-0.8.0.tar.gz`. Read-only GitHub checks confirm [workflow run 42582673585](https://github.com/Kong-TH/Nextcloud-Media-Storage/actions/runs/42582673585) completed successfully for push commit `cbb1ff1d2dd773961b7b031b8aac804ebb743cc9`. [Release v0.8.0](https://github.com/Kong-TH/Nextcloud-Media-Storage/releases/tag/v0.8.0) is published (not draft), with archive and checksum assets; its target is that same commit. Published at `2026-11-09T07:58:48Z`.
+
+- Download: https://github.com/Kong-TH/Nextcloud-Media-Storage/releases/download/v0.8.0/mediastorage-0.8.0.tar.gz
+- Size: 188606 bytes.
+- SHA-256: `53424016bc1aa267d8083e58bb8ff18231679affa2a874fcd00f800051b370a4`.
+- The downloaded file's SHA-256 matches the GitHub asset digest. Archive inspection found 52 regular files under the single `mediastorage/` root, app ID/version `mediastorage`/`0.8.0`, matching frontend build version, and 51 successfully verified internal `SHA256SUMS` entries.
+- No `appinfo/signature.json` is present: this is an **unsigned GitHub release**, not a signed Nextcloud App Store submission. Internal checksums and the GitHub digest do not replace developer signing. No new installation/upgrade test of this downloaded artifact was performed.
+
+Next: integrate supported Nextcloud integrity signing and generate the separate archive signature over final signed bytes before App Store submission. Do not overwrite the published v0.8.0 assets or move its tag. A changed signed package requires a deliberate new version and release. Keep the existing production/manual release-readiness gates; publication success does not close them. Never upload the private key as a release asset. This evidence-only documentation update does not bump app version.

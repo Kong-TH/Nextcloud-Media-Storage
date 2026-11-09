@@ -34,7 +34,7 @@ Choose images, videos or folders from Nextcloud files and add them as virtual re
 
 ![Add from Nextcloud dialog listing folders and media files](assets/screenshot/screenshot-05.png)
 
-**Status:** Media Storage 0.8.0 implements account-isolated virtual buckets, reference management, daily uploads, previews, scoped API tokens, temporary media access, conditional/range streaming and native abuse controls. UI-01–16 feature implementation is complete. Installed 0.8.0 streaming acceptance passed 76 access HTTP, 31 streaming/policy HTTP and 19 native-player browser checks, plus 130 API regression checks. Release acceptance and remaining manual gates are tracked in [US-MS-08](docs/agile/user-stories/US-MS-08.md); an unsigned artifact is not a published release.
+**Status:** Prepared 0.8.1 adds App Store screenshots to the user-accepted 0.8.0 application, which implements account-isolated virtual buckets, reference management, daily uploads, previews, scoped API tokens, temporary media access, conditional/range streaming and native abuse controls. UI-01–16 feature implementation is complete. Installed 0.8.0 streaming acceptance passed 76 access HTTP, 31 streaming/policy HTTP and 19 native-player browser checks, plus 130 API regression checks. Release acceptance and remaining manual gates are tracked in [US-MS-08](docs/agile/user-stories/US-MS-08.md); GitHub and Nextcloud App Store list 0.8.0; its archive lacks an internal integrity signature. Prepared 0.8.1 has not been published.
 
 The recorded primary target is Nextcloud 34.0.4 / PHP 8.4.26 / Snap MySQL. Separate release-container results are recorded in the compatibility document; do not infer other database/version support from schema generation alone.
 

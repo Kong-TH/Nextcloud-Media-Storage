@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.1 — Prepared metadata correction, 2026-11-09
+
+- Add five HTTPS screenshot URLs to app metadata and its configurator template, preserving the README gallery order. URLs are pinned to the existing screenshot commit `d44d8103ccb26675e176faa075e6a311a951a29a`.
+- Synchronize the template description with implemented streaming/protection behavior. No application runtime or schema change.
+- PATCH rationale: correct missing App Store presentation metadata; retain immutable published 0.8.0 and synchronize app/package/lock versions at 0.8.1.
+- Validation: both metadata files pass the installed Nextcloud XSD via lxml; all five anonymous HTTPS PNGs match local screenshots and are below 2 MiB; production build and 66 archive checks pass. The Snap PHP schema harness could not start (invalid ELF header); no new PHP/database suite success is claimed.
+- Release 0.8.1 is prepared locally, not uploaded to GitHub or App Store. Signing remains a separate step.
+
+## GitHub v0.8.0 published — verified 2026-11-09
+
+- Confirm successful push workflow `42582673585` at `cbb1ff1` and published GitHub Release `v0.8.0` with archive/checksum assets.
+- User-downloaded archive (188606 bytes) SHA-256 matches GitHub asset digest: `53424016bc1aa267d8083e58bb8ff18231679affa2a874fcd00f800051b370a4`. Verified app/build version 0.8.0 and all 51 internal checksum entries.
+- Archive remains unsigned (no `appinfo/signature.json`); App Store submission/signing and existing release gates remain pending. No installation test of this downloaded file or application version bump. See the GitHub release guide for evidence and actual download URL.
+
 ## Unreleased — 2026-11-09
 
 - Automatically create version tags and releases after successful main builds; skip complete published versions without overwriting and reject draft/incomplete releases for review. PR builds cannot publish.
