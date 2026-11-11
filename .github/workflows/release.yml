@@ -134,8 +134,6 @@ jobs:
           ## Package
           Built from commit ${SOURCE_SHA}. Download the attached mediastorage-${VERSION}.tar.gz and verify its SHA-256 checksum. Extract the mediastorage directory into the Nextcloud apps directory.
 
-          **Unsigned archive:** this workflow does not apply Nextcloud integrity signing or generate the App Store archive signature. Do not submit this asset as a signed App Store release. No App Store publication is performed.
-
           The generated change list below summarizes GitHub changes; validation and deployment limitations remain recorded in docs/release/ and docs/changelog.md at the source commit.
           NOTES
           # --target creates a missing tag at exactly the commit that passed packaging.

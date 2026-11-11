@@ -1,3 +1,7 @@
+## Public release-note wording — 2026-11-11
+
+The owner requested removing the signing-warning paragraph from public GitHub release notes. Removed it from the workflow template while retaining package/checksum/install instructions and generated changelog links. Signing mechanics remain documented in the developer release guide; this changes no signing behavior or runtime version. Edited existing v0.9.0 and v0.10.0 release bodies through GitHub and read them back to verify exact replacement and unchanged asset IDs/names/sizes. v0.8.0 and v0.8.1 already lacked the paragraph. Four local GitHub release tests and diff whitespace checks passed. The owner requested committing on dev and merging dev into main; no push is included.
+
 ## Local commit checkpoint — 2026-11-11
 
 The owner authorized committing 0.10.0 after the final test-case review so they can try it. Final isolated Nextcloud 35 regression passed all seven HTTP suites (353 checks), all ten PHP suite commands, six frontend files, 68 package checks and four release tests; the separate Chromium fixture passed 444 checks. Fixture cleanup completed. This authorizes a local source/documentation/test commit, not push or remote deployment. Refer to the latest [validation report](release/0.10.0-path-api.md) for current results; earlier no-commit/no-browser statements below describe their original checkpoints. The next agent should inspect Git status and the actual deployed version before reporting availability.

@@ -40,7 +40,7 @@ OWNER/REPOSITORY is the actual `github.repository`, not a configured example sto
 
 ## Signing and App Store limits
 
-The existing package script generates an **unsigned** archive. This workflow publishes that same archive and checksum; it does not read your private key, sign `appinfo/signature.json`, generate the separate App Store archive signature, or register/upload to Nextcloud App Store. Release notes explicitly disclose this. Do not submit the unsigned asset as a signed App Store release.
+The existing package script generates an **unsigned** archive. This workflow publishes that same archive and checksum; it does not read your private key, sign `appinfo/signature.json`, generate the separate App Store archive signature, or register/upload to Nextcloud App Store. Public release notes contain package instructions and the change list; signing details are kept in these developer instructions. Do not submit the unsigned asset as a signed App Store release.
 
 For a signed publication, integrate Nextcloud integrity signing into a clean staged app before the final archive/checksum, then generate the App Store signature over those exact final bytes. That needs a separate verified signing workflow and protected secret setup. Never put `.key` contents in Git, job logs, or uploaded artifacts. Do not replace an unsigned published asset in place with signed bytes; publish a deliberate new release/version instead.
 

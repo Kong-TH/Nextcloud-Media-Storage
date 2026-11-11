@@ -1,5 +1,9 @@
 # Sprint 05 — Release readiness
 
+## Release-note wording correction — 2026-11-11
+
+Remove the unsolicited signing warning from the public release-note template. Expected cases: future notes preserve package/checksum/install/change-list content without that paragraph; existing v0.9.0/v0.10.0 bodies lose only that paragraph; release assets remain unchanged. Template review and GitHub read-back passed; four release tests passed. This is a workflow documentation correction with no runtime version bump. Commit on dev and merge into main as requested; no push.
+
 ## Current continuation — 2026-11-11
 
 Prepared 0.10.0 adds ID-free virtual-path reads and path-based temporary links. The [feature cases](../../software/09-feature-test-cases.md) map expected behavior to 30 local, 41 path HTTP and 76 legacy HTTP checks; see the [report](../../release/0.10.0-path-api.md) for target and limits. The owner now requires test cases and recorded outcomes for every feature, with connected Playground/browser UI checks when applicable. No connected session was available; no new visual acceptance or production deployment is claimed. Follow-up standalone Chromium fixture: 444 UI checks / 1036 CSRF-backed requests passed; compact and desktop screenshots inspected. This is fixture evidence, not remote installed-host acceptance. Final regression: all seven HTTP suites passed together, 353 checks on fresh isolated Nextcloud 35/PHP 8.4.27/SQLite; all local PHP suites, frontend, packaging and release tests passed. Owner authorized local commit for their own server trial; no push/deployment. Historical sprint sections below retain their original scope.
