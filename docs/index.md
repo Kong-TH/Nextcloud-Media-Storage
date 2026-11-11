@@ -7,6 +7,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 ## Project
 
 - [Agent handoff and next tasks](agent-handoff.md)
+- [Portable home continuation](manual/home-handoff.md)
 - [Project overview](project-overview.md)
 - [Changelog](changelog.md)
 - [Nextcloud 35 compatibility](release/0.9.0-compatibility.md)

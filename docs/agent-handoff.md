@@ -1,3 +1,7 @@
+## Portable home handoff — 2026-11-11
+
+The owner requested a committed handoff and MinIO upload with LATEST.json. See [home continuation](manual/home-handoff.md) for the snapshot prefix, restoration steps, exact artifact identity, verified baseline and ordered next work. Prepare the handoff commit on dev and fast-forward main; no Git push is included. The upload/pointer must be verified separately after the commit. Exclude all credentials, signing material, ignored chat files and runtime instance data.
+
 ## Public release-note wording — 2026-11-11
 
 The owner requested removing the signing-warning paragraph from public GitHub release notes. Removed it from the workflow template while retaining package/checksum/install instructions and generated changelog links. Signing mechanics remain documented in the developer release guide; this changes no signing behavior or runtime version. Edited existing v0.9.0 and v0.10.0 release bodies through GitHub and read them back to verify exact replacement and unchanged asset IDs/names/sizes. v0.8.0 and v0.8.1 already lacked the paragraph. Four local GitHub release tests and diff whitespace checks passed. The owner requested committing on dev and merging dev into main; no push is included.

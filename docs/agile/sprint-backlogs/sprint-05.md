@@ -1,5 +1,9 @@
 # Sprint 05 — Release readiness
 
+## Home continuation checkpoint — 2026-11-11
+
+Owner requested a committed [portable handoff](../../manual/home-handoff.md), upload to MinIO and verified LATEST.json pointer. Carry source/history plus the exact tested 0.10.0 artifact, exclude private material, and verify remote hashes before publishing the pointer. Next work is authorized-server Snap/MySQL acceptance; no deployment or Git push is implied.
+
 ## Release-note wording correction — 2026-11-11
 
 Remove the unsolicited signing warning from the public release-note template. Expected cases: future notes preserve package/checksum/install/change-list content without that paragraph; existing v0.9.0/v0.10.0 bodies lose only that paragraph; release assets remain unchanged. Template review and GitHub read-back passed; four release tests passed. This is a workflow documentation correction with no runtime version bump. Commit on dev and merge into main as requested; no push.
