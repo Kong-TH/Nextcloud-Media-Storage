@@ -2,14 +2,17 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 declare(strict_types=1);
 return ['routes' => [
+    ['name' => 'pathMedia#read', 'url' => '/external/v1/media/{path}', 'verb' => 'GET', 'requirements' => ['path' => '.+']],
+    ['name' => 'pathMedia#read', 'url' => '/external/v1/media/{path}', 'verb' => 'HEAD', 'postfix' => 'head', 'requirements' => ['path' => '.+']],
+    ['name' => 'pathMedia#create', 'url' => '/external/v1/signed-urls', 'verb' => 'POST'],
     ['name' => 'node#importEntry', 'url' => '/api/v1/imports/entries', 'verb' => 'POST'],
     ['name' => 'access#create', 'url' => '/api/v1/nodes/{id}/signed-urls', 'verb' => 'POST'],
     ['name' => 'access#index', 'url' => '/api/v1/nodes/{id}/signed-urls', 'verb' => 'GET'],
     ['name' => 'access#destroy', 'url' => '/api/v1/access/{id}', 'verb' => 'DELETE'],
     ['name' => 'externalAccess#create', 'url' => '/external/v1/nodes/{id}/signed-urls', 'verb' => 'POST'],
     ['name' => 'externalAccess#destroy', 'url' => '/external/v1/access/{id}', 'verb' => 'DELETE'],
-    ['name' => 'delivery#read', 'url' => '/delivery/v1/{id}', 'verb' => 'GET'],
-    ['name' => 'delivery#read', 'url' => '/delivery/v1/{id}', 'verb' => 'HEAD', 'postfix' => 'head'],
+    ['name' => 'delivery#read', 'url' => '/delivery/v1/{id}', 'verb' => 'GET', 'requirements' => ['id' => '.+']],
+    ['name' => 'delivery#read', 'url' => '/delivery/v1/{id}', 'verb' => 'HEAD', 'postfix' => 'head', 'requirements' => ['id' => '.+']],
     ['name' => 'upload#policy', 'url' => '/api/v1/uploads/policy', 'verb' => 'GET'],
     ['name' => 'upload#status', 'url' => '/api/v1/uploads/{id}', 'verb' => 'GET'],
     ['name' => 'upload#create', 'url' => '/api/v1/uploads', 'verb' => 'POST'],

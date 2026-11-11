@@ -20,7 +20,8 @@
       "php tests/access.php",
       "php tests/streaming.php",
       "php tests/paging.php",
-      "php tests/imports.php"
+      "php tests/imports.php",
+      "php tests/path_media.php"
     ]
   },
   "license": "AGPL-3.0-or-later"

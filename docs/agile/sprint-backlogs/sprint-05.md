@@ -1,5 +1,9 @@
 # Sprint 05 — Release readiness
 
+## Current continuation — 2026-11-11
+
+Prepared 0.10.0 adds ID-free virtual-path reads and path-based temporary links. The [feature cases](../../software/09-feature-test-cases.md) map expected behavior to 30 local, 41 path HTTP and 76 legacy HTTP checks; see the [report](../../release/0.10.0-path-api.md) for target and limits. The owner now requires test cases and recorded outcomes for every feature, with connected Playground/browser UI checks when applicable. No connected session was available; no new visual acceptance or production deployment is claimed. Follow-up standalone Chromium fixture: 444 UI checks / 1036 CSRF-backed requests passed; compact and desktop screenshots inspected. This is fixture evidence, not remote installed-host acceptance. Final regression: all seven HTTP suites passed together, 353 checks on fresh isolated Nextcloud 35/PHP 8.4.27/SQLite; all local PHP suites, frontend, packaging and release tests passed. Owner authorized local commit for their own server trial; no push/deployment. Historical sprint sections below retain their original scope.
+
 ## UI-16 user acceptance and commit authorization — 2026-10-10
 
 User confirms the deployed UI-16 works and authorizes committing 0.8.0. This records user acceptance after the deployment request, not an automated installed-byte or full installed-suite result. UI-01–16 feature implementation is complete; UI-10 physical mobile/keyboard, actual browser zoom and full-state contrast acceptance remains open (screen-reader testing excluded by user). At that checkpoint, the next technical work was US-MS-07 installed streaming/protection acceptance, followed by US-MS-08 exact-archive installation/upgrade, compatibility matrix, security/proxy/load review and backup/restore verification. Publishing/signing is a separate pending release action; no push is authorized by this checkpoint.

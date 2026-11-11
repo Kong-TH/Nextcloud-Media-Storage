@@ -1,5 +1,7 @@
 # API Contract
 
+Current path-based usage: [Read media by virtual path](../manual/path-api.md). Prepared 0.10.0 supports file-path delivery and path-based link issuance without requiring a node ID from API clients. Earlier phase sections below are historical; the implemented route list in appinfo/routes.php and latest sections supersede their planned/unavailable statements.
+
 Phase 1 session routes are deployed and exercised by 33 live HTTP checks on the local Nextcloud 34.0.4 Snap instance. Later-phase routes remain proposals. Prefix through Nextcloud routing: `/index.php/apps/mediastorage`. Generate actual URLs with Nextcloud's URL generator; do not hardcode the installation base path.
 
 Use separate management and delivery namespaces to prevent a media filename such as `metadata` colliding with a management route.
@@ -160,3 +162,9 @@ Keep prepared choices and completed entry mapping locked after writes begin; Ret
 ## Nextcloud 35 compatibility — prepared 0.9.0
 
 Nextcloud 35 changes the host integration target, not the app API version. Existing session `/api/v1`, bearer `/external/v1`, and resource-specific media delivery contracts remain unchanged. Nextcloud 35.0.2 public interfaces and live isolated HTTP acceptance are recorded in [the compatibility report](../release/0.9.0-compatibility.md). No core API bypass, new app schema migration, or forced compatibility installation is required by this change.
+
+## Path-based delivery — prepared 0.10.0
+
+Add GET/HEAD `/external/v1/media/{path}` with Authorization bearer and GET/HEAD `/delivery/v1/{path}?key=API_TOKEN` as explicitly requested by the owner. Existing `/delivery/v1/{accessId}?key=CAPABILITY` remains compatible: legacy capability secrets have no dot, while API credentials have the ms_selector.secret form. Query API credentials are authenticated before path lookup. Public routes retain narrowly scoped middleware exceptions, owner/scope/boundary checks and existing streaming/rate/lease protections. IDs remain internal implementation details; knowing an ID or path grants no access.
+
+Add POST `/external/v1/signed-urls` with path, optional exact bucket name, and optional ttl_seconds; returns only url/expires_at. Restricted paths start at the token's boundary; owner-wide paths default to Library or select a named bucket. No database migration, public file listing, wildcard owner search, or physical file mutation. See [path API guide](../manual/path-api.md) for examples, encoding, semantics and query-token log requirements. Older chronological statements that prohibit all query credentials apply to the existing bearer JSON namespace, not the newly requested delivery URL form.

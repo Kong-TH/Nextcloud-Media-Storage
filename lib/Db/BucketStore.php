@@ -11,6 +11,12 @@ class BucketStore {
             ->orderBy('created_at', 'ASC')->addOrderBy('id', 'ASC')->setMaxResults($limit)->setFirstResult($offset);
         $r = $q->executeQuery(); $rows = $r->fetchAllAssociative(); $r->closeCursor(); return $rows;
     }
+    public function findByName(string $owner, string $name): ?array {
+        $q = $this->db->getQueryBuilder();
+        $q->select('id', 'name')->from('ms_buckets')->where($q->expr()->eq('owner_id', $q->createNamedParameter($owner)))
+            ->andWhere($q->expr()->eq('name_key', $q->createNamedParameter(hash('sha256', $name))));
+        $r = $q->executeQuery(); $row = $r->fetchAssociative(); $r->closeCursor(); return $row ?: null;
+    }
     public function exists(string $owner, string $name): bool {
         $q = $this->db->getQueryBuilder();
         $q->select('id')->from('ms_buckets')->where($q->expr()->eq('owner_id', $q->createNamedParameter($owner)))

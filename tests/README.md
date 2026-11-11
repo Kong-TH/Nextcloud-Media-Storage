@@ -1,5 +1,9 @@
 # Test Instructions
 
+## Feature acceptance
+
+For every feature, maintain the [test-case checklist](../docs/software/09-feature-test-cases.md) and record actual results and target limitations. Current path API evidence is in the [0.10.0 report](../docs/release/0.10.0-path-api.md); older sections below describe their original targets.
+
 ## Executed checks
 
 ```bash
@@ -371,3 +375,21 @@ MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/nextcloud_compatibility.py \
 ```
 
 For an official image use `/usr/src/nextcloud` and the default `php` command. Repeat `--suite` to select http_integration/upload_http/access_http/streaming_http/paging_http/imports_http; default suites cover hierarchy/tokens/buckets, upload/previews, temporary access and imports. The built-in server is not a production proxy or Snap/MySQL test. GitHub matrix uses official Nextcloud 34.0.4 and 35.0.2 images and gates Release publication on success; validate actual runner results after push.
+
+## ID-free virtual-path delivery (prepared 0.10.0)
+
+`sh scripts/php-snap.sh tests/path_media.php` exercises path lookup/bucket selection, scope/owner/revocation boundaries, encoding, range/conditional behavior, query API credentials and JSON ID redaction using actual host public-interface doubles. `tests/path_media_http.py` uses disposable accounts and real originals for direct path/key and header requests, including host route decoding, named buckets, legacy capability links and revocation. Run it through `tests/nextcloud_compatibility.py --suite path_media_http`; GitHub matrix includes this seventh HTTP suite. No real user token or production server is used.
+
+## Standalone Chromium UI fixture
+
+When no Playground document session is connected, the existing `tests/frontend/browser.mjs` can exercise the built plugin against its disposable HTTP API fixture using Chromium CDP. It never connects to the user's Nextcloud server. Build assets with `npm run build` first.
+
+A browser can be installed independently of application dependencies:
+
+```bash
+npm exec --yes --cache /tmp/mediastorage-npm-cache --package playwright -- playwright install chromium
+```
+
+This downloads browsers to Playwright's user cache (not the repository); npm's temporary tool cache is under `/tmp`. On openSUSE Playwright downloads its Ubuntu fallback build: successful download alone does not establish runtime support. Locate the downloaded `chrome` executable under `~/.cache/ms-playwright/chromium-*/chrome-linux64/`. Launch it headless with a fresh temporary user-data directory, loopback-only remote debugging port 9322, and an `about:blank` page. Keep the normal browser sandbox enabled. Do not attach the harness to a personal browser profile: it navigates and changes the test tab.
+
+Run `node tests/frontend/browser.mjs`, then stop the dedicated browser and remove its temporary profile. The harness manages its own loopback HTTP server and writes fixture screenshots under `/tmp/mediastorage-*.png`. Inspect the relevant screenshots and record exact browser version, check count and limitations. Passing fixture assertions does not establish installed Nextcloud behavior, physical mobile acceptance or production integration. No extra runtime dependency or cloud browser plugin is required for this route.

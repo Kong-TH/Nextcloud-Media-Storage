@@ -76,7 +76,7 @@ jobs:
           NEXTCLOUD_SOURCE: /usr/src/nextcloud
         run: |
           set -eu
-          for suite in run tokens schema explorer uploads access streaming paging imports; do
+          for suite in run tokens schema explorer uploads access streaming paging imports path_media; do
             php "tests/${suite}.php"
           done
       - name: Fresh archive installation and HTTP acceptance
@@ -88,7 +88,7 @@ jobs:
             --source /usr/src/nextcloud \
             --archive "dist/mediastorage-${VERSION}.tar.gz" \
             --suite http_integration --suite upload_http --suite access_http \
-            --suite imports_http --suite paging_http --suite streaming_http
+            --suite imports_http --suite paging_http --suite streaming_http --suite path_media_http
 
   release:
     needs: [package, compatibility]

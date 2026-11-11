@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.10.0 — Prepared ID-free path delivery, 2026-11-11
+
+- Resolve virtual paths inside the verified token boundary or an owner-selected bucket name; no caller-supplied node ID needed.
+- Add header-authenticated path GET/HEAD and path-based temporary-URL creation. Support the explicitly requested delivery/path?key=API_TOKEN form while preserving existing opaque capability URLs.
+- Retain owner/scope/revocation checks, bounded ranges, conditional handling, native abuse limits and stream leases; document query-token logging/sharing risks. No app schema changes or physical file operations.
+- Validation: 30 path service/controller checks, 41 new live path HTTP checks and 76 legacy-access HTTP regressions pass on isolated Nextcloud 35.0.2 / PHP 8.4.27 / SQLite; 6 frontend test files and 68 archive checks pass. See [path API validation](release/0.10.0-path-api.md) for exact scope.
+- Final regression: all 7 isolated Nextcloud 35 HTTP suites pass (353 checks); standalone Chromium UI fixture passes 444 checks. Test-case completion rules and traceable cases are recorded for future agents.
+- MINOR rationale: new API functionality; synchronize app/package/lock at 0.10.0. New routes require server deployment; no production credential was used for tests.
+
 ## 0.9.0 — Prepared Nextcloud 35 compatibility, 2026-11-09
 
 - Use the five user-supplied Google Photos HTTPS screenshot URLs in metadata/template. Direct anonymous image downloads passed; App Store image-proxy display is not yet verified.

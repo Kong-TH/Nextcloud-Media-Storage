@@ -8,6 +8,10 @@ Contributions should be narrow, preserve unrelated staged work, include meaningf
 
 The owner selected AGPL-3.0-or-later and author Kongphai Wutthichaiya. Before public distribution retain third-party notices, add contribution guidelines and a security reporting policy with a real private contact, and validate packaging. Do not invent contacts.
 
+## Feature completion
+
+Every feature must include behavioral test cases and recorded execution results. Follow the [feature test-case checklist](../../software/09-feature-test-cases.md), including Playground/browser interaction and visual checks for UI changes when a suitable session is available. Keep pending acceptance checks explicit.
+
 ## Current executable workflow
 
 Backend requires PHP >=8.2; the actual test CLI is 8.4.26. The app uses Nextcloud-provided classes and no additional runtime packages. `composer.json` defines PSR-4 and a test script; Composer itself is still unavailable locally. Use `sh scripts/php-snap.sh tests/run.php`, `sh scripts/php-snap.sh tests/tokens.php`, and `sh scripts/php-snap.sh tests/schema.php` on this host. See [tests](../../../tests/README.md) for the actual integration gate.

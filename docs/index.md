@@ -1,6 +1,6 @@
 # Documentation Index
 
-Updated: 2026-11-09
+Updated: 2026-11-11
 
 This documentation uses the organizational structure of `tiktok-live-sandbox-game/docs`, adapted for a native Nextcloud application. Game-specific GDD, audio, and renderer directories are intentionally omitted.
 
@@ -46,6 +46,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 - [Data schema](software/03-data-schema.md)
 - [Security design](software/04-security-design.md)
 - [API contract](software/05-api-contract.md)
+- [Feature test cases and completion evidence](software/09-feature-test-cases.md)
 - [Compatibility and validation](software/06-compatibility-and-testing.md)
 - [Architecture decisions](software/07-architecture-decisions.md)
 
@@ -53,6 +54,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 
 - [Installation and configuration](manual/installation-and-configuration.md)
 - [GitHub builds and releases](manual/github-releases.md)
+- [Read media by virtual path](manual/path-api.md)
 - [User guide](manual/user-guide.md)
 - [Reverse proxy guidance](manual/reverse-proxy.md)
 - [Troubleshooting](manual/troubleshooting.md)

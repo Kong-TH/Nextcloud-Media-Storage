@@ -8,6 +8,7 @@ use OCP\AppFramework\Http\JSONResponse;
 use OCA\MediaStorage\Http\BoundedStreamResponse;
 use OCA\MediaStorage\Service\DeliveryProtectionService;
 use OCA\MediaStorage\Service\DeliveryRules;
+use OCA\MediaStorage\Service\PathMediaService;
 use OCP\AppFramework\Http\Attribute\PublicPage;
 use OCP\AppFramework\Http\Attribute\NoCSRFRequired;
 use OCP\IRequest;
@@ -17,16 +18,21 @@ use OCA\MediaStorage\Exception\MediaException;
 final class DeliveryController extends Controller {
     private const HEADERS = ['Cache-Control' => 'private, no-store', 'Pragma' => 'no-cache',
         'Referrer-Policy' => 'no-referrer', 'X-Content-Type-Options' => 'nosniff'];
-    public function __construct(IRequest $request, private TemporaryAccessService $access, private DeliveryProtectionService $protection) { parent::__construct('mediastorage', $request); }
+    public function __construct(IRequest $request, private TemporaryAccessService $access, private DeliveryProtectionService $protection, private ?PathMediaService $paths = null) { parent::__construct('mediastorage', $request); }
     #[PublicPage]
     #[NoCSRFRequired]
-    public function read(string $id, string $key = ''): Response {
+    public function read(string $id, string $key = '', ?string $bucket = null): Response {
         try {
             $this->protection->request('delivery');
             $head = $this->request->getMethod() === 'HEAD';
             $conditions = [];
             foreach (['Range', 'If-Range', 'If-Match', 'If-Unmodified-Since', 'If-None-Match', 'If-Modified-Since'] as $header) { $conditions[$header] = $this->request->getHeader($header); }
-            $media = $this->access->read($id, $key, $head, function (array $metadata, array $row) use ($conditions, $head): array {
+            // Legacy capability keys have no dot; API credentials use ms_<selector>.<secret>.
+            // Authenticate query credentials before path lookup; never redirect or echo them.
+            $pathToken = str_starts_with($key, 'ms_') && str_contains($key, '.');
+            if ($pathToken && $this->paths === null) { throw new MediaException('Path delivery unavailable.', 503); }
+            $media = $pathToken ? $this->paths->read('Bearer ' . $key, $id, $bucket, $head, $conditions)
+                : $this->access->read($id, $key, $head, function (array $metadata, array $row) use ($conditions, $head): array {
                 $this->protection->resource($row);
                 $plan = DeliveryRules::plan($metadata, $conditions, $head);
                 return $plan + ($plan['body'] ? $this->protection->lease($row) : []);

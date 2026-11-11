@@ -1,5 +1,9 @@
 # Compatibility and Testing
 
+## Current feature validation — 2026-11-11
+
+Prepared 0.10.0 path API evidence is recorded in the [validation report](../release/0.10.0-path-api.md), with traceable [feature test cases](09-feature-test-cases.md). Every completed feature must follow that test-case workflow. No connected Playground session was available for a new UI check; this slice changes backend behavior.
+
 ## Latest target update — 2026-11-09
 
 Prepared 0.9.0 extends the metadata range from Nextcloud 34 only to 34–35. Nextcloud 35.0.2 public-source/local PHP tests and isolated SQLite installation/HTTP checks are recorded in [the 0.9.0 report](../release/0.9.0-compatibility.md). The user's production server reported 35.0.2; it was not accessed or modified. No new Snap confinement/MySQL, browser/manual, or App Store installation result is inferred. Historical results below remain tied to their original app/server versions.

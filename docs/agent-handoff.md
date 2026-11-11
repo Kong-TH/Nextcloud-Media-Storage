@@ -1,3 +1,20 @@
+## Local commit checkpoint — 2026-11-11
+
+The owner authorized committing 0.10.0 after the final test-case review so they can try it. Final isolated Nextcloud 35 regression passed all seven HTTP suites (353 checks), all ten PHP suite commands, six frontend files, 68 package checks and four release tests; the separate Chromium fixture passed 444 checks. Fixture cleanup completed. This authorizes a local source/documentation/test commit, not push or remote deployment. Refer to the latest [validation report](release/0.10.0-path-api.md) for current results; earlier no-commit/no-browser statements below describe their original checkpoints. The next agent should inspect Git status and the actual deployed version before reporting availability.
+
+## Feature test-case requirement — 2026-11-11
+
+The owner requires test cases after every completed feature and permits UI testing through a Playground plugin. This is now an explicit repository instruction in AGENTS.md and the [feature checklist](software/09-feature-test-cases.md). Maintain setup, expected behavior, executable/manual coverage, actual results and pending checks. The 0.10.0 cases are mapped there. Document-control discovery found no connected sessions; no new Playground UI result is claimed. This backend-only slice retains the recorded frontend unit/build evidence and open manual UI gates.
+
+
+Follow-up after installation authorization: Chromium 158.0.8127.18 is available through Playwright. The standalone CDP fixture passed 444 checks / 1036 CSRF-backed requests; compact and desktop screenshots were inspected. The dedicated browser/profile were cleaned. No Playground session or remote server was used. See the [validation report](release/0.10.0-path-api.md#standalone-ui-acceptance-follow-up--2026-11-11) and [setup](../tests/README.md#standalone-chromium-ui-fixture).
+
+## ID-free virtual-path API — prepared 0.10.0, 2026-11-11
+
+The owner clarified that API users must address files by virtual path rather than discovering node IDs. They explicitly requested `https://kohtnas.com/index.php/apps/mediastorage/delivery/v1/PATH?key=API_TOKEN`. Added this GET/HEAD form, a header-authenticated `/external/v1/media/{path}` alternative, and POST `/external/v1/signed-urls` taking path/bucket/ttl. Existing capability delivery remains compatible. See [path guide](manual/path-api.md) for root/bucket/boundary semantics, examples and token log risks. Do not paste the actual user-supplied test token into files or diagnostics. Runtime resolves internal IDs under the owner lock; ID secrecy is not the authentication mechanism.
+
+Validation: 30 local path checks, 41 new HTTP path checks and 76 legacy temporary-access HTTP checks pass on isolated Nextcloud 35.0.2 / PHP 8.4.27 / SQLite, plus backend regression, 6 frontend files and 68 package checks. See [the evidence report](release/0.10.0-path-api.md). New functionality prepares MINOR 0.10.0. Public paths require deploying this version; no production API calls, server mutation, commit or push was performed for this slice. Google Photos screenshots and 34–35 compatibility remain. New path suites are added to Composer and GitHub compatibility gates. Keep historical release verification separate from this candidate.
+
 ## Google Photos screenshots included in prepared 0.9.0 — 2026-11-09
 
 Before the compatibility commit, the user requested replacing all five screenshot URLs with their supplied lh3.googleusercontent.com/pw URLs. Updated both info.xml and its template in the existing unreleased 0.9.0; no extra version bump. Direct anonymous downloads succeeded for all five PNGs below 2 MiB. Constructed proxy URLs returned File not found, but those URLs had not been registered through an App Store release and do not prove Google Photos cannot be displayed. Actual App Store gallery verification remains pending submission. Do not promise permanent hosting or stable lifetime of third-party image URLs. Runtime/API behavior is unchanged by this metadata adjustment.

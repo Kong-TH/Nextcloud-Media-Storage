@@ -30,7 +30,7 @@ def main():
     parser.add_argument('--archive', type=Path, required=True)
     parser.add_argument('--php', default='php', help='CLI command, e.g. "sh scripts/php-snap.sh"')
     parser.add_argument('--port', type=int, default=18096)
-    parser.add_argument('--suite', action='append', choices=['http_integration', 'upload_http', 'access_http', 'streaming_http', 'paging_http', 'imports_http'])
+    parser.add_argument('--suite', action='append', choices=['http_integration', 'upload_http', 'access_http', 'streaming_http', 'paging_http', 'imports_http', 'path_media_http'])
     args = parser.parse_args()
     if os.environ.get('MEDIASTORAGE_TEST_DISPOSABLE') != 'yes':
         parser.error('Set MEDIASTORAGE_TEST_DISPOSABLE=yes; only isolated temporary data is used')

@@ -69,3 +69,7 @@ Lists show thumbnails where Nextcloud provides them. Details show image previews
 ### Finding an uploaded original
 
 After Upload finishes, a dismissible notification shows the display name and the original's path in your Nextcloud account. Open folder in Nextcloud opens the containing folder in a separate tab, rather than opening the image/video. The original has a unique filename inside Media Storage/YYYY-MM-DD; the display name belongs to its virtual link. If the current location cannot be retrieved, the notification still confirms the completed upload and omits the folder action.
+
+## External clients: address media by virtual path (0.10.0)
+
+Use the path shown by the app rather than looking up a node ID. Read-only API credentials can authorize `/index.php/apps/mediastorage/delivery/v1/PATH?key=TOKEN`; encode path segments once and preserve slash separators. A restricted token's path starts at its bucket/folder boundary; unrestricted tokens default to Library and may select another exact bucket name. Header-authenticated backend access and path-based temporary browser URL issuance are also available. See [the path API guide](path-api.md) for actual examples, scope/expiry behavior, and query-credential log risks. Deploy 0.10.0 before using these routes; older releases do not implement this form.
