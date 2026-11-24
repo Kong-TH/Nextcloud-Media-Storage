@@ -30,6 +30,12 @@ function denied(callable $action, int $status, string $name): void {
     try { $action(); } catch (MediaException $error) { check($error->status === $status, $name); return; }
     throw new RuntimeException('FAIL: Expected denial: ' . $name);
 }
+// Model an existing database row issued before bucket-only token creation.
+function legacyFolderToken($tokens, $repository, $owner, $name, $scopes, $expiresAt, $folderId): array {
+    $issued = $tokens->issue($owner, $name, $scopes, $expiresAt);
+    $repository->update($owner, $issued['token']['id'], ['folder_id' => $folderId]);
+    return $issued;
+}
 $nodes = new MemoryStore(); $repository = new MemoryTokens();
 $enabled = true;
 $alice = double(OCP\IUser::class, ['getUID' => fn() => 'alice', 'isEnabled' => function () use (&$enabled) { return $enabled; }]);
@@ -89,7 +95,9 @@ foreach ([time() - 1, time() + 31536001] as $expiry) {
 }
 denied(fn() => $tokens->issue('alice', 'bad-folder', ['media:read'], time() + 3600, $bobFolder['id']), 404, 'Cross-owner restriction rejected');
 denied(fn() => $tokens->issue('alice', 'bad-manager', ['token:manage'], time() + 3600, $folder['id']), 400, 'Restricted manager credential rejected');
-$limited = $tokens->issue('alice', 'Limited', ['media:read', 'media:manage', 'media:delete'], time() + 3600, $folder['id']);
+denied(fn() => $tokens->issue('alice', 'Folder only', ['media:read'], time() + 3600, $folder['id']), 409, 'New token cannot be folder-bound');
+$limited = legacyFolderToken($tokens, $repository, 'alice', 'Limited', ['media:read', 'media:manage', 'media:delete'], time() + 3600, $folder['id']);
+denied(fn() => $tokens->rotate('alice', $limited['token']['id']), 409, 'Rotating a legacy folder token cannot issue a new folder token');
 $limitedHeader = 'Bearer ' . $limited['secret'];
 $limitedRow = $tokens->authenticate($limitedHeader);
 $listing = $api->access($limitedHeader, 'media:read', fn($token) => $api->listing($token, null, '', 100, 0));
@@ -167,7 +175,7 @@ check((new ReflectionProperty(OCP\AppFramework\Http\Response::class, 'headers'))
 check($controller->index()->getData()['policy']['max_lifetime_seconds'] === 31536000, 'Session token listing includes authoritative policy');
 check(abs($controller->index()->getData()['policy']['server_time'] - time()) <= 1, 'Policy exposes current server time');
 $deletedBoundary = $vfs->create('alice', 'Deleted boundary');
-$bound = $tokens->issue('alice', 'Deleted boundary reader', ['media:read'], time() + 3600, $deletedBoundary['id']);
+$bound = legacyFolderToken($tokens, $repository, 'alice', 'Deleted boundary reader', ['media:read'], time() + 3600, $deletedBoundary['id']);
 $boundHeader = 'Bearer ' . $bound['secret'];
 $vfs->destroy('alice', $deletedBoundary['id']);
 check($tokens->authenticate($boundHeader)['folder_id'] === $deletedBoundary['id'], 'Deleted token boundary is retained, never reset to owner-wide');

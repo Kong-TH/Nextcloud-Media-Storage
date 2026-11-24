@@ -32,3 +32,27 @@ Evidence and reproduction commands: [0.10.0 validation report](../release/0.10.0
 This feature changes backend routing/services, not the frontend layout. On 2026-11-11 the document-control plugin reported no connected sessions, so no new Playground visual result is claimed. Existing frontend unit/build checks pass as recorded in the feature report. Remote Snap/MySQL deployment, the new candidate's Nextcloud 34 matrix execution and production proxy behavior remain unverified. Existing manual UI acceptance gates remain open.
 
 Follow-up after the owner authorized tool installation: standalone Chromium 158.0.8127.18/CDP fixture checks passed 444 assertions with 1036 CSRF-backed requests. Compact and desktop screenshots were inspected. This supplies new fixture UI evidence without a connected Playground session; installed-host and remaining manual gates stay open. See the [updated report](../release/0.10.0-path-api.md).
+
+## Library-bound production report — 2026-11-24
+
+Synthetic folder/image inside Library with a Library-bound read token: query and header forms return exact fixture bytes; prefixing Library in the path returns 404; overriding bucket returns 400. Owner-wide token selecting Library also returns the fixture bytes. `tests/path_media_http.py` passed 49 checks on isolated Nextcloud 35.0.3 / PHP 8.4.28 / SQLite; cleanup completed. Production 404 remains unconfirmed and unresolved.
+
+## Bucket-only token creation and complete delivery paths (0.11.0)
+
+| Case | Setup | Expected behavior | Coverage |
+| --- | --- | --- | --- |
+| Token boundary | Create tokens for Library, another bucket and one of its folders | Owned buckets work. Direct folder issuance is rejected with 409. The UI lists account-wide access and owned buckets | `tests/path_media_http.py`, `tests/tokens.php`, `tests/frontend/browser.mjs` |
+| Nested media | Create media in a child folder in Library and another bucket and use their scoped tokens | The complete path returns the exact fixture bytes. An omitted folder fails. A named bucket token cannot read Library | `tests/path_media_http.py` |
+| Duplicate filenames | Upload different bytes with the same filename into two folders in Library | Each complete path returns the bytes from its folder. The basename alone returns 404 | `tests/path_media_http.py` |
+| Legacy scope | Load a stored folder-bound token and a root-level reference with the same file name | The full path inside the original scope succeeds. The abbreviated path and rotation are rejected. Moving the file outside the scope denies access | `tests/path_media.php`, `tests/tokens.php` |
+| Temporary links | Issue a capability from a complete nested path and try the abbreviated path | The full path issues a working URL. The abbreviated path gives 404. Existing capability behavior and revocation still work | `tests/path_media_http.py`, `tests/access_http.py` |
+
+Backend results on isolated Nextcloud 35.0.3 / PHP 8.4.28 / SQLite: 56 path HTTP checks, 130 integration HTTP checks and 76 temporary access HTTP checks passed with the exact 0.11.0 package. The fixture was removed. The token (78), access (64), path (30) and streaming (61) PHP checks passed. Six frontend unit files and 68 package checks passed. Production deployment and production verification are pending.
+
+Run the exact package check with `MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests/nextcloud_compatibility.py --port 18118 --source /snap/nextcloud/current/htdocs --archive dist/mediastorage-0.11.0.tar.gz --php 'sh scripts/php-snap.sh' --suite path_media_http --suite http_integration --suite access_http`. The standalone Chromium HTTP fixture (`node tests/frontend/browser.mjs`) passed 445 checks with 1,018 CSRF-backed requests. The compact token boundary dropdown was visually checked and showed only account-wide access and bucket choices.
+
+### Pre-push regression and upgrade rehearsal (2026-11-24)
+
+The 0.11.0 archive passed all seven installed HTTP suites on Nextcloud 35.0.3, PHP 8.4.28 and SQLite. The 372 checks comprise 60 path, 130 integration, 26 upload, 76 access, 19 import, 30 paging and 31 streaming checks. Run the command above with the four additional suite arguments `--suite upload_http --suite imports_http --suite paging_http --suite streaming_http` on an unused port. All ten PHP suites listed in the release workflow, six frontend unit files and 68 archive checks passed.
+
+Populated upgrade procedure (passed on a second isolated instance): install the 0.10.0 archive, create an Album folder and upload a logo with the same name both there and at the bucket root. Issue a folder-bound key and confirm the abbreviated URL returns the image on 0.10.0. Replace the app files with the checksummed candidate, run `occ upgrade` and verify the installed version. On 0.11.0 the existing key returned the original bytes at the complete Album path and 404 at the abbreviated path despite the root duplicate. New folder-bound issuance returned 409 and bucket-bound issuance returned 201. Production Snap/MySQL upgrade and proxy behavior remain unverified.

@@ -83,3 +83,7 @@ The [release report](../release/0.8.0-readiness.md#developer-security-review) re
 The owner requested virtual-path URLs carrying an API credential in key. This is an intentional exception for GET/HEAD `/delivery/v1/{path}`, not a blanket change to external bearer authentication or session/CSRF middleware. Scope media:read, current owner/token expiry/revocation/boundary, accessible binding, MIME and native rate/stream protections remain mandatory. No cookie fallback or owner parameter is accepted. Existing opaque capability links still use their bounded pinned-resource authorization.
 
 Query URLs can leak the long-lived credential through history, access/error/tracing logs, screenshots, analytics, and sharing. Response no-store/no-referrer does not remove this risk. Prefer read-only restricted expiring credentials for direct URL use; backend integrations should use the header-authenticated path endpoint, and public browser embeds should use path-issued temporary URLs. Production log redaction must omit query/Authorization; fixture log hygiene does not certify the user's server. No real user token is used in tests or repository examples.
+
+## Bucket scopes and delivery paths in 0.11.0
+
+New tokens accept only an owned bucket or Library as a restriction. Existing folder tokens retain their database scope. New issuance and rotation cannot create a folder token. Delivery checks a legacy folder token's full bucket-relative prefix under the owner lock before looking up descendants. Authorization remains scoped to its original folder.

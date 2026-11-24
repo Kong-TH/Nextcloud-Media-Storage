@@ -18,7 +18,14 @@ final class PathMediaService {
         $owner = $token['owner_id'];
         if ($token['folder_id'] !== null) {
             if ($bucket !== null) { throw new MediaException('Omit bucket when using a restricted token.'); }
-            $node = $this->nodes->get($owner, $token['folder_id']);
+            $node = $this->vfs->show($owner, $token['folder_id']);
+            // Check the bucket-relative prefix before looking up any descendants.
+            $boundary = NodeRules::segments($node['virtual_path']);
+            $depth = count($boundary);
+            if (array_slice($segments, 0, $depth) !== $boundary) {
+                throw new MediaException('Media reference not found.', 404);
+            }
+            $segments = array_slice($segments, $depth);
         } else {
             $node = $this->vfs->root($owner);
             if ($bucket !== null) {

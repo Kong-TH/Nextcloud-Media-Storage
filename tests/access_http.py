@@ -116,7 +116,7 @@ try:
     expected_version = json.loads(Path(__file__).resolve().parents[1].joinpath('package.json').read_text())['version']
     check(status == 200 and ('data-version="'+expected_version+'"').encode() in page, 'Installed source matches the expected build before testing endpoints')
     _, tree = api(a, at, 'GET', '/api/v1/nodes'); root = tree['root_id']
-    _, folder = api(a, at, 'POST', '/api/v1/folders', {'name': 'allowed', 'parent_id': root})
+    _, folder = api(a, at, 'POST', '/api/v1/buckets', {'name': 'allowed'})
     png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=')
     status, uploaded, _ = upload(a, at, folder['id'], 'alias.png', png)
     check(status == 200 and uploaded['state'] == 'complete', 'Dedicated original uploaded')
@@ -174,7 +174,7 @@ try:
     check(delivery(derived['url'])[1] == png, 'Scoped bearer can authorize anonymous exact-resource read')
     _, outside = api(a,at,'POST','/api/v1/folders',{'name':'outside','parent_id':root})
     check(api(a,at,'PATCH','/api/v1/nodes/'+node,{'parent_id':outside['id']})[0] == 200, 'Session moves reference outside issuer boundary')
-    check(delivery(derived['url'])[0] == 404, 'Derived URL rechecks current folder boundary')
+    check(delivery(derived['url'])[0] == 404, 'Derived URL rechecks current bucket boundary')
     check(external(token['secret'],'POST','/nodes/'+node+'/signed-urls',{})[0] == 403, 'Issuance outside scope denied')
     check(api(a,at,'PATCH','/api/v1/nodes/'+node,{'parent_id':folder['id'],'name':'renamed.png'})[0] == 200, 'Restore scoped reference and change virtual alias')
     check(delivery(derived['url'])[1] == png, 'Exact original remains available when restored to authorized boundary')

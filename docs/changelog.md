@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0 — Bucket-scoped tokens and complete delivery paths, 2026-11-24
+
+- Delivery and temporary-link requests now retain all virtual subfolders below the bucket root.
+- New tokens can use one bucket or account-wide access. Existing folder-scoped credentials retain their permissions and now require the complete delivery path. Use a bucket token to replace a legacy folder token.
+- Pre-1.0 minor bump because formerly accepted folder-only token creation and shortened delivery paths change.
+
 ## 0.10.0 — Prepared ID-free path delivery, 2026-11-11
 
 - Resolve virtual paths inside the verified token boundary or an owner-selected bucket name; no caller-supplied node ID needed.

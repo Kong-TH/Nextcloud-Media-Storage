@@ -48,8 +48,10 @@ final class ApiTokenService {
         }
         return $this->locked($owner, function () use ($owner, $name, $scopes, $expiresAt, $folderId) {
             if ($folderId !== null) {
-                $folder = $this->nodes->get($owner, $folderId);
-                if (!in_array($folder['node_type'], ['root', 'bucket', 'folder'], true)) { throw new MediaException('Token restriction must be a folder.', 409); }
+                $boundary = $this->nodes->get($owner, $folderId);
+                if (!in_array($boundary['node_type'], ['root', 'bucket'], true)) {
+                    throw new MediaException('Choose a bucket for the token access boundary.', 409);
+                }
             }
             $id = bin2hex(random_bytes(16)); $secret = rtrim(strtr(base64_encode(random_bytes(32)), '+/', '-_'), '=');
             $row = ['id' => $id, 'owner_id' => $owner, 'name' => $name, 'token_hash' => hash('sha256', $secret),

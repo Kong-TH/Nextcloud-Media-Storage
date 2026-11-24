@@ -1,6 +1,6 @@
 # Documentation Index
 
-Updated: 2026-11-11
+Updated: 2026-11-24
 
 This documentation uses the organizational structure of `tiktok-live-sandbox-game/docs`, adapted for a native Nextcloud application. Game-specific GDD, audio, and renderer directories are intentionally omitted.
 

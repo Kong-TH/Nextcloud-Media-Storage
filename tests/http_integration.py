@@ -314,7 +314,7 @@ try:
         check(status in (401, 403, 412), 'Token creation retains CSRF middleware')
         status, _ = api(a, at, 'POST', '/api/v1/tokens', {'name': 'expired', 'scopes': ['media:read'], 'expires_at': int(time.time()) - 1})
         check(status == 400, 'Already-expired token issuance rejected')
-        status, area = api(a, at, 'POST', '/api/v1/folders', {'name': 'token-area'})
+        status, area = api(a, at, 'POST', '/api/v1/buckets', {'name': 'token-area'})
         if status != 201: raise RuntimeError('Token fixture creation failed')
         status, hidden = api(a, at, 'POST', '/api/v1/folders', {'name': 'outside-token-area'})
         if status != 201: raise RuntimeError('Token fixture creation failed')

@@ -1,5 +1,15 @@
 # Sprint 05 — Release readiness
 
+## Bucket-only token restrictions and complete delivery paths — 2026-11-24
+
+The owner requires token restrictions at the bucket level and delivery paths that keep all virtual folders. Media Storage 0.11.0 restricts new token issuance and rotation to owned bucket roots or account-wide access. The token form offers those choices. Existing folder-bound records retain their original access and require complete bucket-relative paths for media reads and temporary-link issuance. Scoped node listings remain unchanged for these legacy records. No schema migration is required. No production deployment was performed. The 0.11.0 candidate passed 262 HTTP checks on isolated Nextcloud 35.0.3. The standalone Chromium UI fixture passed 445 checks. See [feature test cases](../../software/09-feature-test-cases.md) for coverage and remaining production verification.
+
+Pre-push rerun: all 372 installed HTTP checks passed, including duplicate filenames across folders. A separate populated 0.10.0 to 0.11.0 upgrade passed on SQLite with an existing folder-bound token. Production Snap/MySQL acceptance remains pending.
+
+## Library-bound path investigation — 2026-11-24
+
+User reports production path lookup returning `Media reference not found` with a token restricted to Library. Added HTTP cases using a synthetic image and folder, without production credentials or data. On a disposable Nextcloud 35.0.3 / PHP 8.4.28 / SQLite instance with exact Media Storage 0.10.0 archive, all 49 path HTTP checks pass: Library-bound token reads the synthetic nested image using query key and bearer header; prefixing Library in the path gives 404; a bucket override on a restricted token gives 400. Owner-wide selection of Library succeeds. Fixture accounts and data were removed. This does not reproduce or resolve the production 404; inspect the actual virtual path, token boundary/owner, and installed version without collecting the secret. Production has not been accessed.
+
 ## Home continuation checkpoint — 2026-11-11
 
 Owner requested a committed [portable handoff](../../manual/home-handoff.md), upload to MinIO and verified LATEST.json pointer. Carry source/history plus the exact tested 0.10.0 artifact, exclude private material, and verify remote hashes before publishing the pointer. Next work is authorized-server Snap/MySQL acceptance; no deployment or Git push is implied.

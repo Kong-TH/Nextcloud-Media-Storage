@@ -2,6 +2,8 @@
 
 Native Nextcloud app foundation (`mediastorage`) for private virtual media organization, using Nextcloud filesystem, database, and session authentication.
 
+Read the [Media Storage user guide](docs/manual/user-guide.md) for explorer actions, API tokens, media URLs and Cloudflare setup.
+
 ## Screenshots
 
 ### Object explorer

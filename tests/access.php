@@ -78,7 +78,7 @@ $nodes->bindings[$nodeId]['nextcloud_file_id']=43; denied(fn() => $access->read(
 $vfs->update('alice',$nodeId,'renamed.png',$other['id']); check($access->read($id,$key,true)['name']==='renamed.png','Same-bucket virtual rename/move retains exact original access');
 $bucket=['id'=>'other-bucket','owner_id'=>'alice','parent_id'=>'','name'=>'Other','name_key'=>hash('sha256','other-bucket'),'node_type'=>'bucket','created_at'=>time(),'updated_at'=>time(),'lock_version'=>0]; $nodes->insert($bucket);
 $vfs->update('alice',$nodeId,null,$bucket['id']); denied(fn() => $access->read($id,$key),404,'Moving to another bucket denies pinned grant'); $vfs->update('alice',$nodeId,null,$folder['id']);
-$bearer=$tokens->issue('alice','Reader',['media:read'],time()+120,$folder['id']); $token=$tokens->authenticate('Bearer '.$bearer['secret']);
+$bearer=legacyFolderToken($tokens,$repository,'alice','Reader',['media:read'],time()+120,$folder['id']); $token=$tokens->authenticate('Bearer '.$bearer['secret']);
 $limited=$access->issue('alice',$nodeId,3600,$token); $lid=$limited['access']['id']; $lkey=$limited['key'];
 check($limited['access']['expires_at']===$token['expires_at'],'Grant cannot outlive issuer');
 check($access->read($lid,$lkey,true)['size']===13,'Scoped issuer grant works');

@@ -1,3 +1,17 @@
+The owner confirmed the 0.11.0 local trial worked. The candidate Store description now includes the English user guide and links to its GitHub copy. Publish the matching Git documentation before submitting the updated archive. Public listing rendering remains pending.
+
+## Bucket-only token restrictions and complete delivery paths — 2026-11-24
+
+The owner requires token restrictions at the bucket level and delivery paths that keep all virtual folders. Media Storage 0.11.0 restricts new token issuance and rotation to owned bucket roots or account-wide access. The token form offers those choices. Existing folder-bound records retain their original access and require complete bucket-relative paths for media reads and temporary-link issuance. Scoped node listings remain unchanged for these legacy records. No schema migration is required. No production deployment was performed. Isolated Nextcloud 35.0.3 accepted the exact 0.11.0 package and passed 262 HTTP checks across path, integration and temporary access. The standalone Chromium UI fixture passed 445 checks. See [feature test cases](software/09-feature-test-cases.md) for results and limitations.
+
+Pre-push rerun: all 372 installed HTTP checks passed, including duplicate filenames across folders. A separate populated 0.10.0 to 0.11.0 upgrade passed on SQLite with an existing folder-bound token. Production Snap/MySQL acceptance remains pending.
+
+## Library-bound path investigation — 2026-11-24
+
+The owner confirmed the Cloudflare exception let the production listing request reach Media Storage. Recorded their working expression in [Cloudflare challenges](manual/path-api.md#cloudflare-challenges). The scoped listing returned `nodes: []` for the searched folder. Next, inspect the immediate children without a search filter and use the actual virtual path for delivery. Production image delivery remains unverified.
+
+User reports production path lookup returning `Media reference not found` with a token restricted to Library. Added HTTP cases using a synthetic image and folder, without production credentials or data. On a disposable Nextcloud 35.0.3 / PHP 8.4.28 / SQLite instance with exact Media Storage 0.10.0 archive, all 49 path HTTP checks pass: Library-bound token reads the synthetic nested image using query key and bearer header; prefixing Library in the path gives 404; a bucket override on a restricted token gives 400. Owner-wide selection of Library succeeds. Fixture accounts and data were removed. This does not reproduce or resolve the production 404; inspect the actual virtual path, token boundary/owner, and installed version without collecting the secret. Production has not been accessed.
+
 ## Portable home handoff — 2026-11-11
 
 The owner requested a committed handoff and MinIO upload with LATEST.json. See [home continuation](manual/home-handoff.md) for the snapshot prefix, restoration steps, exact artifact identity, verified baseline and ordered next work. Prepare the handoff commit on dev and fast-forward main; no Git push is included. The upload/pointer must be verified separately after the commit. Exclude all credentials, signing material, ignored chat files and runtime instance data.

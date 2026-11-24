@@ -1,75 +1,56 @@
-# User guide
+# Media Storage user guide
 
-## Temporary access APIs — installed 0.5.1
+Organize images and videos into virtual buckets and folders in Nextcloud. Each media reference points to an original file. You can organize the same photo into several collections while keeping one original.
 
-Session clients can POST `/api/v1/nodes/{id}/signed-urls` with `ttl_seconds` to receive a one-time absolute URL and revocation ID. Nextcloud session/request-token requirements apply. Authorized integrations use the corresponding `/external/v1/nodes/{id}/signed-urls` endpoint with a server-held `media:read` bearer. Never send that long-lived bearer to the media recipient.
+## Browse buckets and folders
 
-The recipient can open the temporary URL without signing in. Keep the complete URL private: it is a read credential reusable until expiration/revocation. Default lifetime is 15 minutes; the default maximum is one hour, and bearer-derived access ends no later than its issuer. Session owners revoke using DELETE `/api/v1/access/{id}`; external issuers use DELETE `/external/v1/access/{id}` for their own grants. Owner session metadata listing is available at GET `/api/v1/nodes/{id}/signed-urls` and cannot recover a lost URL.
+Open **Media Storage** from the Nextcloud app menu and select **Library** in the sidebar. On a small screen, open the navigation menu first. Select a folder to browse its contents, use the breadcrumb to go back up, or search by name within the current folder.
 
-A changed original, changed binding, another bucket, expired/revoked issuer or inaccessible/deleted reference prevents delivery. Revocation cannot recall bytes already downloaded/in flight. Ordinary Copy virtual path remains metadata copying; there is no new temporary-link UI control in this API story. Installed 0.5.1 temporary access acceptance passed; advanced external streaming/protection is a separate task.
+Use **+** beside **Buckets** to create a separate collection. Within a bucket, choose **Add → New folder** to group related media. The pencil beside a bucket opens its settings. **Clear contents** removes all its virtual folders and references. **Remove bucket** also removes the bucket itself. The default Library can be renamed or cleared.
 
-## Explorer available in 0.3.0
+## Add existing files or upload new media
 
-Open Media Storage from Nextcloud's app navigation. The default Library and additional virtual buckets organize references to your accessible Nextcloud files. Use + Add beside Buckets to create another bucket. On narrow screens open the navigation drawer with the menu button. The bottom of the drawer displays the installed plugin version only (for example v0.3.3). Bucket rename/removal is not available yet.
+- **From Nextcloud Files:** Open the destination in Media Storage, choose **Add → Add from Nextcloud**, and select files or folders. For a folder named `Demo Album`, choose **Keep folder** to create `/Demo Album/photo.jpg`. Choose **Import contents here** to place `photo.jpg` directly in the destination. Nested folders keep their structure. Review the destination paths before confirming.
+- **From your device:** Choose **Add → Upload media**, select an image or video, confirm its display name, and complete the upload. The app stores the original under `Media Storage/YYYY-MM-DD/` in Nextcloud Files. Use **Open folder in Nextcloud** in the completion message to find it again.
 
-Use the Add FAB for Add from Nextcloud or New folder. The picker browses existing images/videos. Its single folder-navigation row shows Back, Home and the current folder name: Back goes up one level and Home returns directly to Nextcloud files. Both are disabled at root and while loading. Selecting a file and saving creates a reference, without copying or moving its physical file. Open folders by clicking their row and return using the folder path. Search matches names in the current folder. The information button opens details and provides Rebind when a reference needs another accessible original. Copy virtual path copies the plugin's virtual path, such as /Campaigns/Birdie.jpg, including the reference's independent name. The containing bucket is shown separately; paths are relative to that bucket. If browser clipboard access is unavailable, a read-only text field allows manual copying. This metadata path is not a browser-openable media URL; plugin media delivery is not implemented yet.
+## Inspect, move or remove a reference
 
-Select rows to display the bottom toolbar. Move, Copy, Paste, Rename and Remove links change plugin metadata only. Copied references may have independent names and live in other virtual folders/buckets while sharing one original. Narrow toolbars place commands that do not fit in the arrow menu. The separate X cancels selection and copied links, then restores Add.
+Open the information button beside a media item to preview it and inspect its bucket, virtual path and original file. Choose **Copy virtual path** to get the exact spelling for an API request. If the original is unavailable, use **Rebind** to choose an accessible replacement.
 
-API tokens provides create, rotate and revoke actions with expiration and permission boundaries. Save a new secret before closing its dialog; it is shown once. Rotation leaves the old token active until you revoke it after updating your integration. Tokens authorize metadata APIs; they do not currently provide a public media URL.
+Select rows to show the action toolbar. Use **Move** to change their virtual location, or **Copy** and **Paste** to create independent references. **Rename** and **Move** change the path callers use to open the item. **Remove links** keeps the original in Nextcloud Files.
 
-Upload from your device, previews, signed URLs and binary media delivery are not available yet. Add from Nextcloud references files already uploaded through Nextcloud.
+## Create and manage an API token
 
-## Earlier product plan (historical)
+1. Open **API tokens → Create token**. Give the token a name that identifies the integration and choose an expiry date.
+2. Select the bucket the integration needs, such as **Library**. A bucket token covers its subfolders. Choose **All my buckets and folders** only for an integration that needs account-wide access.
+3. Select **media:read** to list and read media. Choose **Save**, then **Copy token** before closing the dialog. The secret is displayed once.
+4. To replace an active token, choose **Rotate**, update your client with the new secret and test it. Then choose **Revoke** on the old token to end its access.
 
-# User Guide
+## Open an image by its virtual path
 
-The interface is planned and unavailable today.
+For a Library token and a virtual path of `/Demo Album/photo.jpg`, replace the hostname and token in this example. Include every virtual folder, preserve letter case and encode spaces as `%20`. The token selects Library, so the first path segment is `Demo Album`.
 
-The explorer will provide folder navigation and breadcrumbs, create/rename/move/delete, search, media upload, binding of existing files, missing-binding recovery, metadata, previews and generated URL copying. Users will not need to type full virtual paths. Virtual deletion will preserve physical files.
+```text
+https://cloud.example.org/index.php/apps/mediastorage/delivery/v1/Demo%20Album/photo.jpg?key=YOUR_TOKEN
+```
 
-All media starts private. A copied path does not authorize access. External backends will use scoped tokens and either proxy media or issue short-lived read URLs for browsers. Token management will show status, expiry and last use; new secrets appear once. Rotation creates a replacement, updates the backend, then revokes the old credential.
+Anyone who receives that URL can extract the token. For an image shared with other people, have your backend request a short-lived URL with its bearer token and share the returned URL. See the [path API examples](https://github.com/Kong-TH/Nextcloud-Media-Storage/blob/main/docs/manual/path-api.md#issue-a-browser-url-from-a-path).
 
-Virtual rename/move changes paths and can break older URLs. Temporary URLs may be reused before expiry; domain filtering cannot establish website identity. Authorized users may view and save media normally.
+## Configure Cloudflare for API reads
 
+If curl receives a Cloudflare **Just a moment…** page, the zone administrator can use the request’s Ray ID in **Security Events** to identify the challenge. For a custom challenge rule, exclude the two reads below from its match condition. For a security feature that supports **Skip**, create a custom rule under **Security rules**, enter the expression below, select **Skip** for the feature identified in the event, and place the exception before the challenging rule. Standard Bot Fight Mode does not support Skip. [Cloudflare Skip documentation](https://developers.cloudflare.com/waf/custom-rules/skip/)
 
-## API token dashboard (0.3.5)
+Replace both occurrences of `cloud.example.org` with your hostname. If Nextcloud is installed under a subdirectory, include it in both paths. This expression covers GET requests to the node listing and direct media URLs. Media Storage still checks the token.
 
-The four summaries show active tokens, active tokens expiring within two weeks, revoked tokens and expired tokens. Click a summary to filter; click it again or choose All tokens to reset the status filter. Search by name and sort by expiry or name. Counts include the complete token collection, independent of filtering. The list shows permissions, access boundary, expiry and last usage; only active tokens can be rotated or revoked. Rotation creates a replacement and keeps the old credential active until explicitly revoked.
+```text
+(http.host eq "cloud.example.org" and http.request.method eq "GET" and http.request.uri.path eq "/index.php/apps/mediastorage/external/v1/nodes") or (http.host eq "cloud.example.org" and http.request.method eq "GET" and starts_with(http.request.uri.path, "/index.php/apps/mediastorage/delivery/v1/"))
+```
 
-Create token displays the latest permitted expiry in your browser's local time. The calendar and manual input use the server's configured maximum lifetime (365 days by default). Choose a future date and at least one permission. Folder-scoped tokens cannot manage credentials. If policy cannot be loaded, cancel and retry rather than assuming a limit.
+Test the listing with a read token stored in the shell variable `MS_TOKEN`:
 
-The one-time secret dialog provides Copy token and Done, with spacing between the value and actions. Copy reports success and leaves the dialog open. If clipboard access is denied, select/copy the value manually; closing removes it from the UI and it cannot be displayed again.
+```bash
+curl -sS -H "Authorization: Bearer $MS_TOKEN" \
+  "https://cloud.example.org/index.php/apps/mediastorage/external/v1/nodes"
+```
 
-
-## Manage a virtual bucket (0.3.7)
-
-Hover over any bucket row, including Library, to reveal its trailing pencil. Keyboard focus reveals it too; on touch, select/focus the row first. The edit action is separate from navigation and opens Edit bucket without changing the current destination.
-
-Change Bucket name and choose Save changes to rename. Names must be valid and unique among your buckets, including the default display name. Library remains reserved for the default bucket. Rename preserves identity, contents and virtual file paths.
-
-Clear contents asks for confirmation before removing every virtual folder and link inside that bucket; the bucket remains. Delete bucket confirms removal of the bucket and its contents. Library can be renamed and cleared, but its Delete button is disabled. Original Nextcloud files and links in other buckets remain untouched. Cancel/Escape in a confirmation returns to the editor with the name draft preserved; Save changes is independent of destructive actions.
-
-Clearing the current bucket returns to its empty root. Deleting the current additional bucket returns to the default bucket. Actions on another bucket preserve your current view. Successful clear/delete discards copied references to avoid stale sources. The 1000-node traversal limit includes the bucket root; remove smaller virtual folders first if it is exceeded. Tokens scoped to retained roots keep that scope; removed child/bucket boundaries fail closed, and name reuse does not reactivate them.
-
-## Browser navigation (0.3.9)
-
-Browser Back/Forward returns to previous buckets, folders, submitted searches, sort order, details and the API tokens page. Reload or bookmark the plugin URL to reopen the current view. The plugin preserves Nextcloud's own URL path/query. Names and breadcrumbs are refreshed from the server, so renaming a folder does not invalidate its stable ID.
-
-List scrolling is retained for Back/Forward/reload in the current browser history. New navigation starts at the top. Unsubmitted search text, selected objects, clipboard, form drafts and token secrets are not saved in the URL; reload clears transient state. Browser navigation closes an unsaved dialog and waits for a pending save before changing views. Missing or removed buckets/folders recover to an accessible root with a message. A session/network error offers Retry; sign in again when the session expires.
-
-## Upload and previews (prepared 0.4.0; deployment required)
-
-Choose Add → Upload media, choose an image/video and confirm its display name. The dialog shows the actual upload limit. Files are stored in your own Nextcloud `Media Storage/YYYY-MM-DD/` folders, grouped by calendar day using your account timezone (UTC fallback). Originals have unique storage filenames; the display name belongs to the plugin link. Nextcloud quota and folder permissions still apply.
-
-Progress measures transfer; saving on the server is shown separately. Stop cancels transmission and checks whether saving already finished. Retry keeps the same file/name/request to avoid duplicates; close and reopen Upload to choose another payload. Files already saved remain in Nextcloud, including partial/orphan files after a storage/database failure; manage those through Nextcloud before a fresh attempt. Move, Rename, Remove links, Clear contents and Delete bucket never change originals.
-
-Lists show thumbnails where Nextcloud provides them. Details show image previews or a video player; unsupported providers/codecs and inaccessible originals fall back with recovery feedback. Moving an original through Nextcloud within its accessible storage keeps its file-ID link; changed storage/permissions may require Rebind. Copy virtual path continues to copy plugin metadata paths, not public media URLs. Signed/public and external-token delivery are not enabled.
-
-### Finding an uploaded original
-
-After Upload finishes, a dismissible notification shows the display name and the original's path in your Nextcloud account. Open folder in Nextcloud opens the containing folder in a separate tab, rather than opening the image/video. The original has a unique filename inside Media Storage/YYYY-MM-DD; the display name belongs to its virtual link. If the current location cannot be retrieved, the notification still confirms the completed upload and omits the folder action.
-
-## External clients: address media by virtual path (0.10.0)
-
-Use the path shown by the app rather than looking up a node ID. Read-only API credentials can authorize `/index.php/apps/mediastorage/delivery/v1/PATH?key=TOKEN`; encode path segments once and preserve slash separators. A restricted token's path starts at its bucket/folder boundary; unrestricted tokens default to Library and may select another exact bucket name. Header-authenticated backend access and path-based temporary browser URL issuance are also available. See [the path API guide](path-api.md) for actual examples, scope/expiry behavior, and query-credential log risks. Deploy 0.10.0 before using these routes; older releases do not implement this form.
+A JSON response containing `nodes` confirms the listing reached Media Storage. An empty array means the listing returned no entries. Next, open a known image using its copied virtual path. If Media Storage returns `Media reference not found`, check the selected bucket and every folder in the path.

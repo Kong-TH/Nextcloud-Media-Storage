@@ -14,7 +14,10 @@ The user explicitly requested query credentials. Such URLs grant the credential'
 
 ## Path and bucket rules
 
-- A token restricted to a bucket/folder resolves paths relative to that exact boundary, matching existing scoped API paths. It never falls back to the owner's root and cannot override its boundary with `bucket`.
+- In 0.11.0, use the full virtual path from the bucket root for delivery, header-authenticated reads and temporary-link issuance. A file at `/Album/photo.jpg` always uses `Album/photo.jpg`. Use **Object details → Copy virtual path** to obtain this path.
+- Choose one bucket (including Library) or account-wide access when creating a token. A bucket token selects that bucket automatically. Previously issued folder tokens retain their existing permissions and require the full bucket-relative path. They cannot be rotated into new folder tokens. Replace them explicitly if needed.
+- Scoped node listings remain relative to their access boundary. For legacy folder tokens, use the full path shown in the session UI instead of the shortened listing path when opening a file.
+- The virtual hierarchy is managed independently of the original file's Nextcloud Files path. To keep a source folder as a virtual folder, select the folder in **Add from Nextcloud** and choose **Keep folder**. For existing references at the bucket root, create a virtual folder and move the references into it. This leaves the original files in place.
 - An unrestricted token resolves paths relative to Library by default. Use `?bucket=URL_ENCODED_BUCKET_NAME&key=TOKEN` to select another bucket by exact display name, without any ID. Unknown names return 404 rather than falling back. The renamed Library display name is also accepted.
 - Names and paths are case-sensitive. Encode each segment once, preserving `/` separators. Spaces become `%20`; encode literal `%`, `?`, `#`, Unicode, and query values appropriately. No extra URL decoding occurs inside the service.
 - Virtual rename/move changes the path; the old path returns 404. Rebinding a reference makes a direct path resolve its current authorized binding. Temporary URLs retain their existing pinned-content semantics.
@@ -49,9 +52,23 @@ curl --fail-with-body \
 
 Optional `bucket` is an exact bucket name for unrestricted tokens. Result: `url` and Unix `expires_at`, without a node ID or physical metadata. The returned URL is an opaque temporary capability; use it as returned rather than constructing it or substituting a filename. Its lifetime cannot exceed issuer expiry or server policy. Issuer revocation continues to invalidate derived links. Ordinary `<img>`/`<video>` elements can use this URL without exposing the long-lived API credential.
 
+## Cloudflare challenges
+
+If an API request receives a `Just a moment...` HTML page, inspect the `cf-mitigated` response header and look up the request's Ray ID in Cloudflare Security Events. Use the event to identify which rule or product to exempt for these reads. [Cloudflare challenge detection](https://developers.cloudflare.com/cloudflare-challenges/challenge-types/challenge-pages/detect-response/) · [Ray ID lookup](https://developers.cloudflare.com/fundamentals/reference/cloudflare-ray-id/)
+
+This example matches the two GET routes used to list references and open media. Replace `kohtnas.com` with your hostname and adapt the path if Nextcloud is installed under a subdirectory. Use it as the filter for the applicable Cloudflare exception. The expression matches the path without the query string. Keep Media Storage token authorization enabled and omit tokens from Cloudflare expressions. [Cloudflare Skip configuration](https://developers.cloudflare.com/waf/custom-rules/skip/)
+
+```text
+(http.host eq "kohtnas.com" and http.request.method eq "GET" and http.request.uri.path eq "/index.php/apps/mediastorage/external/v1/nodes") or (http.host eq "kohtnas.com" and http.request.method eq "GET" and starts_with(http.request.uri.path, "/index.php/apps/mediastorage/delivery/v1/"))
+```
+
+After saving, repeat `GET /external/v1/nodes` with a `media:read` bearer token. A JSON response with `nodes: []` confirms that the API handled the request and found no matching children. For a scoped token, omit `search` to inspect that boundary's immediate children. To search within a child folder, send its `id` as `parent_id` to the listing endpoint. For a bucket token, use the returned `virtual_path` for delivery.
+
+On 2026-11-24 the project owner confirmed that this expression let the listing request through Cloudflare. The listing returned JSON with an empty search result. Delivery of the reported production image remains unverified.
+
 ## Deployment
 
-0.10.0 source must be installed on the server before these new path routes work. No production installation, App Store upload, commit or push has been performed by implementing this feature. Existing 0.9.x installations do not gain it merely because documentation changes. Hosting under a subdirectory requires that subdirectory in the base URL. Internal Nextcloud integrity signing remains a separate release concern.
+The path routes first shipped in 0.10.0. Install 0.11.0 for full bucket-relative paths with existing folder tokens and bucket-only restrictions on new tokens. Update previously shortened delivery URLs to include the full folder path. Hosting under a subdirectory requires that subdirectory in the base URL. Internal Nextcloud integrity signing remains a separate release concern.
 
 ## Validation
 
