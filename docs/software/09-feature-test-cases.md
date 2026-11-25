@@ -78,3 +78,5 @@ Folder search reset: submit a query with no matches, then click the native clear
 Workspace navigation spacing: measure from the bottom of Objects to the top of API tokens on the desktop drawer and the open mobile drawer. The signed-in local instance measured 8 px at both 1077 and 390 px.
 
 Workspace-to-Buckets spacing: measure from the bottom of the workspace navigation to the top edge of the Buckets panel. After rebuilding with `npm run build`, the signed-in Nextcloud 35.0.3 preview measured 8 px at 1077 and 390 px. The same geometry is covered in `tests/frontend/browser.mjs`.
+
+Version footer: in the signed-in Nextcloud 35.0.3 preview, inspect the footer and Buckets panel at 1077 and 390 px. Chromium verified identical background colors and horizontal edges, a 0 px gap and full coverage to the drawer bottom at both widths. The preview CSS was updated directly.

@@ -33,6 +33,7 @@ This documentation uses the organizational structure of `tiktok-live-sandbox-gam
 
 ## Software
 
+- [Settings page design](design/settings.md)
 - [Responsive plugin design](design/responsive-plugin.md)
 - [Library header, padding and footer refinement](design/layout-refinement.md)
 - [Reference actions, creation FAB and selection toolbar](design/reference-actions.md)
