@@ -65,5 +65,5 @@ export async function folderReviewChecks(context){
  await click('#import-back');await wait("!!document.querySelector('.file-picker')")
  check('Back before writing retains selected sources',await evaluate("document.querySelectorAll('.file-picker input:checked').length===30"))
  await cleanup(id)
- setSources('baseline');setImport('normal');await send('Page.navigate',{url:base+back});await wait("document.querySelector('#fab').getAttribute('aria-disabled')==='false'")
+ setSources('baseline');setImport('normal');await send('Page.navigate',{url:base+back});await wait("document.querySelector('#objects')?.textContent.includes('Photo.png')")
 }

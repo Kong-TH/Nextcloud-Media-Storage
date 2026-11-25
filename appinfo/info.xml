@@ -57,7 +57,7 @@ curl -sS -H "Authorization: Bearer $MS_TOKEN" \
 ```
 
 A JSON response containing `nodes` confirms the listing reached Media Storage. An empty array means the listing returned no entries. Next, open a known image using its copied virtual path. If Media Storage returns `Media reference not found`, check the selected bucket and every folder in the path.]]></description>
-    <version>0.11.0</version>
+    <version>0.11.1</version>
     <licence>AGPL-3.0-or-later</licence>
     <author>Kongphai Wutthichaiya</author>
     <namespace>MediaStorage</namespace>

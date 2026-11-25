@@ -97,6 +97,25 @@ const check=(name,value)=>{assert.ok(value,name);checks.push(name)}
 async function wait(expression){for(let i=0;i<100;i++){if(await evaluate(expression))return;await pause(50)}throw new Error('Timed out: '+expression)}
 async function click(selector,scroll=true){const point=await evaluate(`(()=>{const el=document.querySelector(${JSON.stringify(selector)});if(!el||el.disabled||!el.getClientRects().length)throw new Error('Unavailable target: '+${JSON.stringify(selector)});${scroll?"el.scrollIntoView({block:'nearest'});":''}const r=el.getBoundingClientRect();return {x:r.x+r.width/2,y:r.y+r.height/2}})()`);await send('Input.dispatchMouseEvent',{type:'mouseMoved',...point});await send('Input.dispatchMouseEvent',{type:'mousePressed',button:'left',clickCount:1,...point});await send('Input.dispatchMouseEvent',{type:'mouseReleased',button:'left',clickCount:1,...point});await pause(60)}
 async function input(value){await evaluate(`(()=>{const input=document.querySelector('#task input:not([type=checkbox])');input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}))})()`)}
+async function checkBucketLayout(width) {
+ const layout=await evaluate(`(() => {
+   const rect=selector=>document.querySelector(selector).getBoundingClientRect();
+   const drawer=rect('#drawer'), panel=rect('.bucket-section'), header=rect('.bucket-title');
+   const filter=rect('.bucket-section label'), footer=rect('.drawer-footer');
+   const workspace=rect('#drawer > nav .destination'), bucket=rect('.bucket-entry');
+   return {workspaceGap:panel.top-rect('#drawer > nav').bottom,
+     rowStart:bucket.left-workspace.left,rowEnd:bucket.right-workspace.right,
+     left:panel.left-drawer.left,right:drawer.right-panel.right,
+     footerGap:footer.top-panel.bottom,filterGap:filter.top-header.bottom,filterHeight:filter.height,filterStart:filter.left-bucket.left,filterEnd:filter.right-bucket.right};
+ })()`);
+ check('Bucket panel meets drawer edges and reaches footer at '+width,
+   Math.abs(layout.left)<1 && Math.abs(layout.right)<1 && layout.footerGap>=0 && layout.footerGap<=9);
+ check('Bucket panel starts 8px below workspace navigation at '+width, Math.abs(layout.workspaceGap-8)<1);
+ check('Bucket rows align with workspace destinations at '+width,
+   Math.abs(layout.rowStart)<1 && Math.abs(layout.rowEnd)<1);
+ check('Filter stays compact below bucket header at '+width,
+   layout.filterGap>=0 && layout.filterGap<=16 && layout.filterHeight===56 && Math.abs(layout.filterStart)<1 && Math.abs(layout.filterEnd)<1);
+}
 try{
  await send('Runtime.enable');errors.length=0;await send('Page.enable');await send('Emulation.setDeviceMetricsOverride',{width:1440,height:1000,deviceScaleFactor:1,mobile:false});await send('Page.navigate',{url:base});await wait('location.origin==='+JSON.stringify(base));await wait("document.querySelectorAll('#objects li').length===2")
  const beforePickerNext=next
@@ -107,6 +126,8 @@ try{
  if(!process.argv.includes('--selection-only')){
  check('Real Vue mount renders server rows',await evaluate("document.querySelector('#objects').textContent.includes('Photo.png')"))
  check('Drawer footer shows supplied version only',await evaluate("document.querySelector('.drawer-footer').textContent.trim()=== "+JSON.stringify('v'+appVersion)+"&&!document.querySelector('#media-design').textContent.includes('Your media, organized.')&&!document.querySelector('#media-design').textContent.includes('Files stay in Nextcloud.')"))
+ await checkBucketLayout(1440)
+ await writeFile('/tmp/mediastorage-bucket-section-1440.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'))
  await buttonSpacingChecks({evaluate,check})
  check('Material primitive registered',await evaluate("!!customElements.get('md-filled-button')"))
  await detailChecks({send,evaluate,click,wait,check,pause});await materialChecks({send,evaluate,check,pause})
@@ -124,6 +145,14 @@ try{
  }
  await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:false});await click('#open-drawer')
  check('Compact drawer has real modal semantics',await evaluate("document.querySelector('#drawer').getAttribute('aria-modal')==='true'&&document.querySelector('#main').inert"))
+ await checkBucketLayout(390)
+ await writeFile('/tmp/mediastorage-bucket-section-390.png',Buffer.from((await send('Page.captureScreenshot',{format:'png'})).data,'base64'))
+ const bucketFilter = '.bucket-section input[type=search]'
+ await evaluate(`(() => {const input=document.querySelector('${bucketFilter}');input.focus();input.value='no such bucket';input.dispatchEvent(new Event('input',{bubbles:true}))})()`)
+ await wait("document.querySelector('.bucket-section').textContent.includes('No matching buckets')")
+ check('Filtering buckets leaves workspace destinations visible',await evaluate("document.querySelectorAll('#drawer > nav .destination').length===2 && document.querySelector('.bucket-section #add-bucket').getBoundingClientRect().width>0"))
+ await evaluate(`(() => {const input=document.querySelector('${bucketFilter}');input.value='';input.dispatchEvent(new Event('input',{bubbles:true}))})()`)
+ await wait("document.querySelector('.bucket-section #bucket-root')")
  await click('#add-bucket');await wait("document.querySelector('#task').open");await input('Brand');await click('#task md-filled-button');await wait("!document.querySelector('#task').open&&document.querySelector('h1').textContent==='Brand'")
  check('Bucket creation uses HTTP and selects empty namespace',rows.every(n=>n.parent_id!=='b1'))
  await click('#fab');await click('#fab-menu button:last-child');await wait("document.querySelector('#task').open");await input('New folder');await click('#task md-filled-button');await wait("document.querySelector('#objects').textContent.includes('New folder')")

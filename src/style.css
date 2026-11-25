@@ -13,15 +13,33 @@
 #media-design h1 {font-size:32px;line-height:1.2;letter-spacing:-.8px;margin:0 0 10px;font-weight:550;}
 #media-design h2 {font-size:16px;margin:0;font-weight:650;} #media-design p {color:var(--muted);}
 #media-design .app {display:grid;grid-template-columns:360px minmax(0,1fr);grid-template-rows:minmax(0,1fr);height:var(--workspace-height,calc(100dvh - 100px));min-height:0;position:relative;}
-#media-design .drawer {padding:24px 12px;background:var(--low);display:flex;flex-direction:column;gap:8px;min-width:0;}
+#media-design .drawer {--drawer-inset:12px;padding:24px var(--drawer-inset);background:var(--low);display:flex;flex-direction:column;gap:8px;min-width:0;}
 #media-design .brand {display:flex;align-items:center;gap:12px;padding:0 16px 20px;font-size:19px;}
 #media-design .brand-icon {background:var(--primary);color:var(--on-primary);width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-size:20px;}
 #media-design .section-label {font-size:10px;letter-spacing:1.8px;padding:0 16px;}
 #media-design .destination {width:100%;text-align:start;display:flex;align-items:center;gap:16px;min-height:56px;border-radius:28px;}
 #media-design .destination.active {background:var(--secondary);} #media-design .destination>span {font-size:22px;}
-#media-design .bucket-title {display:flex;align-items:center;gap:10px;padding:28px 16px 6px;}
+#media-design .bucket-section {
+  display:grid;
+  align-content:start;
+  flex:1 0 auto;
+  gap:8px;
+  margin-inline:calc(-1 * var(--drawer-inset));
+  padding-inline:var(--drawer-inset);
+  padding-block:18px 8px;
+  background:var(--container);
+  border-radius:24px 24px 0 0;
+}
+#media-design .bucket-title {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  padding:4px 12px 12px 16px;
+  min-height:48px;
+}
+#media-design .bucket-section > p {margin:0 16px;}
 #media-design .small-pill {font-size:10px;border:1px solid var(--outline);padding:2px 8px;border-radius:8px;color:var(--muted);}
-#media-design .filter {border:1px solid var(--outline);border-radius:12px;margin:6px 12px;}
 #media-design .drawer-footer {margin-block-start:auto;padding:24px 16px 0;font-weight:600;color:var(--primary);} #media-design .drawer-footer span {font-weight:400;font-size:12px;color:var(--muted);}
 #media-design main {--pane-padding:32px;--scroll-gutter:0px;display:flex;flex-direction:column;height:100%;min-height:0;min-width:0;background:var(--surface);border-radius:28px 0 0 0;padding:0;overflow:hidden;}
 #media-design .eyebrow {font-size:10px;letter-spacing:2px;color:var(--muted);font-weight:650;}
@@ -175,7 +193,7 @@
 
 
 #media-design #add-bucket {margin-inline-start:auto;min-width:96px;white-space:nowrap;--md-text-button-icon-size:24px;}
-#media-design .bucket-title {padding-inline-end:12px;}
+
 @container plugin (max-width:599px) {
  #media-design main.has-toolbar .library-footer {padding-inline:24px;}
  #media-design main.has-toolbar .selection {width:100%;max-width:100%;}
@@ -365,8 +383,10 @@
 
 /* Bucket navigation and removal are separate sibling controls. */
 #media-design .bucket-entry {position:relative;border-radius:28px;min-height:56px;}
+#media-design .drawer > nav > .destination + .destination,
+#media-design .bucket-entry + .bucket-entry {margin-block-start:8px;}
 #media-design .bucket-entry.active {background:var(--secondary);}
-#media-design .bucket-entry:hover:not(.active),#media-design .bucket-entry:focus-within:not(.active) {background:var(--container);}
+#media-design .bucket-entry:hover:not(.active),#media-design .bucket-entry:focus-within:not(.active) {background:var(--low);}
 #media-design .bucket-entry .destination {padding-inline-end:60px;background:transparent;}
 #media-design .bucket-name {font:inherit;min-width:0;overflow-wrap:anywhere;text-align:start;}
 #media-design .bucket-entry .edit-bucket {position:absolute;inset-inline-end:4px;top:4px;width:48px;height:48px;opacity:0;pointer-events:none;--md-icon-button-icon-color:var(--primary);}

@@ -1,3 +1,9 @@
+## Drawer bucket section (0.11.1) — 2026-11-25
+
+The Buckets heading, Add action, filter and bucket list form a separate drawer section. The bucket surface fills the drawer width and extends to the footer. The controls share the workspace navigation inset. The Buckets panel starts 8 px below the workspace menu. The bucket heading has 12 px of bottom padding. Clearing a submitted folder search restores the current listing immediately, as verified with the native clear control on local Nextcloud. The live bucket filter uses the same rounded bar and leading icon as folder search. Typing and clearing were verified in the local Nextcloud preview at both widths. On the signed-in local instance, the bucket rows and workspace destinations had matching left and right edges at both viewport sizes. The built frontend passed 455 Chromium fixture checks. A signed-in local Nextcloud 35.0.3 preview confirmed the panel aligns with both drawer edges at 1077 and 390 px.
+
+The owner approved the drawer changes. Keep the build and deployment for the release that includes the Settings page.
+
 The owner confirmed the 0.11.0 local trial worked. The candidate Store description now includes the English user guide and links to its GitHub copy. Publish the matching Git documentation before submitting the updated archive. Public listing rendering remains pending.
 
 ## Bucket-only token restrictions and complete delivery paths — 2026-11-24

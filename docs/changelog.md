@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.1 — Drawer layout and search reset, 2026-11-25
+
+- Group Buckets below the workspace menu with a dedicated surface, consistent spacing and a live filter styled like folder search.
+- Restore the current folder's full listing when the search field is cleared.
+- Patch bump for UI refinements and a search behavior fix. Build and deployment are deferred until the Settings page is ready.
+
 ## 0.11.0 — Bucket-scoped tokens and complete delivery paths, 2026-11-24
 
 - Delivery and temporary-link requests now retain all virtual subfolders below the bucket root.

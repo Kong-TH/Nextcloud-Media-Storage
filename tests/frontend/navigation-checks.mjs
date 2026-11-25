@@ -31,6 +31,18 @@ export async function navigationChecks({send,evaluate,check,wait,click,pause}){
  check('Submitted Unicode search and sorting are encoded',searchHash.includes('q=')&&searchHash.includes('sort=type'))
  await send('Page.reload');await wait("document.querySelector('#objects .object-name')?.textContent.includes('ลูก folder')&&document.querySelector('#fab').getAttribute('aria-disabled')==='false'")
  check('Reload restores query, sort and direct-child result',await evaluate("document.querySelector('#search-form input').value==='ลูก'&&document.querySelector('#object-sort').value==='type'&&document.querySelectorAll('#objects li').length===1"))
+ const setSearchInput = value => evaluate(`(() => {
+   const input = document.querySelector('#search-form input')
+   input.value = ${JSON.stringify(value)}
+   input.dispatchEvent(new Event('input', {bubbles:true}))
+ })()`)
+ await setSearchInput('missing fixture')
+ await evaluate("document.querySelector('#search-form').requestSubmit()")
+ await wait("document.querySelector('#objects').getAttribute('aria-busy')==='false' && !document.querySelector('#objects .object-name')")
+ await setSearchInput('')
+ await wait("document.querySelector('#objects .object-name')?.textContent.includes('ลูก folder')")
+ check('Clearing submitted search restores the current folder without submitting',await evaluate("!location.hash.includes('q=') && location.hash.includes('sort=type') && document.querySelector('#path-row').textContent.includes('Outer folder')"))
+ await go(searchHash)
  await click('#objects li md-icon-button');await wait("!!document.querySelector('#detail-name')")
  const detailHash=await evaluate('location.hash')
  await click('#close-detail');await wait("!document.querySelector('#details')")

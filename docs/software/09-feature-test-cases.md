@@ -56,3 +56,25 @@ Run the exact package check with `MEDIASTORAGE_TEST_DISPOSABLE=yes python3 tests
 The 0.11.0 archive passed all seven installed HTTP suites on Nextcloud 35.0.3, PHP 8.4.28 and SQLite. The 372 checks comprise 60 path, 130 integration, 26 upload, 76 access, 19 import, 30 paging and 31 streaming checks. Run the command above with the four additional suite arguments `--suite upload_http --suite imports_http --suite paging_http --suite streaming_http` on an unused port. All ten PHP suites listed in the release workflow, six frontend unit files and 68 archive checks passed.
 
 Populated upgrade procedure (passed on a second isolated instance): install the 0.10.0 archive, create an Album folder and upload a logo with the same name both there and at the bucket root. Issue a folder-bound key and confirm the abbreviated URL returns the image on 0.10.0. Replace the app files with the checksummed candidate, run `occ upgrade` and verify the installed version. On 0.11.0 the existing key returned the original bytes at the complete Album path and 404 at the abbreviated path despite the root duplicate. New folder-bound issuance returned 409 and bucket-bound issuance returned 201. Production Snap/MySQL upgrade and proxy behavior remain unverified.
+
+## Drawer bucket section (2026-11-25)
+
+Open the drawer with a Library bucket. Verify Objects and API tokens appear above the rounded Buckets header, with Add aligned to the right. Enter an unmatched filter and confirm the empty message stays inside the bucket group. Clear the filter and confirm Library returns. Use Add to create and select a bucket. On compact screens repeat with the navigation menu open.
+
+Ran `npm run build`, `npm test` (six files) and `node tests/frontend/browser.mjs` (448 Chromium fixture checks). Inspected the rendered drawer at 1440 and 390 px in light mode and 1044 px in dark mode. Installed Nextcloud visual verification remains pending.
+
+Full-width refinement: the browser suite checks both drawer edges, space above the footer and filter height on desktop and compact screens. All 454 fixture checks and six frontend unit files passed. In the installed local Nextcloud 35.0.3 preview, both panel edges aligned with the drawer (0 px inset) at 1077 and 390 px, and the filter measured 42 px high in both layouts.
+
+Horizontal alignment: compare the first bucket row with the Objects destination in the expanded desktop and compact drawers. Both row edges must coincide while the panel continues to touch the drawer edges. Verified on the signed-in local instance at 1077 and 390 px.
+
+Bucket padding: inspect the section in the signed-in drawer at 1077 and 390 px. Computed padding was 18 px top, 12 px on each side and 8 px bottom. The header started 18 px below the panel edge at both widths.
+
+Bucket search styling: type an unmatched name and clear it without submitting. The empty state appears immediately, then Library returns. Verified in the installed local preview at 1077 and 390 px. The 56 px rounded bar shares the folder search styling, aligns with the bucket rows and has a leading search icon. The control has no submit button.
+
+Bucket row spacing: with Library and Portfolio visible, measure the distance between the bottom of the first row and the top of the second. The signed-in local preview measured 8 px at viewport widths of 1077 and 390 px. Typing an unmatched filter and clearing it restored the list.
+
+Folder search reset: submit a query with no matches, then click the native clear control. The signed-in local preview restored the original listing and removed the search parameter without a second submit. The computed bottom padding of the bucket heading was 12 px at 1077 and 390 px. The nested-folder case in `tests/frontend/navigation-checks.mjs` also checks that clearing preserves the current folder and sort.
+
+Workspace navigation spacing: measure from the bottom of Objects to the top of API tokens on the desktop drawer and the open mobile drawer. The signed-in local instance measured 8 px at both 1077 and 390 px.
+
+Workspace-to-Buckets spacing: measure from the bottom of the workspace navigation to the top edge of the Buckets panel. After rebuilding with `npm run build`, the signed-in Nextcloud 35.0.3 preview measured 8 px at 1077 and 390 px. The same geometry is covered in `tests/frontend/browser.mjs`.

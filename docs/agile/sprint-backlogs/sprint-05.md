@@ -1,5 +1,11 @@
 # Sprint 05 — Release readiness
 
+## Drawer bucket section (0.11.1) — 2026-11-25
+
+The Buckets heading, Add action, filter and bucket list form a separate drawer section. The bucket surface fills the drawer width and extends to the footer. The controls share the workspace navigation inset. The Buckets panel starts 8 px below the workspace menu. The bucket heading has 12 px of bottom padding. Clearing a submitted folder search restores the current listing immediately, as verified with the native clear control on local Nextcloud. The live bucket filter uses the same rounded bar and leading icon as folder search. Typing and clearing were verified in the local Nextcloud preview at both widths. On the signed-in local instance, the bucket rows and workspace destinations had matching left and right edges at both viewport sizes. The built frontend passed 455 Chromium fixture checks. A signed-in local Nextcloud 35.0.3 preview confirmed the panel aligns with both drawer edges at 1077 and 390 px.
+
+The owner approved the drawer changes. Keep the build and deployment for the release that includes the Settings page.
+
 ## Bucket-only token restrictions and complete delivery paths — 2026-11-24
 
 The owner requires token restrictions at the bucket level and delivery paths that keep all virtual folders. Media Storage 0.11.0 restricts new token issuance and rotation to owned bucket roots or account-wide access. The token form offers those choices. Existing folder-bound records retain their original access and require complete bucket-relative paths for media reads and temporary-link issuance. Scoped node listings remain unchanged for these legacy records. No schema migration is required. No production deployment was performed. The 0.11.0 candidate passed 262 HTTP checks on isolated Nextcloud 35.0.3. The standalone Chromium UI fixture passed 445 checks. See [feature test cases](../../software/09-feature-test-cases.md) for coverage and remaining production verification.
